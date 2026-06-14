@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics for AI and Machine Learning — ISRT | K.M. Tanvir</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #dbeafe;
+  --accent: #4f46e5;
+  --success: #059669;
+  --success-light: #d1fae5;
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --warning-dark: #b45309;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --neutral: #64748b;
+  --neutral-light: #f1f5f9;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.app { max-width: 1180px; margin: 0 auto; padding: 28px 22px 80px; }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
+  color: white;
+  padding: 44px 36px;
+  border-radius: var(--radius);
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%; right: -10%;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
+  border-radius: 50%;
+}
+.hero-inner { position: relative; z-index: 1; }
+.kicker {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  backdrop-filter: blur(4px);
+}
+.hero h1 {
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+  line-height: 1.15;
+}
+.hero-subtitle {
+  font-size: 1.05rem;
+  opacity: 0.88;
+  max-width: 640px;
+  line-height: 1.5;
+}
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+.hero-meta div { font-size: 0.9rem; opacity: 0.95; }
+.hero-meta strong { display: block; font-weight: 700; margin-bottom: 2px; letter-spacing: 0.3px; }
+
+/* STATUS BAR */
+.status-card {
+  background: var(--card);
+  padding: 18px 24px;
+  border-radius: var(--radius);
+  margin-bottom: 28px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.status-info { display: flex; align-items: center; gap: 12px; }
+.status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(5,150,105,0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(5,150,105,0); }
+}
+.status-text { font-size: 0.95rem; color: var(--text); }
+.status-text strong { color: var(--success); font-weight: 700; }
+.counters { display: flex; gap: 22px; }
+.counter { display: flex; align-items: baseline; gap: 6px; }
+.counter-num { font-size: 1.5rem; font-weight: 800; color: var(--primary); line-height: 1; }
+.counter-label { color: var(--muted); font-weight: 500; font-size: 0.88rem; }
+.progress-wrap { flex: 1; min-width: 180px; max-width: 320px; }
+.progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), #10b981);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.6s ease;
+}
+.progress-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+/* SECTION TITLE */
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 8px 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::before {
+  content: "";
+  width: 4px; height: 20px;
+  background: var(--primary);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* MODULE GRID */
+.lecture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+.lecture-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+.lecture-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--primary);
+  opacity: 0.8;
+}
+.lecture-card.casestudy::before { background: var(--success); }
+.lecture-card.available { cursor: pointer; }
+.lecture-card.available:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+.lecture-card.casestudy.available:hover { border-color: var(--success); }
+.lecture-card.locked {
+  opacity: 0.72;
+  cursor: not-allowed;
+  background: linear-gradient(to bottom, #fafbfc, #f1f5f9);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.lecture-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.lecture-card.casestudy .lecture-num {
+  color: var(--success);
+  background: var(--success-light);
+}
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.badge-available { color: var(--success); background: var(--success-light); }
+.badge-locked    { color: var(--muted);   background: var(--neutral-light); }
+.badge-checking  { color: var(--primary); background: var(--primary-light); }
+.badge-available::before {
+  content: "";
+  width: 6px; height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+}
+.badge-locked::before   { content: "🔒"; font-size: 0.8em; }
+.badge-checking::before {
+  content: "";
+  width: 8px; height: 8px;
+  border: 2px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.lecture-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.lecture-desc {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.55;
+  flex: 1;
+  margin-bottom: 14px;
+}
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.intensity {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pips { display: flex; gap: 3px; }
+.pip { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.pip.on { background: var(--primary); }
+.lecture-card.casestudy .pip.on { background: var(--success); }
+.action {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap var(--transition);
+}
+.lecture-card.casestudy .action  { color: var(--success); }
+.lecture-card.available:hover .action { gap: 8px; }
+.lecture-card.locked .action { color: var(--muted); }
+
+/* FOOTER */
+.footer {
+  margin-top: 50px;
+  padding: 24px;
+  text-align: center;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.footer strong { color: var(--text); }
+.footer-links { margin-top: 10px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.footer-links a { color: var(--primary); text-decoration: none; font-weight: 500; }
+.footer-links a:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .app { padding: 18px 14px 60px; }
+  .hero { padding: 32px 22px; }
+  .status-card { flex-direction: column; align-items: stretch; }
+  .counters { justify-content: space-around; }
+  .lecture-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="kicker">AST402 · ISRT, University of Dhaka</span>
+      <h1>Statistics for AI and Machine Learning</h1>
+      <p class="hero-subtitle">Theory and mathematical foundations of statistical learning and artificial intelligence.</p>
+      <div class="hero-meta">
+        <div><strong>Instructor</strong>K.M. Tanvir</div>
+        <div><strong>Institution</strong>ISRT, University of Dhaka</div>
+        <div><strong>Textbook</strong>ISLR · James, Witten, Hastie, Tibshirani</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATUS BAR -->
+  <div class="status-card">
+    <div class="status-info">
+      <span class="status-dot"></span>
+      <span class="status-text">Course is <strong>live</strong> — modules unlock as we progress</span>
+    </div>
+    <div class="counters">
+      <div class="counter">
+        <span class="counter-num" id="count-available">0</span>
+        <span class="counter-label">Available</span>
+      </div>
+      <div class="counter">
+        <span class="counter-num" id="count-upcoming">13</span>
+        <span class="counter-label">Upcoming</span>
+      </div>
+      <div class="counter">
+        <span class="counter-num" id="count-total">13</span>
+        <span class="counter-label">Total</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label">0 of 13 modules released</div>
+    </div>
+  </div>
+
+  <!-- BLOCK 1: STATISTICAL MACHINE LEARNING -->
+  <h2 class="section-title">Block 1 · Statistical Machine Learning</h2>
+  <div class="lecture-grid">
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 01 - Overview of Statistical Machine Learning/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 1</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Overview of Statistical Machine Learning</h3>
+      <p class="lecture-desc">The data science workflow, the distinction between supervised and unsupervised learning, and the prediction vs. inference framing that runs through the entire course.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 02 - Statistical Learning Theory/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 2</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Statistical Learning Theory</h3>
+      <p class="lecture-desc">Regression vs. classification framing, the curse of dimensionality, the bias-variance trade-off and its derivation, and K-nearest neighbours as a concrete illustration.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 03 - Linear Regression/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 3</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Linear Regression</h3>
+      <p class="lecture-desc">Simple and multiple regression, ordinary least squares, qualitative predictors, interaction terms, polynomial extensions, and model diagnostics. Follows ISLR Ch. 3.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 04 - Classification/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 4</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Classification</h3>
+      <p class="lecture-desc">Logistic regression, maximum likelihood estimation, multiclass logistic regression, linear and quadratic discriminant analysis, Naive Bayes, and ROC curves. Follows ISLR Ch. 4.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 05 - Resampling and Model Selection/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 5</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Resampling and Model Selection</h3>
+      <p class="lecture-desc">Validation set approach, LOOCV, k-fold cross-validation, and the bootstrap. Best subset selection, forward and backward stepwise selection, with Cp, AIC, BIC, and adjusted R² as criteria. Follows ISLR Ch. 5 and Ch. 6.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 06 - Shrinkage Methods/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 6</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Shrinkage Methods</h3>
+      <p class="lecture-desc">Ridge regression, the Lasso, adaptive Lasso, group Lasso, elastic net, adaptive elastic net, bridge regression, and total variation regularization, with tuning parameter selection strategies.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 07 - Dimension Reduction and Unsupervised Learning/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 7</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Dimension Reduction and Unsupervised Learning</h3>
+      <p class="lecture-desc">Principal component analysis, principal components regression, partial least squares, K-means clustering, Fuzzy C-means, and hierarchical clustering with dendrograms. Follows ISLR Ch. 6 and Ch. 10.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 08 - Decision Trees/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 8</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Decision Trees</h3>
+      <p class="lecture-desc">Regression trees, classification trees, recursive binary splitting, cost-complexity pruning, the Gini index, and entropy as impurity measures. Follows ISLR Ch. 8.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 09 - Ensemble Methods/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 9</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Ensemble Methods</h3>
+      <p class="lecture-desc">Bagging, random forests with variable importance and out-of-bag error, AdaBoost, and gradient boosting — how combining weak learners produces strong predictors. Follows ISLR Ch. 8.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BLOCK 2: ARTIFICIAL INTELLIGENCE AND BIG DATA -->
+  <h2 class="section-title">Block 2 · Artificial Intelligence and Big Data</h2>
+  <div class="lecture-grid">
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 10 - Introduction to Artificial Intelligence/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 10</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Introduction to Artificial Intelligence</h3>
+      <p class="lecture-desc">Definition and history of AI, major application domains, societal impact, the principal subfields of AI, and the components that make up a modern AI system.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 11 - Problem Solving and Search/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 11</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Problem Solving and Search</h3>
+      <p class="lecture-desc">Formalising problems as state spaces, uninformed strategies (BFS, DFS), and informed strategies including best-first search and the A* algorithm with heuristics.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+    <div class="lecture-card" data-type="lecture"
+         data-url="Module 12 - Big Data/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 12</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Big Data</h3>
+      <p class="lecture-desc">Definition and sources of big data, the 5 Vs, the challenges of scale, and the Hadoop ecosystem including HDFS, MapReduce, YARN, and Hive.</p>
+      <div class="card-foot">
+        <span class="intensity">Math: <span class="pips"><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span></span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BLOCK 3: APPLIED CASE STUDIES -->
+  <h2 class="section-title">Block 3 · Applied Case Studies</h2>
+  <div class="lecture-grid">
+
+    <div class="lecture-card casestudy" data-type="lecture"
+         data-url="Module 13 - Case Studies in R and Python/index.html">
+      <div class="card-head">
+        <span class="lecture-num">Module 13</span>
+        <span class="status-badge badge-checking">Checking…</span>
+      </div>
+      <h3 class="lecture-title">Case Studies in R and Python</h3>
+      <p class="lecture-desc">End-to-end analyses on real datasets using methods from Modules 2 through 9, with complete R and Python code shown side by side. Covers regression, classification, regularisation, clustering, and tree methods on applied problems.</p>
+      <div class="card-foot">
+        <span class="intensity">🔬 R + Python</span>
+        <span class="action">Open module →</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <strong>AST402 · Statistics for AI and Machine Learning</strong><br>
+    Institute of Statistical Research and Training (ISRT), University of Dhaka<br>
+    <span>Instructor: K.M. Tanvir &nbsp;·&nbsp; kmtanvir@isrt.ac.bd</span>
+    <div class="footer-links">
+      <a href="https://www.kmtanvir.com" target="_blank" rel="noopener">Course Website</a>
+      <a href="mailto:kmtanvir@isrt.ac.bd">Contact Instructor</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// AUTO-DETECT WHICH MODULES ARE AVAILABLE
+// A module card becomes "Available" only when its data-url file responds OK.
+// To release a module, commit and push its folder. No edits to this file needed.
+// Add data-force-locked="true" to any card to keep it locked even when the file exists.
+
+async function fileExists(url) {
+  const bust = url + (url.includes('?') ? '&' : '?') + '_=' + Date.now();
+  try {
+    let res = await fetch(bust, { method: 'HEAD', cache: 'no-store' });
+    if (!res.ok && res.status !== 405) {
+      res = await fetch(bust, { method: 'GET', cache: 'no-store' });
+    } else if (res.status === 405) {
+      res = await fetch(bust, { method: 'GET', cache: 'no-store' });
+    }
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+function markAvailable(card, url) {
+  const badge = card.querySelector('.status-badge');
+  card.classList.remove('locked');
+  card.classList.add('available');
+  badge.className = 'status-badge badge-available';
+  badge.textContent = 'Available';
+  const action = card.querySelector('.action');
+  if (action) action.textContent = 'Open module →';
+  card.addEventListener('click', () => { window.location.href = url; });
+}
+
+function markLocked(card) {
+  const badge = card.querySelector('.status-badge');
+  card.classList.remove('available');
+  card.classList.add('locked');
+  badge.className = 'status-badge badge-locked';
+  badge.textContent = 'Coming soon';
+  const action = card.querySelector('.action');
+  if (action) action.textContent = 'Not yet released';
+}
+
+async function probeCard(card) {
+  if (card.getAttribute('data-force-locked') === 'true') { markLocked(card); return false; }
+  const url = card.getAttribute('data-url');
+  if (!url) return false;
+  const ok = await fileExists(url);
+  if (ok) { markAvailable(card, url); return true; }
+  markLocked(card);
+  return false;
+}
+
+function updateCounters(availableCount, totalCount) {
+  const upcoming = Math.max(0, totalCount - availableCount);
+  document.getElementById('count-available').textContent = availableCount;
+  document.getElementById('count-upcoming').textContent = upcoming;
+  document.getElementById('count-total').textContent = totalCount;
+  const pct = totalCount > 0 ? Math.round((availableCount / totalCount) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent =
+    availableCount + ' of ' + totalCount + ' modules released (' + pct + '%)';
+}
+
+async function init() {
+  const cards = document.querySelectorAll('.lecture-card[data-url]');
+  const results = await Promise.all(Array.from(cards).map(probeCard));
+  updateCounters(results.filter(Boolean).length, cards.length);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
