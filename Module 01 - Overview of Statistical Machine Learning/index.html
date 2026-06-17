@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 1: Overview of Statistical Machine Learning</title>
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" async></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b;
+  --primary: #2563eb; --primary-dark: #1d4ed8; --primary-light: #dbeafe;
+  --accent: #4f46e5; --success: #059669; --success-light: #d1fae5;
+  --danger: #dc2626; --danger-light: #fee2e2; --warning: #d97706; --warning-light: #fef3c7;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
+  --radius: 12px; --radius-sm: 8px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+.app { max-width: 1100px; margin: 0 auto; padding: 24px 20px 80px; }
+
+header.lecture-header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 32px 28px; border-radius: var(--radius); margin-bottom: 20px; box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
+header.lecture-header::before { content: ""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: rgba(255,255,255,0.08); border-radius: 50%; }
+header.lecture-header::after { content: ""; position: absolute; bottom: -30px; right: 80px; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+header.lecture-header .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; position: relative; z-index: 1; }
+header.lecture-header h1 { font-size: 28px; margin: 12px 0 8px; font-weight: 700; position: relative; z-index: 1; }
+header.lecture-header p.instructor { font-size: 13px; opacity: 0.85; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); max-width: 720px; position: relative; z-index: 1; }
+header.lecture-header p.instructor strong { font-weight: 700; }
+
+.stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; padding: 14px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; }
+.stat { text-align: center; padding: 6px; }
+.stat .stat-value { font-size: 22px; font-weight: 700; color: var(--primary); line-height: 1.2; }
+.stat .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
+
+.tabs { display: flex; gap: 4px; background: white; padding: 6px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 18px; flex-wrap: wrap; }
+.tab-btn { flex: 1; min-width: 110px; padding: 11px 16px; background: transparent; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all var(--transition); font-family: inherit; }
+.tab-btn:hover { background: var(--bg); color: var(--text); }
+.tab-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.28); }
+.tab-content { display: none; animation: fadeIn 0.28s ease-in-out; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.card { background: var(--card); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); margin-bottom: 16px; }
+
+.progress-bar { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+.slide-counter { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 14px; font-weight: 500; }
+.slide { display: none; min-height: 420px; padding: 4px; animation: slideIn 0.3s ease; }
+.slide.active { display: block; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+.slide h2 { font-size: 26px; margin-bottom: 6px; color: var(--primary-dark); font-weight: 700; line-height: 1.25; }
+.slide h3 { font-size: 18px; margin: 22px 0 10px; color: var(--text); font-weight: 600; }
+.slide p { margin-bottom: 12px; color: #334155; }
+.slide ul, .slide ol { margin: 0 0 14px 22px; }
+.slide li { margin-bottom: 6px; color: #334155; }
+.slide .slide-subtitle { color: var(--muted); font-size: 15px; margin-bottom: 18px; font-style: italic; }
+
+.example-box { background: var(--primary-light); border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: var(--radius-sm); margin: 16px 0; }
+.example-box strong { color: var(--primary-dark); }
+.tip-box { background: var(--success-light); border-left: 4px solid var(--success); padding: 16px 20px; border-radius: var(--radius-sm); margin: 16px 0; }
+.tip-box strong { color: var(--success); }
+.warn-box { background: var(--warning-light); border-left: 4px solid var(--warning); padding: 16px 20px; border-radius: var(--radius-sm); margin: 16px 0; }
+.warn-box strong { color: var(--warning); }
+
+table.data-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; box-shadow: var(--shadow); border-radius: var(--radius-sm); overflow: hidden; }
+table.data-table th { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 13px; letter-spacing: 0.3px; }
+table.data-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); background: white; }
+table.data-table tr:last-child td { border-bottom: none; }
+table.data-table tr:nth-child(even) td { background: #f8fafc; }
+table.data-table tr:hover td { background: var(--primary-light); }
+
+.slide-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); gap: 10px; flex-wrap: wrap; }
+.btn { padding: 10px 20px; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; transition: all var(--transition); font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.28); }
+.btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+.key-hint { font-size: 12px; color: var(--muted); }
+
+.practice { background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: var(--radius-sm); padding: 18px; margin: 18px 0; }
+.practice h4 { color: var(--primary); margin-bottom: 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.practice-q { margin-bottom: 10px; color: var(--text); font-weight: 500; }
+.practice-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.practice-btn { padding: 8px 14px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all var(--transition); color: var(--text); }
+.practice-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+.practice-btn.correct { background: var(--success-light); border-color: var(--success); color: var(--success); font-weight: 600; }
+.practice-btn.wrong { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
+.practice-btn.disabled { pointer-events: none; opacity: 0.75; }
+.practice-feedback { margin-top: 10px; padding: 10px 14px; border-radius: 6px; font-size: 14px; display: none; animation: fadeIn 0.2s; }
+.practice-feedback.show { display: block; }
+.practice-feedback.right { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+.practice-feedback.wrong { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger); }
+
+.quiz-intro { background: white; padding: 22px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; text-align: center; }
+.quiz-intro h2 { color: var(--primary-dark); margin-bottom: 8px; }
+.quiz-intro p { color: var(--muted); margin-bottom: 14px; }
+.quiz-question { background: white; border-radius: var(--radius); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.quiz-question h4 { font-size: 16px; margin-bottom: 14px; color: var(--text); font-weight: 600; }
+.quiz-question .q-num { color: var(--primary); font-weight: 700; margin-right: 8px; }
+.quiz-options { display: grid; gap: 8px; }
+.quiz-option { padding: 11px 16px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: white; transition: all var(--transition); font-size: 14px; color: var(--text); text-align: left; font-family: inherit; }
+.quiz-option:hover { border-color: var(--primary); background: var(--primary-light); transform: translateX(2px); }
+.quiz-option.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 500; }
+.quiz-option.correct { border-color: var(--success); background: var(--success-light); color: var(--success); font-weight: 600; }
+.quiz-option.wrong { border-color: var(--danger); background: var(--danger-light); color: var(--danger); }
+.quiz-option.disabled { pointer-events: none; }
+.quiz-explain { display: none; margin-top: 10px; padding: 10px 14px; background: #f8fafc; border-left: 3px solid var(--primary); border-radius: 4px; font-size: 13px; color: #334155; }
+.quiz-explain.show { display: block; }
+.quiz-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 16px 20px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); flex-wrap: wrap; }
+.quiz-progress-text { font-size: 13px; color: var(--muted); }
+.quiz-result { display: none; padding: 30px; background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 100%); border-radius: var(--radius); text-align: center; margin-top: 16px; box-shadow: var(--shadow); animation: fadeIn 0.4s ease; }
+.quiz-result.show { display: block; }
+.quiz-result h3 { font-size: 24px; margin-bottom: 10px; color: var(--primary-dark); }
+.quiz-result .score { font-size: 48px; font-weight: 700; color: var(--primary); margin: 14px 0; line-height: 1; }
+.quiz-result .score .total { font-size: 26px; color: var(--muted); }
+.quiz-result p { color: #334155; margin-bottom: 16px; font-size: 15px; }
+.quiz-result .verdict { display: inline-block; padding: 6px 14px; border-radius: 16px; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.quiz-result .verdict.great { background: var(--success-light); color: var(--success); }
+.quiz-result .verdict.good { background: var(--primary-light); color: var(--primary-dark); }
+.quiz-result .verdict.ok { background: var(--warning-light); color: var(--warning); }
+
+.flashcards-header { background: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; text-align: center; }
+.flashcards-header h2 { color: var(--primary-dark); margin-bottom: 6px; }
+.flashcards-header p { color: var(--muted); font-size: 14px; }
+.flashcards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.flashcard { perspective: 1000px; height: 180px; cursor: pointer; }
+.flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.55s; transform-style: preserve-3d; }
+.flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+.flashcard-front, .flashcard-back { position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: var(--shadow); }
+.flashcard-front { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--primary-light); color: var(--primary-dark); font-weight: 600; font-size: 17px; }
+.flashcard-front .hint { font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 8px; font-style: italic; }
+.flashcard-back { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; transform: rotateY(180deg); font-size: 13px; line-height: 1.5; }
+
+.practice-tab-header { background: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; }
+.practice-tab-header h2 { color: var(--primary-dark); margin-bottom: 6px; }
+.practice-tab-header p { color: var(--muted); font-size: 14px; }
+.problem { background: white; border-radius: var(--radius); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); }
+.problem-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.problem h4 { font-size: 16px; color: var(--primary-dark); font-weight: 600; }
+.problem .diff { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+.problem .diff.easy { background: var(--success-light); color: var(--success); }
+.problem .diff.med { background: var(--warning-light); color: var(--warning); }
+.problem .diff.hard { background: var(--danger-light); color: var(--danger); }
+.problem-prompt { color: #334155; margin: 8px 0 12px; }
+.problem-actions { margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.problem-hint, .problem-solution { display: none; margin-top: 12px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13.5px; }
+.problem-hint { background: var(--warning-light); border-left: 3px solid var(--warning); color: #78350f; }
+.problem-solution { background: #eff6ff; border-left: 3px solid var(--primary); color: #1e3a8a; }
+.problem-hint.show, .problem-solution.show { display: block; animation: fadeIn 0.25s; }
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+
+.objectives-list { list-style: none; padding: 0; margin: 10px 0 0; }
+.objectives-list li { padding: 8px 0 8px 30px; position: relative; color: #334155; }
+.objectives-list li::before { content: "\2713"; position: absolute; left: 0; top: 10px; color: var(--success); font-weight: bold; background: var(--success-light); width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+.compare-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; }
+.compare-card h4 { color: var(--primary); margin-bottom: 10px; font-size: 15px; font-weight: 600; }
+.compare-card ul { margin: 0 0 0 18px; }
+
+.timeline { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.timeline-card { flex: 1; min-width: 150px; background: white; border: 1px solid var(--border); border-top: 4px solid var(--primary); border-radius: var(--radius-sm); padding: 12px 14px; }
+.timeline-card .era { font-weight: 700; color: var(--primary-dark); font-size: 14px; }
+.timeline-card .desc { font-size: 12.5px; color: #334155; margin-top: 4px; }
+
+.kbd { display: inline-block; background: #f1f5f9; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 11px; color: var(--text); }
+
+.reset-btn { position: fixed; bottom: 18px; right: 18px; background: white; border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 13px; color: var(--muted); cursor: pointer; box-shadow: var(--shadow); font-family: inherit; transition: all var(--transition); z-index: 100; }
+.reset-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+@media (max-width: 720px) {
+  .app { padding: 14px 12px 80px; }
+  header.lecture-header { padding: 22px 18px; }
+  header.lecture-header h1 { font-size: 22px; }
+  .card { padding: 20px 18px; }
+  .compare-grid { grid-template-columns: 1fr; }
+  table.data-table { font-size: 12px; }
+  table.data-table th, table.data-table td { padding: 7px 9px; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .slide h2 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="lecture-header">
+  <span class="badge">AST402 &middot; Module 1</span>
+  <h1>Overview of Statistical Machine Learning</h1>
+  <p class="instructor">Instructor: <strong>K.M. Tanvir</strong> &middot; Institute of Statistical Research and Training (ISRT), University of Dhaka</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-value" id="progStat">0%</div><div class="stat-label">Slides Viewed</div></div>
+  <div class="stat"><div class="stat-value" id="quizStat">-</div><div class="stat-label">Quiz Score</div></div>
+  <div class="stat"><div class="stat-value" id="flipStat">0</div><div class="stat-label">Cards Flipped</div></div>
+  <div class="stat"><div class="stat-value" id="exStat">0</div><div class="stat-label">Problems Worked</div></div>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" data-tab="slides">📖 Slides</button>
+  <button class="tab-btn" data-tab="quiz">📝 Quiz</button>
+  <button class="tab-btn" data-tab="flashcards">🃏 Flashcards</button>
+  <button class="tab-btn" data-tab="practice">💻 Practice</button>
+</nav>
+
+<main>
+
+<section id="slides" class="tab-content active">
+  <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+  <div class="slide-counter" id="slideCounter">Slide 1 of 29</div>
+  <div class="card">
+    <div id="slidesContainer">
+
+      <!-- SLIDE 1 -->
+      <div class="slide active" data-slide="1">
+        <h2>Welcome to Module 1</h2>
+        <h3>What this module covers</h3>
+        <ul class="objectives-list">
+          <li>What machine learning is, and why a statistical view of it is useful</li>
+          <li>The data science workflow, from raw data to a usable model</li>
+          <li>Supervised learning versus unsupervised learning</li>
+          <li>Why we estimate a function f, prediction versus inference</li>
+          <li>The flexibility versus interpretability tradeoff, and a first look at bias and variance</li>
+          <li>How this course is organized, and what is coming in later modules</li>
+        </ul>
+        <p style="margin-top: 14px; color: var(--muted); font-size: 14px;">This module is light on math. Treat it as building the vocabulary and the mental map you will use for the rest of the course. When you are ready, click <strong>Next &rarr;</strong> to begin.</p>
+      </div>
+
+      <!-- SLIDE 2 -->
+      <div class="slide" data-slide="2">
+        <h2>What Is Machine Learning</h2>
+        <p>A working definition: <strong>machine learning is concerned with the design and development of algorithms that allow computers to improve their performance over time, based on data.</strong></p>
+        <p>The improvement is something we can observe and measure directly, performance on some task gets better over time, and it comes from data rather than from new insight by the person who wrote the algorithm.</p>
+        <div class="tip-box">
+          <strong>Key shift:</strong> the algorithm itself stays fixed. What changes is the model's parameters, learned from data, not the code a programmer writes by hand.
+        </div>
+      </div>
+
+      <!-- SLIDE 3 -->
+      <div class="slide" data-slide="3">
+        <h2>The Formal Definition</h2>
+        <p>The most widely cited formal definition comes from Tom Mitchell, 1998:</p>
+        <div class="example-box">
+          <strong>Definition.</strong> A computer program is said to learn from experience E with respect to some class of tasks T and a performance measure P, if its performance at tasks in T, as measured by P, improves with experience E.
+        </div>
+        <h3>Worked example, spam filtering</h3>
+        <table class="data-table">
+          <thead><tr><th>Component</th><th>What it is here</th></tr></thead>
+          <tbody>
+            <tr><td>Task, T</td><td>Classify an incoming email as spam or not spam</td></tr>
+            <tr><td>Performance measure, P</td><td>Percentage of emails correctly classified</td></tr>
+            <tr><td>Experience, E</td><td>A collection of emails that a user has already labeled as spam or not spam</td></tr>
+          </tbody>
+        </table>
+        <div class="practice" data-q="s5">
+          <h4>Quick Check</h4>
+          <p class="practice-q">In a handwriting recognition system that improves as it sees more labeled digit images, what plays the role of E?</p>
+          <div class="practice-options">
+            <button class="practice-btn" data-correct="false">The percentage of digits classified correctly</button>
+            <button class="practice-btn" data-correct="true">The collection of labeled digit images the system has seen</button>
+            <button class="practice-btn" data-correct="false">The task of recognizing a digit</button>
+            <button class="practice-btn" data-correct="false">The computer hardware running the algorithm</button>
+          </div>
+          <div class="practice-feedback"></div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4 -->
+      <div class="slide" data-slide="4">
+        <h2>Motivating Examples, Around the World</h2>
+        <p>Statistical machine learning is not an abstract exercise, it already runs quietly behind many everyday systems.</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Email and text</h4>
+            <ul style="font-size: 13.5px;">
+              <li>Spam filtering, learning what a user considers junk mail</li>
+              <li>Priority inbox, learning what a user considers important</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <h4>Vision</h4>
+            <ul style="font-size: 13.5px;">
+              <li>Handwritten digit recognition, ZIP codes, cheque amounts</li>
+              <li>Galaxy classification from sky survey images</li>
+            </ul>
+          </div>
+        </div>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Recommendation and ranking</h4>
+            <ul style="font-size: 13.5px;">
+              <li>Streaming and shopping apps suggesting what to watch or buy next, based on past behavior</li>
+              <li>Social feeds ranking which posts a user is likely to engage with</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <h4>Signals</h4>
+            <ul style="font-size: 13.5px;">
+              <li>Image denoising, learning typical patterns in natural images</li>
+              <li>Separating mixed audio sources, the cocktail party problem</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5 -->
+      <div class="slide" data-slide="5">
+        <h2>Medical Diagnosis and Risk Prediction</h2>
+        <p>One of the most consequential applications of statistical learning is medical decision support, learning from past patient records and outcomes to help flag risk earlier.</p>
+        <ul>
+          <li>Predicting risk of disease from clinical measurements and history</li>
+          <li>Flagging abnormal scans or images for closer review by a clinician</li>
+          <li>Estimating how a patient is likely to respond to a treatment</li>
+        </ul>
+        <div class="example-box">
+          <strong>Important framing:</strong> in nearly all of these systems, the model supports a human decision maker, it does not replace one. We will return to this distinction, prediction versus inference, in a few slides.
+        </div>
+      </div>
+
+      <!-- SLIDE 6 -->
+      <div class="slide" data-slide="6">
+        <h2>A South Asia Anchored Example</h2>
+        <p>Two examples close to home, in Bangladesh and the wider South Asia region.</p>
+        <h3>Mobile financial service fraud detection</h3>
+        <p>Services such as bKash and Nagad process enormous volumes of small transactions every day. A model can learn the typical pattern of a genuine transaction, amount, time of day, location, and frequency, and flag transactions that deviate sharply from that pattern for review.</p>
+        <h3>Flood risk prediction</h3>
+        <p>Bangladesh experiences seasonal flooding driven by rainfall, river levels, and upstream conditions. A statistical model trained on historical rainfall, river gauge readings, and past flood extents can help estimate the risk of flooding in a district over the coming days, supporting early warning systems.</p>
+        <div class="tip-box">
+          <strong>Pattern to notice:</strong> in both examples, the model is given historical data with some notion of the outcome we care about, fraud or not, flood or not, and it learns a rule that generalizes to new, unseen situations.
+        </div>
+      </div>
+
+      <!-- SLIDE 7 -->
+      <div class="slide" data-slide="7">
+        <h2>What Is Common to All These Examples</h2>
+        <p>Strip away the surface differences, spam, digits, flooding, fraud, and a shared structure appears.</p>
+        <ol>
+          <li>We are given some data, for example, past transactions, past rainfall readings, or labeled images</li>
+          <li>We are sometimes given extra information about that data, for example, which transactions were later confirmed as fraud</li>
+          <li>The goal is to build a system that learns a useful rule from the given data, using that extra information when it is available</li>
+        </ol>
+        <div class="example-box">
+          <strong>This is the pattern we will formalize next:</strong> data, sometimes labels, and a rule we want to learn, written using the language of statistics.
+        </div>
+      </div>
+
+      <!-- SLIDE 8 -->
+      <div class="slide" data-slide="8">
+        <h2>A Short History</h2>
+        <div class="timeline">
+          <div class="timeline-card"><div class="era">1960s</div><div class="desc">Symbolic AI. Computers learn rules from data, but the underlying statistics is rarely analyzed formally.</div></div>
+          <div class="timeline-card"><div class="era">1980s</div><div class="desc">Artificial neural networks gain attention as a flexible class of models.</div></div>
+          <div class="timeline-card"><div class="era">1990s to 2000s</div><div class="desc">Statistical machine learning matures, kernel methods, decision trees, graphical models, with explicit statistical justification.</div></div>
+          <div class="timeline-card"><div class="era">2010s onward</div><div class="desc">Deep learning combined with large datasets and fast hardware drives breakthroughs in image recognition, speech recognition, and language translation.</div></div>
+        </div>
+        <h3>Why statistical machine learning took off when it did</h3>
+        <ul>
+          <li>Faster computers with enough memory to represent statistical models</li>
+          <li>Mature numerical libraries for linear algebra and optimization</li>
+          <li>Large amounts of data becoming available to learn from</li>
+        </ul>
+      </div>
+
+      <!-- SLIDE 9 -->
+      <div class="slide" data-slide="9">
+        <h2>Supervised Learning</h2>
+        <p>In supervised learning, we are given pairs of data and targets, \( (x_1, y_1), \ldots, (x_n, y_n) \), and the goal is to learn a mapping from \( x \) to \( y \) that generalizes well to new, unseen data.</p>
+        <ul>
+          <li>\( x_i \), the input, also called a feature, predictor, or example</li>
+          <li>\( y_i \), the target, also called a label, response, or outcome</li>
+          <li>The learned mapping is sometimes written \( f \), so that \( y \approx f(x) \)</li>
+        </ul>
+        <div class="example-box">
+          <strong>Example:</strong> in the flood risk problem, \( x \) might be rainfall and river level readings for a district, and \( y \) is whether flooding occurred, the label we are trying to predict for new districts and new weeks.</li>
+        </div>
+      </div>
+
+      <!-- SLIDE 10 -->
+      <div class="slide" data-slide="10">
+        <h2>Unsupervised Learning</h2>
+        <p>In unsupervised learning, we are given only the data \( x_1, \ldots, x_n \), with no target \( y \) at all. The goal is to discover interesting structure already present in the data.</p>
+        <ul>
+          <li>Grouping similar observations together, clustering</li>
+          <li>Finding a small number of underlying patterns that explain most of the variation in the data</li>
+        </ul>
+        <div class="example-box">
+          <strong>Example:</strong> a mobile operator groups customers into segments based on call and data usage patterns, with no predefined labels for what each segment should be. The structure comes entirely from the data itself.
+        </div>
+      </div>
+
+      <!-- SLIDE 11 -->
+      <div class="slide" data-slide="11">
+        <h2>Supervised vs Unsupervised</h2>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Supervised learning</h4>
+            <ul>
+              <li>Data comes with known targets, \( y \)</li>
+              <li>Goal: predict \( y \) for new \( x \)</li>
+              <li>Examples: spam or not spam, flood or no flood</li>
+              <li>Success is measurable directly, compare prediction to the true label</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <h4>Unsupervised learning</h4>
+            <ul>
+              <li>Data has no targets at all</li>
+              <li>Goal: discover structure in \( x \) alone</li>
+              <li>Examples: customer segmentation, finding patterns in gene expression data</li>
+              <li>Success is harder to measure, there is no single right answer to compare against</li>
+            </ul>
+          </div>
+        </div>
+        <p>Most of this course focuses on supervised learning, since it is where the comparison between prediction and truth is most direct, but unsupervised methods appear later, in the module on unsupervised learning.</p>
+      </div>
+
+      <!-- SLIDE 12 -->
+      <div class="slide" data-slide="12">
+        <h2>Reinforcement Learning</h2>
+        <p>Reinforcement learning sits apart from both of the above. An agent takes actions in an environment and receives a reward, sometimes only after a long sequence of actions, sometimes only at the very end.</p>
+        <ul>
+          <li>No correct input and output pairs are ever presented directly</li>
+          <li>The reward for an action may only become clear much later</li>
+          <li>The agent must balance exploration, trying new actions, against exploitation, using actions already known to work well</li>
+        </ul>
+        <div class="example-box">
+          <strong>Example:</strong> a ride hailing app deciding which driver to dispatch to which rider can be framed as reinforcement learning. Each dispatch decision is an action, and the reward, a completed trip, a good rating, a cancellation, only becomes clear afterward, yet the app must learn over time which dispatch decisions tend to work out well.
+        </div>
+        <p style="color: var(--muted); font-size: 14px;">Reinforcement learning is mentioned here for completeness. It is not a focus of this course.</p>
+      </div>
+
+      <!-- SLIDE 13 -->
+      <div class="slide" data-slide="13">
+        <h2>Other Learning Types, Briefly</h2>
+        <p>A few other learning settings appear in the wider literature, mentioned here so the taxonomy is complete.</p>
+        <ul>
+          <li><strong>Active learning,</strong> the algorithm itself chooses which new example to request a label for next, rather than passively receiving a fixed dataset</li>
+          <li><strong>Transduction,</strong> the algorithm is allowed to see the unlabeled test inputs, but never their labels, while it is building the model</li>
+          <li><strong>Semi-supervised learning,</strong> a small amount of labeled data is combined with a much larger amount of unlabeled data</li>
+        </ul>
+        <p style="color: var(--muted); font-size: 14px;">We will not use these settings directly in this course, but recognizing the names is useful when reading further machine learning material.</p>
+      </div>
+
+      <!-- SLIDE 14 -->
+      <div class="slide" data-slide="14">
+        <h2>Batch Learning vs Online Learning</h2>
+        <p>Beyond the type of learning problem, there is also a question of when the data arrives.</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Batch learning</h4>
+            <ul>
+              <li>All training data is available up front</li>
+              <li>Learn one mapping from the entire training set</li>
+              <li>Apply the fixed, learned mapping to new data later</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <h4>Online learning</h4>
+            <ul>
+              <li>Data arrives one example, or one small batch, at a time</li>
+              <li>The model is updated and refined after each new example</li>
+              <li>Useful when data is continuously streaming, such as live transactions</li>
+            </ul>
+          </div>
+        </div>
+        <p>This course works almost entirely in the batch setting, a fixed training dataset, since that is the typical setting for the statistical methods we will study.</p>
+      </div>
+
+      <!-- SLIDE 15 -->
+      <div class="slide" data-slide="15">
+        <h2>Basic Notation, Data</h2>
+        <p>We will reuse a small amount of notation throughout the course, so it is worth fixing it now.</p>
+        <p>A single observation with \( D \) input variables is written as a vector \( x = (x_1, \ldots, x_D)^{T} \). With \( N \) observations, we collect them into a data matrix \( X \), with one row per observation.</p>
+        <div class="example-box">
+          <strong>Plain meaning:</strong> if you think of a spreadsheet of data, each row of the data matrix \( X \) is one observation, for example, one customer or one district, and each column is one measured variable, for example, age or rainfall.
+        </div>
+      </div>
+
+      <!-- SLIDE 16 -->
+      <div class="slide" data-slide="16">
+        <h2>Basic Notation, Targets</h2>
+        <p>For supervised learning, each observation also has a target. We collect the \( N \) targets into a vector \( y = (y_1, \ldots, y_N)^{T} \).</p>
+        <ul>
+          <li>A target can be quantitative, a real number, such as rainfall in millimeters</li>
+          <li>A target can be qualitative, one value from a finite set of categories, such as flood or no flood</li>
+        </ul>
+        <div class="tip-box">
+          <strong>Why this distinction matters:</strong> it determines whether the problem is a regression problem, quantitative target, or a classification problem, qualitative target. We expand on this in the next module.
+        </div>
+      </div>
+
+      <!-- SLIDE 17 -->
+      <div class="slide" data-slide="17">
+        <h2>Why Estimate f</h2>
+        <p>In supervised learning we often write the relationship between inputs and the target as</p>
+        \[ Y = f(X) + \varepsilon \]
+        <p>where \( f \) is some fixed but unknown function, and \( \varepsilon \) is random error that does not depend on \( X \). There are two distinct reasons we might want to estimate \( f \).</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Prediction</h4>
+            <p style="font-size: 13.5px; color: #334155;">We care about the predicted value \( \hat{y} \) for a new input \( x \). We do not need to fully understand the exact form of \( f \), as long as predictions are accurate.</p>
+          </div>
+          <div class="compare-card">
+            <h4>Inference</h4>
+            <p style="font-size: 13.5px; color: #334155;">We care about understanding how \( Y \) changes as the inputs change, which inputs matter, and how. The form of \( f \) itself is the object of interest.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 18 -->
+      <div class="slide" data-slide="18">
+        <h2>Prediction vs Inference, Contrasted</h2>
+        <table class="data-table">
+          <thead><tr><th>Question asked</th><th>Prediction or inference</th></tr></thead>
+          <tbody>
+            <tr><td>Will this specific transaction turn out to be fraudulent</td><td>Prediction</td></tr>
+            <tr><td>Which features of a transaction are most associated with fraud</td><td>Inference</td></tr>
+            <tr><td>What is the expected rainfall in a district next week</td><td>Prediction</td></tr>
+            <tr><td>How does upstream river level causally affect downstream flood risk</td><td>Inference</td></tr>
+          </tbody>
+        </table>
+        <div class="warn-box">
+          <strong>A common confusion:</strong> a model can be excellent for prediction while being nearly impossible to interpret, and a model can be very interpretable while predicting poorly. The two goals do not always align, and most modules in this course will note which goal a method is best suited for.
+        </div>
+      </div>
+
+      <!-- SLIDE 19 -->
+      <div class="slide" data-slide="19">
+        <h2>The Data Science Workflow</h2>
+        <p>Whether the eventual goal is prediction or inference, most statistical learning projects follow a similar overall workflow.</p>
+        <ol>
+          <li><strong>Collect</strong> the data relevant to the question</li>
+          <li><strong>Explore</strong> the data, look at summaries, distributions, and obvious problems such as missing values</li>
+          <li><strong>Model</strong> the relationship between inputs and the target using an appropriate method</li>
+          <li><strong>Validate</strong> the model on data it has not seen before</li>
+          <li><strong>Communicate</strong> the results to the people who will use them</li>
+        </ol>
+        <div class="tip-box">
+          <strong>Notice the loop:</strong> in practice, this workflow is rarely a straight line. Exploring the data often sends you back to collect more, and validating a model often sends you back to revise it. Expect to circle back.
+        </div>
+      </div>
+
+      <!-- SLIDE 20 -->
+      <div class="slide" data-slide="20">
+        <h2>Quantitative vs Qualitative Variables</h2>
+        <p>Variables, both inputs and targets, come in two broad flavors, and this distinction shapes which methods apply.</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Quantitative</h4>
+            <ul>
+              <li>Numeric, takes values on a continuous or countable scale</li>
+              <li>Examples: rainfall in millimeters, transaction amount, a patient's blood pressure</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <h4>Qualitative</h4>
+            <ul>
+              <li>Categorical, takes one of a finite set of values</li>
+              <li>Examples: flood or no flood, spam or not spam, blood type</li>
+            </ul>
+          </div>
+        </div>
+        <div class="example-box">
+          <strong>Rule of thumb:</strong> a quantitative target gives a <strong>regression</strong> problem, a qualitative target gives a <strong>classification</strong> problem. We dedicate full modules to each later in the course.
+        </div>
+        <div class="practice" data-q="s23">
+          <h4>Quick Check</h4>
+          <p class="practice-q">Predicting whether a customer will default on a loan, yes or no, is what kind of problem?</p>
+          <div class="practice-options">
+            <button class="practice-btn" data-correct="false">Regression, since money is involved</button>
+            <button class="practice-btn" data-correct="true">Classification, since the target is qualitative</button>
+            <button class="practice-btn" data-correct="false">Unsupervised learning</button>
+            <button class="practice-btn" data-correct="false">Reinforcement learning</button>
+          </div>
+          <div class="practice-feedback"></div>
+        </div>
+      </div>
+
+      <!-- SLIDE 21 -->
+      <div class="slide" data-slide="21">
+        <h2>Model Flexibility vs Interpretability</h2>
+        <p>Statistical learning methods range from highly restrictive, and easy to interpret, to highly flexible, and harder to interpret.</p>
+        <ul>
+          <li><strong>Restrictive methods,</strong> such as linear regression, produce a small number of coefficients that are easy to explain, at the cost of being able to capture only simple relationships</li>
+          <li><strong>Flexible methods,</strong> such as advanced tree based ensembles, can capture complicated, irregular relationships, but the resulting model is much harder to explain to a human reader</li>
+        </ul>
+        <div class="example-box">
+          <strong>Choosing a point on the spectrum:</strong> when the goal is inference, explaining which factors matter, a more restrictive, interpretable method is often preferred. When the goal is pure prediction accuracy, a more flexible method is often preferred.
+        </div>
+      </div>
+
+      <!-- SLIDE 22 -->
+      <div class="slide" data-slide="22">
+        <h2>The Bias Variance Idea, Conceptually</h2>
+        <p>A model that is too simple may consistently miss real patterns in the data, this is called <strong>bias</strong>. A model that is too flexible may fit the training data almost perfectly, including its noise, and then perform poorly on new data, this is called <strong>variance</strong>.</p>
+        <ul>
+          <li>High bias, low variance: a very simple model, stable but systematically wrong</li>
+          <li>Low bias, high variance: a very flexible model, accurate on training data but unstable on new data</li>
+        </ul>
+        <div class="warn-box">
+          <strong>Why we stop here:</strong> the formal bias variance decomposition, with its exact mathematical formula, is introduced properly in Module 2, alongside the tools to measure it. For now, hold onto the intuition, very simple models can underfit, very flexible models can overfit.
+        </div>
+      </div>
+
+      <!-- SLIDE 23 -->
+      <div class="slide" data-slide="23">
+        <h2>The Strategy We Will Follow</h2>
+        <p>Across this course, most supervised learning topics follow a consistent strategy.</p>
+        <ol>
+          <li>Identify the type of input \( x \) and target \( y \), quantitative or qualitative</li>
+          <li>Propose a mathematical model for the relationship between \( x \) and \( y \)</li>
+          <li>Define an objective, an error or likelihood, that measures how well the model fits the data</li>
+          <li>Find the model parameters that optimize that objective</li>
+          <li>Quantify uncertainty around the fitted model and its predictions</li>
+          <li>Interpret and diagnose the results, checking whether the model is reasonable</li>
+        </ol>
+        <p style="color: var(--muted); font-size: 14px;">Keep this six step pattern in mind. You will see it again, applied to a new method, in nearly every module of this course.</p>
+      </div>
+
+      <!-- SLIDE 24 -->
+      <div class="slide" data-slide="24">
+        <h2>Machine Learning and Its Related Fields</h2>
+        <p>Statistical machine learning did not appear in isolation, it draws on, and contributes to, several neighboring fields.</p>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>Statistics</h4>
+            <p style="font-size: 13.5px; color: #334155;">Descriptive statistics summarizes data, inferential statistics draws conclusions about a process while accounting for uncertainty. Statistical learning borrows both ideas directly.</p>
+          </div>
+          <div class="compare-card">
+            <h4>Artificial intelligence</h4>
+            <p style="font-size: 13.5px; color: #334155;">A broader field concerned with reasoning, planning, perception, and learning. Machine learning is one major approach within artificial intelligence.</p>
+          </div>
+          <div class="compare-card">
+            <h4>Data mining</h4>
+            <p style="font-size: 13.5px; color: #334155;">Searching very large databases, for example years of retail transactions or call records, for hidden patterns. It shares many techniques with unsupervised learning, but often emphasizes scale over formal statistical guarantees.</p>
+          </div>
+          <div class="compare-card">
+            <h4>Computer science</h4>
+            <p style="font-size: 13.5px; color: #334155;">Provides the algorithms, data structures, and computational complexity analysis that make large scale statistical learning computationally feasible.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 25 -->
+      <div class="slide" data-slide="25">
+        <h2>Course Roadmap, Block 1</h2>
+        <p>This course is organized into three blocks. Block 1 covers the statistical foundations of machine learning.</p>
+        <table class="data-table">
+          <thead><tr><th>Module</th><th>Focus</th></tr></thead>
+          <tbody>
+            <tr><td>Module 2</td><td>The statistical learning framework, model accuracy, bias and variance formally</td></tr>
+            <tr><td>Module 3</td><td>Linear regression</td></tr>
+            <tr><td>Module 4</td><td>Classification</td></tr>
+            <tr><td>Module 5</td><td>Resampling methods</td></tr>
+            <tr><td>Module 6</td><td>Linear model selection and regularization</td></tr>
+            <tr><td>Module 7</td><td>Moving beyond linearity</td></tr>
+            <tr><td>Module 8</td><td>Tree based methods</td></tr>
+            <tr><td>Module 9</td><td>Ensemble methods, bagging, random forests, boosting</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SLIDE 26 -->
+      <div class="slide" data-slide="26">
+        <h2>Course Roadmap, Blocks 2 and 3</h2>
+        <table class="data-table">
+          <thead><tr><th>Module</th><th>Focus</th></tr></thead>
+          <tbody>
+            <tr><td>Module 10</td><td>Introduction to artificial intelligence and intelligent agents</td></tr>
+            <tr><td>Module 11</td><td>Problem solving and search</td></tr>
+            <tr><td>Module 12</td><td>Big data, concepts and challenges</td></tr>
+            <tr><td>Module 13</td><td>Case studies in Python</td></tr>
+          </tbody>
+        </table>
+        <div class="tip-box">
+          <strong>Why this order:</strong> the statistical foundations come first, so that by the time you reach artificial intelligence, search, and big data, you already have the statistical vocabulary to understand how those areas relate back to learning from data. Code appears only in Module 13.
+        </div>
+      </div>
+
+      <!-- SLIDE 27 -->
+      <div class="slide" data-slide="27">
+        <h2>Putting It Together, A Worked Walkthrough</h2>
+        <p>Consider the flood risk example one more time, now tracing it through every idea from this module.</p>
+        <ol>
+          <li><strong>Type of learning:</strong> supervised, since past data includes whether flooding actually occurred</li>
+          <li><strong>Type of target:</strong> qualitative, flood or no flood, so this is a classification problem</li>
+          <li><strong>Goal:</strong> mainly prediction, we want an accurate early warning for new weeks and new districts, though inference, which factors matter most, is also useful to planners</li>
+          <li><strong>Workflow:</strong> collect rainfall and river level history, explore it for gaps and outliers, fit a model, validate it on weeks the model has not seen, communicate the risk level to disaster management authorities</li>
+          <li><strong>Tradeoff:</strong> a simple, interpretable model may be preferred if officials need to understand why a warning was issued, a more flexible model may be preferred if raw predictive accuracy is the only goal</li>
+        </ol>
+        <div class="example-box">
+          <strong>This is the pattern:</strong> every module from here on will ask you to make exactly these kinds of decisions, type of target, prediction or inference, how flexible a model to choose, for a new method.
+        </div>
+      </div>
+
+      <!-- SLIDE 28 -->
+      <div class="slide" data-slide="28">
+        <h2>Recap, Key Terms</h2>
+        <table class="data-table">
+          <thead><tr><th>Term</th><th>One line meaning</th></tr></thead>
+          <tbody>
+            <tr><td>Supervised learning</td><td>Learning from data with known targets</td></tr>
+            <tr><td>Unsupervised learning</td><td>Discovering structure in data with no targets</td></tr>
+            <tr><td>Prediction</td><td>Caring about an accurate \( \hat{y} \), not the exact form of \( f \)</td></tr>
+            <tr><td>Inference</td><td>Caring about understanding the form of \( f \) itself</td></tr>
+            <tr><td>Regression</td><td>Supervised learning with a quantitative target</td></tr>
+            <tr><td>Classification</td><td>Supervised learning with a qualitative target</td></tr>
+            <tr><td>Bias</td><td>Systematic error from a model that is too simple</td></tr>
+            <tr><td>Variance</td><td>Instability from a model that is too flexible</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SLIDE 29 -->
+      <div class="slide" data-slide="29">
+        <h2>You Made It</h2>
+        <p class="slide-subtitle">Module 1 done. You now have the vocabulary and the workflow that every later module will build on.</p>
+        <h3>Recap, what we covered</h3>
+        <ul>
+          <li>A working definition of machine learning, and Mitchell's formal version, task, performance measure, experience</li>
+          <li>A short history of how statistical machine learning developed</li>
+          <li>Supervised, unsupervised, reinforcement learning, and a few other learning types, plus batch versus online training</li>
+          <li>The data science workflow, collect, explore, model, validate, communicate</li>
+          <li>Prediction versus inference, and quantitative versus qualitative targets</li>
+          <li>The flexibility versus interpretability tradeoff, and an early, conceptual look at bias and variance</li>
+          <li>Where this course is headed, module by module</li>
+        </ul>
+        <div class="example-box">
+          <strong>Next module, Module 2:</strong> the statistical learning framework, formally, including how we measure model accuracy and the exact bias variance decomposition.
+        </div>
+        <p style="text-align: center; margin-top: 24px; color: var(--muted);">Explore the other tabs to keep learning. Your progress is saved.</p>
+      </div>
+
+    </div>
+
+    <div class="slide-nav">
+      <button class="btn btn-ghost" id="prevBtn">&larr; Previous</button>
+      <span class="key-hint">Use <span class="kbd">&larr;</span> <span class="kbd">&rarr;</span> keys</span>
+      <button class="btn btn-primary" id="nextBtn">Next &rarr;</button>
+    </div>
+  </div>
+</section>
+
+<section id="quiz" class="tab-content">
+  <div class="quiz-intro">
+    <h2>Quiz Time</h2>
+    <p>10 questions covering definitions, the learning taxonomy, prediction versus inference, and interpretation.</p>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="quiz-footer">
+    <span class="quiz-progress-text" id="quizProgText">0 of 10 answered</span>
+    <button class="btn btn-primary" id="submitQuiz" disabled>Submit Answers</button>
+  </div>
+
+  <div class="quiz-result" id="quizResult">
+    <div class="verdict" id="quizVerdict">Great work!</div>
+    <h3>Your Score</h3>
+    <div class="score"><span id="scoreNum">0</span><span class="total">/10</span></div>
+    <p id="quizMessage">You've completed the Module 1 quiz.</p>
+    <button class="btn btn-ghost" id="retakeQuiz">Retake Quiz</button>
+  </div>
+</section>
+
+<section id="flashcards" class="tab-content">
+  <div class="flashcards-header">
+    <h2>Key Terms, Flashcards</h2>
+    <p>Click any card to flip it and see the definition.</p>
+  </div>
+  <div class="flashcards-grid" id="flashcardsGrid"></div>
+</section>
+
+<section id="practice" class="tab-content">
+  <div class="practice-tab-header">
+    <h2>Practice Problems</h2>
+    <p>This is a theory course, not a graded assignment. Full worked solutions are shown when you click Show Solution.</p>
+  </div>
+  <div id="practiceContainer"></div>
+</section>
+
+</main>
+</div>
+
+<button class="reset-btn" id="resetBtn" title="Reset all progress for Module 1">Reset Progress</button>
+
+<script>
+const STORAGE_KEY = 'aiml-module1-progress-v1';
+
+const state = {
+  currentSlide: 1,
+  totalSlides: 29,
+  maxSlideReached: 1,
+  quizAnswers: {},
+  quizScore: null,
+  quizSubmitted: false,
+  flashcardsFlipped: new Set(),
+  practiceOpened: new Set(),
+  practiceAnswers: {},
+  quickCheckAnswers: {}
+};
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...state,
+      flashcardsFlipped: [...state.flashcardsFlipped],
+      practiceOpened: [...state.practiceOpened]
+    }));
+  } catch (e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const fixedTotalSlides = state.totalSlides;
+    const data = JSON.parse(raw);
+    Object.assign(state, data);
+    state.flashcardsFlipped = new Set(data.flashcardsFlipped || []);
+    state.practiceOpened = new Set(data.practiceOpened || []);
+    state.quickCheckAnswers = data.quickCheckAnswers || {};
+    state.totalSlides = fixedTotalSlides;
+    if (state.currentSlide > state.totalSlides || state.currentSlide < 1) state.currentSlide = 1;
+    if (state.maxSlideReached > state.totalSlides || state.maxSlideReached < 1) state.maxSlideReached = 1;
+  } catch (e) {}
+}
+
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabSections = document.querySelectorAll('.tab-content');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    tabButtons.forEach(b => b.classList.toggle('active', b === btn));
+    tabSections.forEach(s => s.classList.toggle('active', s.id === tab));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+const slides = document.querySelectorAll('.slide');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const progFill = document.getElementById('progFill');
+const slideCounter = document.getElementById('slideCounter');
+
+function showSlide(n) {
+  if (n < 1 || n > state.totalSlides) return;
+  state.currentSlide = n;
+  if (n > state.maxSlideReached) state.maxSlideReached = n;
+  slides.forEach(s => s.classList.toggle('active', +s.dataset.slide === n));
+  const pct = Math.round((state.maxSlideReached / state.totalSlides) * 100);
+  progFill.style.width = pct + '%';
+  slideCounter.textContent = `Slide ${n} of ${state.totalSlides}`;
+  prevBtn.disabled = n === 1;
+  nextBtn.textContent = n === state.totalSlides ? 'Finish' : 'Next →';
+  updateStats();
+  saveState();
+}
+prevBtn.addEventListener('click', () => showSlide(state.currentSlide - 1));
+nextBtn.addEventListener('click', () => {
+  if (state.currentSlide < state.totalSlides) showSlide(state.currentSlide + 1);
+});
+document.addEventListener('keydown', (e) => {
+  const activeTab = document.querySelector('.tab-content.active');
+  if (!activeTab || activeTab.id !== 'slides') return;
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); prevBtn.click(); }
+});
+
+document.querySelectorAll('.practice[data-q]').forEach(p => {
+  const qid = p.dataset.q;
+  const feedback = p.querySelector('.practice-feedback');
+  if (!feedback) return;
+  const btns = p.querySelectorAll('.practice-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (p.dataset.answered === 'true') return;
+      const correct = btn.dataset.correct === 'true';
+      btns.forEach(b => {
+        b.classList.add('disabled');
+        if (b.dataset.correct === 'true') b.classList.add('correct');
+        else if (b === btn) b.classList.add('wrong');
+      });
+      feedback.className = 'practice-feedback show ' + (correct ? 'right' : 'wrong');
+      feedback.textContent = correct
+        ? 'Correct!'
+        : 'Not quite, the correct answer is highlighted in green.';
+      p.dataset.answered = 'true';
+      state.quickCheckAnswers[qid] = correct;
+      saveState();
+    });
+  });
+});
+
+const quizData = [
+  {
+    q: "In Mitchell's formal definition of machine learning, what does P represent?",
+    options: ["The task being learned", "The performance measure used to judge improvement", "The experience the program learns from", "The programming language used"],
+    answer: 1,
+    explain: "P is the performance measure, the yardstick used to judge whether the program is improving at task T."
+  },
+  {
+    q: "A model is trained on past labeled emails to decide whether new emails are spam. What kind of learning is this?",
+    options: ["Unsupervised learning", "Reinforcement learning", "Supervised learning", "Active learning"],
+    answer: 2,
+    explain: "The training data includes known labels, spam or not spam, so the model learns a mapping from input to a known target. That is supervised learning."
+  },
+  {
+    q: "A mobile operator groups customers into segments based on usage patterns, with no predefined segment labels. What kind of learning is this?",
+    options: ["Supervised learning", "Unsupervised learning", "Reinforcement learning", "Online learning"],
+    answer: 1,
+    explain: "There is no target variable at all, only the goal of discovering structure already present in the data. That is unsupervised learning."
+  },
+  {
+    q: "Which statement best distinguishes prediction from inference?",
+    options: [
+      "Prediction cares about an accurate output, inference cares about understanding the form of f itself",
+      "Prediction only applies to classification, inference only applies to regression",
+      "Prediction requires unsupervised learning, inference requires supervised learning",
+      "There is no real difference between the two"
+    ],
+    answer: 0,
+    explain: "Prediction is about getting an accurate y-hat for new inputs. Inference is about understanding how the inputs relate to the output, the exact form of f matters."
+  },
+  {
+    q: "A bank wants to know which specific factors are most associated with loan default, in order to design new policy. This is mainly a problem of:",
+    options: ["Prediction", "Inference", "Unsupervised learning", "Online learning"],
+    answer: 1,
+    explain: "The bank cares about understanding the relationship between factors and default, not just getting an accurate prediction for one applicant. That is inference."
+  },
+  {
+    q: "Predicting a patient's exact blood pressure value (a number) from clinical measurements is what type of problem?",
+    options: ["Classification", "Regression", "Clustering", "Reinforcement learning"],
+    answer: 1,
+    explain: "Blood pressure is a quantitative target, so this is a regression problem."
+  },
+  {
+    q: "If Y = f(X) + epsilon, what does epsilon represent?",
+    options: [
+      "The learned model parameters",
+      "Random error that does not depend on X",
+      "The training data itself",
+      "The performance measure"
+    ],
+    answer: 1,
+    explain: "Epsilon captures random error or noise in the relationship, error that is not explained by X."
+  },
+  {
+    q: "A highly flexible model fits the training data almost perfectly but performs poorly on new data. This is most closely associated with:",
+    options: ["High bias, low variance", "Low bias, high variance", "Low bias, low variance", "Active learning"],
+    answer: 1,
+    explain: "A model that is too flexible tends to fit noise in the training data, which usually means low bias but high variance, unstable on new data."
+  },
+  {
+    q: "Which training regime assumes all the data and targets are available before learning begins?",
+    options: ["Online learning", "Reinforcement learning", "Batch learning", "Active learning"],
+    answer: 2,
+    explain: "In batch learning, the full training set is available up front, and one mapping is learned from it before being applied to new data."
+  },
+  {
+    q: "A flood early warning model is built mainly so officials understand exactly which factors drive risk, even at some cost to raw predictive accuracy. Which choice on the flexibility-interpretability spectrum best fits this goal?",
+    options: [
+      "A highly flexible, harder to interpret model",
+      "A more restrictive, more interpretable model",
+      "An unsupervised clustering model",
+      "A reinforcement learning agent"
+    ],
+    answer: 1,
+    explain: "When the goal leans toward inference, understanding which factors matter, a more restrictive and interpretable model is usually preferred over a highly flexible one."
+  }
+];
+
+const quizContainer = document.getElementById('quizContainer');
+function renderQuiz() {
+  quizContainer.innerHTML = '';
+  quizData.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-question';
+    div.innerHTML = `
+      <h4><span class="q-num">Q${i + 1}.</span>${q.q}</h4>
+      <div class="quiz-options" data-qi="${i}">
+        ${q.options.map((opt, j) => `<button class="quiz-option" data-choice="${j}">${opt}</button>`).join('')}
+      </div>
+      <div class="quiz-explain"><strong>Explanation:</strong> ${q.explain}</div>
+    `;
+    quizContainer.appendChild(div);
+  });
+  bindQuiz();
+  restoreQuizState();
+}
+function bindQuiz() {
+  quizContainer.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.quizSubmitted) return;
+      const parent = btn.parentElement;
+      const qi = +parent.dataset.qi;
+      parent.querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.quizAnswers[qi] = +btn.dataset.choice;
+      updateQuizProgress();
+      saveState();
+    });
+  });
+}
+function updateQuizProgress() {
+  const answered = Object.keys(state.quizAnswers).length;
+  document.getElementById('quizProgText').textContent = `${answered} of ${quizData.length} answered`;
+  document.getElementById('submitQuiz').disabled = answered !== quizData.length || state.quizSubmitted;
+}
+function restoreQuizState() {
+  Object.entries(state.quizAnswers).forEach(([qi, choice]) => {
+    const opts = quizContainer.querySelector(`[data-qi="${qi}"]`);
+    if (!opts) return;
+    const btn = opts.querySelector(`[data-choice="${choice}"]`);
+    if (btn) btn.classList.add('selected');
+  });
+  if (state.quizSubmitted) revealQuizResults();
+  updateQuizProgress();
+}
+function revealQuizResults() {
+  let score = 0;
+  quizData.forEach((q, i) => {
+    const opts = quizContainer.querySelector(`[data-qi="${i}"]`);
+    if (!opts) return;
+    const chosen = state.quizAnswers[i];
+    opts.querySelectorAll('.quiz-option').forEach(b => {
+      b.classList.add('disabled');
+      const c = +b.dataset.choice;
+      if (c === q.answer) b.classList.add('correct');
+      else if (c === chosen) b.classList.add('wrong');
+    });
+    opts.parentElement.querySelector('.quiz-explain').classList.add('show');
+    if (chosen === q.answer) score++;
+  });
+  state.quizScore = score;
+  document.getElementById('scoreNum').textContent = score;
+  const msg = document.getElementById('quizMessage');
+  const verdict = document.getElementById('quizVerdict');
+  const pct = score / quizData.length;
+  if (pct >= 0.85) {
+    verdict.className = 'verdict great';
+    verdict.textContent = 'Excellent!';
+    msg.textContent = "You have a solid grip on the vocabulary and taxonomy. Move on to Module 2 when ready.";
+  } else if (pct >= 0.6) {
+    verdict.className = 'verdict good';
+    verdict.textContent = 'Good work';
+    msg.textContent = "Solid, review the questions you missed and try again if you would like.";
+  } else {
+    verdict.className = 'verdict ok';
+    verdict.textContent = 'Keep going';
+    msg.textContent = "No worries, review the slides and flashcards, then retake the quiz.";
+  }
+  document.getElementById('quizResult').classList.add('show');
+  document.getElementById('submitQuiz').disabled = true;
+}
+document.getElementById('submitQuiz').addEventListener('click', () => {
+  state.quizSubmitted = true;
+  revealQuizResults();
+  updateStats();
+  saveState();
+});
+document.getElementById('retakeQuiz').addEventListener('click', () => {
+  state.quizAnswers = {};
+  state.quizScore = null;
+  state.quizSubmitted = false;
+  document.getElementById('quizResult').classList.remove('show');
+  renderQuiz();
+  updateQuizProgress();
+  updateStats();
+  saveState();
+});
+
+const flashcards = [
+  { term: "Machine Learning (Mitchell, 1998)", def: "A program learns from experience E with respect to task T and performance measure P, if its performance at T, as measured by P, improves with E." },
+  { term: "Supervised Learning", def: "Learning a mapping from inputs x to known targets y, given paired examples (x, y), so it generalizes to new x." },
+  { term: "Unsupervised Learning", def: "Learning structure from inputs x alone, with no target y available." },
+  { term: "Reinforcement Learning", def: "An agent learns by taking actions in an environment and receiving rewards, sometimes only after many actions." },
+  { term: "Batch Learning", def: "All training data is available up front, one mapping is learned and then applied to new data later." },
+  { term: "Online Learning", def: "Data arrives one example at a time, and the model is updated and refined after each new example." },
+  { term: "Prediction", def: "Caring about an accurate predicted value y-hat for new inputs, without needing to know the exact form of f." },
+  { term: "Inference", def: "Caring about understanding the relationship between inputs and the target, the exact form of f matters." },
+  { term: "Regression", def: "A supervised learning problem where the target y is quantitative, a numeric value." },
+  { term: "Classification", def: "A supervised learning problem where the target y is qualitative, one of a finite set of categories." },
+  { term: "Quantitative variable", def: "A numeric variable, such as rainfall in millimeters or transaction amount." },
+  { term: "Qualitative variable", def: "A categorical variable, taking one of a finite set of values, such as flood or no flood." },
+  { term: "Bias", def: "Systematic error that comes from a model being too simple to capture the true relationship in the data." },
+  { term: "Variance", def: "Instability in a model's predictions that comes from the model being too flexible and fitting noise in the training data." },
+  { term: "Model Flexibility vs Interpretability", def: "A tradeoff: flexible models can capture complex relationships but are harder to interpret, restrictive models are easier to interpret but less powerful." },
+  { term: "Data Science Workflow", def: "Collect, explore, model, validate, communicate, the general sequence most statistical learning projects follow." },
+  { term: "Data Matrix X", def: "A table of N observations, one row per observation, one column per measured input variable." }
+];
+const fcGrid = document.getElementById('flashcardsGrid');
+flashcards.forEach((c, i) => {
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.dataset.idx = i;
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flashcard-front">
+        ${c.term}
+        <span class="hint">click to flip</span>
+      </div>
+      <div class="flashcard-back">${c.def}</div>
+    </div>
+  `;
+  card.addEventListener('click', () => {
+    card.classList.toggle('flipped');
+    if (card.classList.contains('flipped')) state.flashcardsFlipped.add(i);
+    updateStats();
+    saveState();
+  });
+  fcGrid.appendChild(card);
+});
+function restoreFlashcards() {
+  fcGrid.querySelectorAll('.flashcard').forEach(c => {
+    if (state.flashcardsFlipped.has(+c.dataset.idx)) c.classList.add('flipped');
+  });
+}
+
+const practiceProblems = [
+  {
+    title: "1. Classifying a learning problem",
+    diff: "easy",
+    prompt: "A telecom company in Bangladesh wants to predict whether a customer will switch to a competitor in the next month, using the customer's past usage and billing history, which includes a record of who actually switched in the past. Identify: (a) the type of learning, (b) whether the target is quantitative or qualitative, (c) whether this is regression or classification.",
+    hint: "Ask first whether the training data includes a known outcome for past customers.",
+    solution: "(a) Supervised learning, since past data includes a known outcome, switched or not switched, for each customer. (b) The target is qualitative, two categories, switched or did not switch. (c) Since the target is qualitative, this is a classification problem."
+  },
+  {
+    title: "2. Mitchell's definition, identify T, P, and E",
+    diff: "easy",
+    prompt: "A flood early warning system improves its forecast accuracy over several rainy seasons as it sees more historical rainfall and river level data paired with actual flood outcomes. Write out T, P, and E for this system, following Mitchell's definition.",
+    hint: "T is the task being performed, P is how performance is measured, E is what the system learns from.",
+    solution: "T, task: predict whether flooding will occur in a district in the coming days. P, performance measure: accuracy of flood predictions compared to what actually happened. E, experience: historical rainfall and river level readings paired with recorded flood outcomes from past seasons."
+  },
+  {
+    title: "3. Supervised or unsupervised",
+    diff: "easy",
+    prompt: "For each scenario, state whether it is supervised or unsupervised learning, and justify briefly: (a) grouping news articles into topics with no predefined topic labels, (b) predicting a house's sale price from its size, location, and age, using a dataset of past sales with known prices.",
+    hint: "Check whether each observation in the dataset comes with a known target value.",
+    solution: "(a) Unsupervised learning, there are no predefined topic labels, the structure, the topics, must be discovered from the text data itself. (b) Supervised learning, each past sale has a known price, the target, so the model learns a mapping from house features to price."
+  },
+  {
+    title: "4. Prediction versus inference",
+    diff: "med",
+    prompt: "A hospital wants to know exactly how much a patient's risk of heart disease increases for every additional unit of cholesterol, holding other factors fixed, in order to update clinical guidelines. A separate team at the same hospital just wants the most accurate possible risk score for each new patient, regardless of which factors drive it. State which team is doing prediction and which is doing inference, and explain the practical difference in what each team needs from their model.",
+    hint: "Ask which team needs to understand the exact form of f, and which team only needs an accurate output.",
+    solution: "The first team, updating clinical guidelines based on the exact effect of cholesterol, is doing inference, they need to understand the form of f and the role each input plays. The second team, only wanting the most accurate score, is doing prediction, they do not need to understand why the model works, only that it works well. Practically, the inference team needs an interpretable model, such as one with clear coefficients, while the prediction team can use a more flexible, harder to interpret model if it is more accurate."
+  },
+  {
+    title: "5. Bias and variance, conceptually",
+    diff: "med",
+    prompt: "A data scientist fits two models to predict crop yield from rainfall: Model A is a very simple model that predicts almost the same yield regardless of rainfall, and performs similarly, but mediocrely, on both training and new data. Model B fits the training data almost perfectly but its predictions on new data swing wildly and are often far off. Identify which model has higher bias and which has higher variance, and explain your reasoning in one or two sentences each.",
+    hint: "High bias models are simple and consistently wrong in a similar way, high variance models are sensitive to the specific training data and unstable on new data.",
+    solution: "Model A has high bias, it is too simple to capture the real relationship between rainfall and yield, so it is systematically inaccurate on both training and new data alike. Model B has high variance, it fits the particular training data, including its noise, so closely that it becomes unstable and unreliable on new data it has not seen, even though it looked excellent on the training data."
+  },
+  {
+    title: "6. Designing a small statistical learning project",
+    diff: "hard",
+    prompt: "You are asked to help a mobile financial service detect fraudulent transactions. Using the six step strategy from this module (identify variable types, propose a model, define an objective, optimize parameters, quantify uncertainty, interpret and diagnose), sketch out, in your own words, what each of the six steps would look like for this specific problem. You do not need equations, a clear sentence or two per step is enough.",
+    hint: "Start by identifying what x and y would be in this problem, then work through the remaining steps in order.",
+    solution: "Step 1: identify variables, x would be features of a transaction such as amount, time, location, and frequency, y would be a qualitative target, fraudulent or not fraudulent. Step 2: propose a model, choose a method appropriate for a qualitative target, such as a classification model. Step 3: define an objective, choose a measure of how well the model's predicted fraud labels match the true labels in historical data. Step 4: optimize, find the model parameters that best satisfy that objective on the historical data. Step 5: quantify uncertainty, assess how confident the model is in each prediction, and how reliable it is likely to be on new transactions. Step 6: interpret and diagnose, check which features the model relies on most, and confirm the results make sense before deploying the model to flag live transactions."
+  }
+];
+
+const practiceContainer = document.getElementById('practiceContainer');
+practiceProblems.forEach((ex, i) => {
+  const div = document.createElement('div');
+  div.className = 'problem';
+  div.dataset.idx = i;
+  div.innerHTML = `
+    <div class="problem-head">
+      <h4>${ex.title}</h4>
+      <span class="diff ${ex.diff}">${ex.diff === 'easy' ? 'Beginner' : ex.diff === 'med' ? 'Intermediate' : 'Advanced'}</span>
+    </div>
+    <div class="problem-prompt">${ex.prompt}</div>
+    <div class="problem-actions">
+      <button class="btn btn-ghost btn-sm" data-action="hint" data-ex="${i}">Hint</button>
+      <button class="btn btn-ghost btn-sm" data-action="solution" data-ex="${i}">Show Solution</button>
+    </div>
+    <div class="problem-hint" data-ex="${i}"><strong>Hint:</strong> ${ex.hint}</div>
+    <div class="problem-solution" data-ex="${i}"><strong>Solution:</strong> ${ex.solution}</div>
+  `;
+  practiceContainer.appendChild(div);
+});
+practiceContainer.querySelectorAll('button[data-action]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = btn.dataset.ex;
+    const action = btn.dataset.action;
+    const target = practiceContainer.querySelector(`.problem-${action}[data-ex="${idx}"]`);
+    target.classList.toggle('show');
+    state.practiceOpened.add(+idx);
+    updateStats();
+    saveState();
+    if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise([target]);
+  });
+});
+
+function updateStats() {
+  const slidePct = Math.round((state.maxSlideReached / state.totalSlides) * 100);
+  document.getElementById('progStat').textContent = slidePct + '%';
+  document.getElementById('quizStat').textContent = state.quizScore === null ? '-' : `${state.quizScore}/${quizData.length}`;
+  document.getElementById('flipStat').textContent = state.flashcardsFlipped.size;
+  document.getElementById('exStat').textContent = state.practiceOpened.size;
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Reset all progress for Module 1? Your slide position, quiz score, flashcards, and practice progress will be cleared.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+
+loadState();
+renderQuiz();
+restoreFlashcards();
+showSlide(state.currentSlide);
+updateStats();
+
+Object.entries(state.quickCheckAnswers).forEach(([qid, correct]) => {
+  const p = document.querySelector(`.practice[data-q="${qid}"]`);
+  if (!p) return;
+  const fb = p.querySelector('.practice-feedback');
+  if (!fb) return;
+  p.dataset.answered = 'true';
+  p.querySelectorAll('.practice-btn').forEach(b => {
+    b.classList.add('disabled');
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  fb.className = 'practice-feedback show ' + (correct ? 'right' : 'wrong');
+  fb.textContent = correct ? 'Correct!' : 'The correct answer is highlighted.';
+});
+
+if (window.MathJax) {
+  window.addEventListener('load', () => {
+    if (window.MathJax.typesetPromise) window.MathJax.typesetPromise();
+  });
+}
+</script>
+</body>
+</html>
