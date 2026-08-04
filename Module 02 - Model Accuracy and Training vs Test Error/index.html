@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 02 - Model Accuracy: Training vs Test Error</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--blue:#2563eb;--dark:#1d4ed8;--slate:#334155;--muted:#64748b;--bg-blue:#dbeafe;--bg-green:#d1fae5;--bg-amber:#fef3c7;--bg-red:#fee2e2;--green:#059669;--amber:#d97706;--red:#dc2626;--border:#e2e8f0;--card:#f8fafc;--base:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh;font-size:var(--base)}
+.module-header{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.hdr-left{display:flex;align-items:center;gap:.9rem}
+.mod-badge{background:rgba(255,255,255,.2);border-radius:8px;padding:.3rem .8rem;font-size:.8rem;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.mod-title{font-size:1.1rem;font-weight:700}
+.mod-sub{font-size:.78rem;opacity:.8;margin-top:.12rem}
+.zoom-ctrl{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.15);border-radius:8px;padding:.3rem .6rem}
+.zoom-ctrl span{font-size:.75rem;color:rgba(255,255,255,.8);white-space:nowrap}
+.zbtn{background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:5px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.zbtn:hover{background:rgba(255,255,255,.4)}
+
+
+
+#slides{padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+
+.slide{display:none;animation:fadeIn .25s}
+.slide.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.slide-header{background:var(--blue);color:#fff;border-radius:10px;padding:.9rem 1.3rem;margin-bottom:1rem}
+.slide-label{font-size:.72rem;opacity:.72;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.18rem}
+.slide-title{font-size:1.5rem;font-weight:800;line-height:1.25}
+.slide-subtitle{font-size:.88rem;opacity:.85;margin-top:.22rem}
+.cbox{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:.8rem;line-height:1.7}
+.cbox p{margin-bottom:.45rem}.cbox p:last-child{margin-bottom:0}
+.hbox{border-radius:10px;padding:.9rem 1.2rem;margin-bottom:.8rem}
+.hbox.blue{background:var(--bg-blue);border-left:5px solid var(--blue)}
+.hbox.green{background:var(--bg-green);border-left:5px solid var(--green)}
+.hbox.amber{background:var(--bg-amber);border-left:5px solid var(--amber)}
+.hbox.red{background:var(--bg-red);border-left:5px solid var(--red)}
+.hbox .ht{font-weight:800;font-size:.95rem;margin-bottom:.35rem}
+.hbox.blue .ht{color:var(--dark)}.hbox.green .ht{color:#065f46}.hbox.amber .ht{color:#92400e}.hbox.red .ht{color:#991b1b}
+.hbox p,.hbox li{line-height:1.7}
+.fbox{background:#1e293b;color:#e2e8f0;border-radius:10px;padding:.95rem 1.2rem;margin-bottom:.8rem;text-align:center}
+.fbox .fl{font-size:.7rem;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.3rem}
+.fbox2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem}
+.fbox2 .fb{background:#1e293b;color:#e2e8f0;border-radius:10px;padding:.9rem 1rem;text-align:center}
+.fbox2 .fb .fl{font-size:.7rem;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.28rem}
+.tcol{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem}
+.colc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.colc h4{font-size:1rem;font-weight:800;color:var(--blue);margin-bottom:.4rem}
+.colc ul{list-style:none;padding:0}
+.colc ul li{padding:.18rem 0 .18rem 1.1rem;position:relative;line-height:1.6}
+.colc ul li:before{content:"›";position:absolute;left:0;color:var(--blue);font-weight:700}
+.step{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.45rem;display:flex;gap:.75rem;align-items:flex-start}
+.snum{background:var(--blue);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;margin-top:.1rem}
+.stxt{line-height:1.65}
+.tbl{width:100%;border-collapse:collapse;margin-bottom:.8rem}
+.tbl th{background:var(--blue);color:#fff;padding:.5rem .8rem;text-align:left;font-weight:700}
+.tbl td{padding:.42rem .8rem;border-bottom:1px solid var(--border);color:var(--slate)}
+.tbl tr:nth-child(even) td{background:var(--card)}
+.kta{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.ktai{background:#fff;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:.65rem .9rem;line-height:1.55}
+.ktai strong{color:#1e293b;display:block;margin-bottom:.18rem;font-size:.95rem}
+.exbox{background:#fff;border:2.5px dashed var(--blue);border-radius:10px;padding:1rem 1.2rem;margin-bottom:.8rem}
+.exbox h3{color:var(--blue);font-size:1rem;font-weight:800;margin-bottom:.5rem}
+.exbox ol{padding-left:1.2rem}
+.exbox ol li{margin-bottom:.4rem;line-height:1.65}
+.slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border)}
+.nbtn{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:.5rem 1.3rem;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .15s}
+.nbtn:hover{background:var(--dark)}.nbtn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.sc-ctr{font-size:.85rem;color:var(--muted);font-weight:600}
+.pbar{height:4px;background:var(--border);border-radius:99px;margin-bottom:1rem}
+.pfill{height:100%;background:var(--blue);border-radius:99px;transition:width .3s}
+.pit{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:.9rem}
+.pit .pn{font-size:.78rem;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem}
+.pit .pq{color:#1e293b;line-height:1.7;margin-bottom:.75rem}
+.pit .pq ol{padding-left:1.2rem;margin-top:.35rem}
+.ssol{background:var(--bg-blue);border:none;border-radius:7px;padding:.42rem 1rem;font-size:.85rem;font-weight:700;color:var(--dark);cursor:pointer;margin-bottom:.4rem}
+.ssol:hover{background:#bfdbfe}
+.sol{display:none;background:var(--bg-green);border-left:4px solid var(--green);border-radius:8px;padding:.9rem 1.1rem;margin-top:.45rem;color:#064e3b;line-height:1.7}
+.sol ol{padding-left:1.2rem;margin-top:.28rem}.sol ol li{margin-bottom:.3rem}
+.ctrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.ctc{background:#fff;border:1px solid var(--border);border-radius:9px;padding:.8rem 1rem;text-align:center}
+.ctc .ctn{font-size:.8rem;color:var(--muted);margin-bottom:.25rem;font-weight:700;text-transform:uppercase}
+.ctc .ctv{font-size:1.15rem;font-weight:800;color:var(--dark)}
+.bvrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.bvc{border-radius:9px;padding:.85rem 1rem}
+.bvc h4{font-weight:800;font-size:.95rem;margin-bottom:.35rem}
+.bvc ul{list-style:none;padding:0}.bvc ul li{padding:.15rem 0 .15rem 1rem;position:relative;line-height:1.6}
+.bvc ul li:before{content:"›";position:absolute;left:0;font-weight:700}
+</style>
+</head>
+<body>
+<div class="module-header">
+  <div class="hdr-left">
+    <div class="mod-badge">MODULE 02</div>
+    <div>
+      <div class="mod-title">Model Accuracy: Training vs Test Error</div>
+      <div class="mod-sub">AST402 &middot; Statistics for AI and ML &middot; IASDS, University of Dhaka</div>
+    </div>
+  </div>
+  <div class="zoom-ctrl">
+    <span>Text size</span>
+    <button class="zbtn" onclick="zoom(-1)">A&minus;</button>
+    <button class="zbtn" onclick="zoom(0)">A</button>
+    <button class="zbtn" onclick="zoom(1)">A+</button>
+  </div>
+</div>
+
+<div id="slides">
+<div class="pbar"><div class="pfill" id="pfill" style="width:6.25%"></div></div>
+
+<div class="slide active" data-slide="1">
+<div class="slide-header"><div class="slide-label">Slide 1 of 16</div><div class="slide-title">Module Overview</div></div>
+<div class="hbox blue"><div class="ht">Learning Objectives</div><ul style="padding-left:1.2rem">
+<li>Compute and interpret MSE for regression and error rate for classification</li>
+<li>Explain why low training error does not imply a good model</li>
+<li>Draw and read the training error vs test error curve as flexibility increases</li>
+<li>State the bias-variance decomposition and identify which term dominates in overfit and underfit models</li>
+<li>Describe validation set, LOOCV, and K-fold CV; choose K in practice</li>
+<li>Apply the 1-SE rule for selecting a simpler model without sacrificing much accuracy</li>
+</ul></div>
+<div class="tcol">
+<div class="colc"><h4>Core Concepts</h4><ul>
+<li>Training MSE vs test MSE</li>
+<li>Overfitting and underfitting</li>
+<li>Bias-variance decomposition</li>
+<li>Degrees of freedom</li>
+<li>Validation set approach</li>
+<li>K-fold cross-validation</li>
+<li>1-SE rule</li>
+<li>Classification error rate</li>
+</ul></div>
+<div class="colc"><h4>Class Activity</h4><ul>
+<li>Worked Example 1: Identify bias vs variance from curves</li>
+<li>Worked Example 2: KNN on classification data</li>
+<li>In-class exercise: design a CV scheme</li>
+<li>4 practice problems with solutions</li>
+</ul></div>
+</div>
+</div>
+
+<div class="slide" data-slide="2">
+<div class="slide-header"><div class="slide-label">Slide 2 of 16</div><div class="slide-title">Measuring Quality: Mean Squared Error</div></div>
+<div class="cbox"><p>For regression problems with continuous \(Y\), the most common quality measure is the Mean Squared Error (MSE). Given training data \(\{(x_i, y_i)\}_{i=1}^n\) and a fitted model \(\hat{f}\):</p></div>
+<div class="fbox2">
+<div class="fb"><div class="fl">Training MSE</div>\[ \text{MSE}_{\text{train}} = \frac{1}{n}\sum_{i=1}^{n}\bigl(y_i - \hat{f}(x_i)\bigr)^2 \]</div>
+<div class="fb"><div class="fl">Test MSE (goal)</div>\[ \text{MSE}_{\text{test}} = E\bigl[(y_0 - \hat{f}(x_0))^2\bigr] \]</div>
+</div>
+<div class="hbox amber"><div class="ht">Critical Distinction</div><p>Training MSE is computed on the same data used to fit \(\hat{f}\). Test MSE is computed on new observations \((x_0, y_0)\) not used in training. We almost always care about test MSE, but we can only directly observe training MSE.</p></div>
+<div class="hbox blue"><div class="ht">Rule</div><p>A method that minimises training MSE does NOT necessarily minimise test MSE. This is the central challenge of statistical machine learning.</p></div>
+</div>
+
+<div class="slide" data-slide="3">
+<div class="slide-header"><div class="slide-label">Slide 3 of 16</div><div class="slide-title">The Training Error vs Test Error Curve</div></div>
+<div class="cbox"><p>As model flexibility (degrees of freedom) increases, the training error always decreases. But the test error follows a U-shape: it falls, reaches a minimum, then rises.</p></div>
+<div class="ctrow">
+<div class="ctc"><div class="ctn">Low Flexibility</div><div class="ctv" style="color:var(--red)">Underfitting</div><div style="font-size:.82rem;margin-top:.3rem;color:var(--slate)">High train error, high test error</div></div>
+<div class="ctc"><div class="ctn">Optimal Flexibility</div><div class="ctv" style="color:var(--green)">Just Right</div><div style="font-size:.82rem;margin-top:.3rem;color:var(--slate)">Min test error, train &lt; test but close</div></div>
+<div class="ctc"><div class="ctn">High Flexibility</div><div class="ctv" style="color:var(--red)">Overfitting</div><div style="font-size:.82rem;margin-top:.3rem;color:var(--slate)">Near-zero train error, high test error</div></div>
+</div>
+<div class="hbox blue"><div class="ht">Degrees of Freedom</div><p>Roughly the number of free parameters a model can use. Linear regression with \(p\) predictors has \(p+1\) degrees of freedom. A polynomial of degree \(d\) has \(d+1\). KNN with neighbourhood size \(K\) has effective df \(n/K\) (smaller \(K\) = more flexible).</p></div>
+<div class="hbox amber"><div class="ht">Key Insight</div><p>We cannot observe the test error curve directly during training. We need held-out data or cross-validation to estimate where we are on the curve.</p></div>
+</div>
+
+<div class="slide" data-slide="4">
+<div class="slide-header"><div class="slide-label">Slide 4 of 16</div><div class="slide-title">Overfitting and Underfitting</div></div>
+<div class="tcol">
+<div class="colc" style="border-top:3px solid var(--red)"><h4 style="color:var(--red)">Underfitting</h4><ul>
+<li>Model too simple to capture true \(f\)</li>
+<li>High training error AND high test error</li>
+<li>Caused by: too few predictors, linearity when truth is nonlinear</li>
+<li>Fix: increase model complexity, add features, use polynomial or nonlinear terms</li>
+</ul></div>
+<div class="colc" style="border-top:3px solid var(--red)"><h4 style="color:var(--red)">Overfitting</h4><ul>
+<li>Model too flexible, memorises training data</li>
+<li>Very low training error, high test error</li>
+<li>Caused by: too many parameters, no regularisation</li>
+<li>Fix: regularise (ridge, lasso), reduce complexity, get more data</li>
+</ul></div>
+</div>
+<div class="hbox green"><div class="ht">Concrete Example: Polynomial Regression</div><ul style="padding-left:1.2rem">
+<li>Degree 1 (linear): may underfit if true \(f\) is curved</li>
+<li>Degree 3 or 4: often near optimal</li>
+<li>Degree 15: passes through almost every training point, test MSE explodes</li>
+</ul></div>
+<div class="hbox amber"><div class="ht">How to detect</div><p>Large gap between training MSE and test MSE signals overfitting. If both are large, the model is underfitting.</p></div>
+</div>
+
+<div class="slide" data-slide="5">
+<div class="slide-header"><div class="slide-label">Slide 5 of 16</div><div class="slide-title">Bias-Variance Decomposition</div></div>
+<div class="cbox"><p>For any test point \(x_0\), the expected test MSE can be decomposed into three components:</p></div>
+<div class="fbox"><div class="fl">The Bias-Variance Decomposition</div>\[ E\bigl[(y_0 - \hat{f}(x_0))^2\bigr] = \underbrace{\operatorname{Bias}(\hat{f}(x_0))^2}_{\text{Bias}^2} + \underbrace{\operatorname{Var}(\hat{f}(x_0))}_{\text{Variance}} + \underbrace{\operatorname{Var}(\varepsilon)}_{\text{Irreducible}} \]</div>
+<div class="bvrow">
+<div class="bvc" style="background:var(--bg-blue)"><h4 style="color:var(--dark)">Bias</h4><ul style="color:var(--slate)">
+<li>Error from wrong model assumptions</li>
+<li>\(= E[\hat{f}(x_0)] - f(x_0)\)</li>
+<li>Simple models: HIGH bias</li>
+<li>Complex models: LOW bias</li>
+</ul></div>
+<div class="bvc" style="background:var(--bg-amber)"><h4 style="color:#92400e">Variance</h4><ul style="color:var(--slate)">
+<li>Sensitivity to training data</li>
+<li>Changes a lot if data changes</li>
+<li>Simple models: LOW variance</li>
+<li>Complex models: HIGH variance</li>
+</ul></div>
+<div class="bvc" style="background:var(--bg-red)"><h4 style="color:#991b1b">Irreducible</h4><ul style="color:var(--slate)">
+<li>Noise in the process</li>
+<li>\(= \operatorname{Var}(\varepsilon)\)</li>
+<li>Cannot be reduced</li>
+<li>Lower bound on test MSE</li>
+</ul></div>
+</div>
+</div>
+
+<div class="slide" data-slide="6">
+<div class="slide-header"><div class="slide-label">Slide 6 of 16</div><div class="slide-title">Bias-Variance Tradeoff</div></div>
+<div class="cbox"><p>As model flexibility increases, bias falls monotonically but variance rises. Test MSE = Bias\(^2\) + Variance + Const. The minimum of test MSE occurs where the marginal decrease in bias\(^2\) equals the marginal increase in variance.</p></div>
+<table class="tbl"><tr><th>Model Type</th><th>Bias</th><th>Variance</th><th>Test MSE</th></tr>
+<tr><td>Constant (predict mean)</td><td>Very High</td><td>Very Low</td><td>High</td></tr>
+<tr><td>Linear regression (low dim)</td><td>Moderate</td><td>Low</td><td>Moderate</td></tr>
+<tr><td>Polynomial degree 3-4</td><td>Low</td><td>Moderate</td><td>Low (often best)</td></tr>
+<tr><td>KNN with K=1</td><td>~0</td><td>Very High</td><td>High</td></tr>
+<tr><td>Deep neural network</td><td>Very Low</td><td>High (unless regularised)</td><td>Depends on regularisation</td></tr>
+</table>
+<div class="hbox green"><div class="ht">Practical Message</div><p>The best model balances bias and variance. Regularisation methods (ridge, lasso, dropout) reduce variance while accepting a small increase in bias, often reducing overall test MSE.</p></div>
+</div>
+
+<div class="slide" data-slide="7">
+<div class="slide-header"><div class="slide-label">Slide 7 of 16</div><div class="slide-title">Worked Example 1: Reading Bias-Variance Curves</div></div>
+<div class="cbox"><p>Suppose we fit polynomial regression of degrees 1 through 15 on training data. We observe the following pattern:</p></div>
+<table class="tbl"><tr><th>Degree</th><th>Train MSE</th><th>Test MSE</th><th>Diagnosis</th></tr>
+<tr><td>1 (linear)</td><td>85</td><td>90</td><td>Underfitting: high bias</td></tr>
+<tr><td>3</td><td>30</td><td>32</td><td>Near optimal</td></tr>
+<tr><td>5</td><td>20</td><td>29</td><td>Slight overfitting starting</td></tr>
+<tr><td>10</td><td>5</td><td>65</td><td>Overfitting: high variance</td></tr>
+<tr><td>15</td><td>0.1</td><td>220</td><td>Severe overfitting</td></tr>
+</table>
+<div class="hbox amber"><div class="ht">Questions to answer from this table</div><ul style="padding-left:1.2rem">
+<li>Which degree minimises test MSE? <strong>Degree 3.</strong></li>
+<li>At degree 15, the model has essentially zero bias. Why is test MSE so large? <strong>Variance is enormous: the model is fitting noise in the training sample.</strong></li>
+<li>Between degree 1 and 3, which term fell more, bias or variance? <strong>Bias fell much more (test MSE dropped 58 points).</strong></li>
+</ul></div>
+</div>
+
+<div class="slide" data-slide="8">
+<div class="slide-header"><div class="slide-label">Slide 8 of 16</div><div class="slide-title">The Validation Set Approach</div></div>
+<div class="cbox"><p>We need to estimate test error without fitting a new model on test data. The simplest approach: split data into two parts before fitting.</p></div>
+<div class="step"><div class="snum">1</div><div class="stxt">Randomly split \(n\) observations into a <strong>training set</strong> (typically 60-80% of data) and a <strong>validation set</strong> (the rest).</div></div>
+<div class="step"><div class="snum">2</div><div class="stxt">Fit the model (or multiple competing models) on the training set only.</div></div>
+<div class="step"><div class="snum">3</div><div class="stxt">Evaluate each fitted model on the validation set. Compute validation MSE or error rate.</div></div>
+<div class="step"><div class="snum">4</div><div class="stxt">Select the model with the lowest validation error. Then (optionally) refit on all data before final deployment.</div></div>
+<div class="tcol">
+<div class="colc"><h4>Advantages</h4><ul>
+<li>Simple to implement</li>
+<li>Fast: fits model only once</li>
+<li>No assumptions needed</li>
+</ul></div>
+<div class="colc"><h4 style="color:var(--red)">Disadvantages</h4><ul>
+<li>High variance: result depends on the random split</li>
+<li>Uses less data for training</li>
+<li>Validation MSE overestimates true test MSE</li>
+</ul></div>
+</div>
+</div>
+
+<div class="slide" data-slide="9">
+<div class="slide-header"><div class="slide-label">Slide 9 of 16</div><div class="slide-title">Leave-One-Out Cross-Validation (LOOCV)</div></div>
+<div class="fbox"><div class="fl">LOOCV Estimate</div>\[ \text{CV}_{(n)} = \frac{1}{n}\sum_{i=1}^{n}\bigl(y_i - \hat{f}^{(-i)}(x_i)\bigr)^2 \]</div>
+<div class="cbox"><p>where \(\hat{f}^{(-i)}\) is the model fitted on all \(n-1\) observations excluding \((x_i, y_i)\).</p></div>
+<div class="tcol">
+<div class="colc"><h4>Advantages</h4><ul>
+<li>Uses almost all data for each fit</li>
+<li>Low bias in error estimate</li>
+<li>Deterministic: no randomness</li>
+<li>For OLS: computed in one fit using the hat matrix</li>
+</ul></div>
+<div class="colc"><h4 style="color:var(--red)">Disadvantages</h4><ul>
+<li>Fits \(n\) models: expensive for large \(n\)</li>
+<li>High variance: each fold's training sets are almost identical, so errors are correlated</li>
+</ul></div>
+</div>
+<div class="hbox blue"><div class="ht">Shortcut for Linear Models</div><p>For ordinary least squares: \[ \text{CV}_{(n)} = \frac{1}{n}\sum_{i=1}^n \left(\frac{y_i - \hat{y}_i}{1 - h_{ii}}\right)^2 \] where \(h_{ii}\) is the \(i\)th diagonal of the hat matrix \(\mathbf{H} = \mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\). Only one model fit needed.</p></div>
+</div>
+
+<div class="slide" data-slide="10">
+<div class="slide-header"><div class="slide-label">Slide 10 of 16</div><div class="slide-title">K-Fold Cross-Validation</div></div>
+<div class="fbox"><div class="fl">K-Fold CV Estimate</div>\[ \text{CV}_{(K)} = \frac{1}{K}\sum_{k=1}^{K}\text{MSE}_k \quad \text{where} \quad \text{MSE}_k = \frac{1}{n_k}\sum_{i \in C_k}(y_i - \hat{f}^{(-k)}(x_i))^2 \]</div>
+<div class="step"><div class="snum">1</div><div class="stxt">Randomly divide the \(n\) observations into \(K\) roughly equal folds.</div></div>
+<div class="step"><div class="snum">2</div><div class="stxt">For fold \(k = 1,\ldots,K\): fit the model on all folds except \(k\), then compute \(\text{MSE}_k\) on fold \(k\).</div></div>
+<div class="step"><div class="snum">3</div><div class="stxt">Average the \(K\) errors: \(\text{CV}_{(K)} = \frac{1}{K}\sum_k \text{MSE}_k\).</div></div>
+<div class="hbox blue"><div class="ht">Choosing K</div><p>K = 5 or K = 10 is standard. K = 10 gives a good bias-variance balance: lower bias than K = 5, manageable variance, and feasible computation. LOOCV is K = n and has high variance. Stratified K-fold is preferred for classification to maintain class proportions in each fold.</p></div>
+<div class="hbox green"><div class="ht">Why K-Fold beats Validation Set</div><p>Averaging over \(K\) folds reduces the variance of the error estimate substantially compared to a single train/validation split.</p></div>
+</div>
+
+<div class="slide" data-slide="11">
+<div class="slide-header"><div class="slide-label">Slide 11 of 16</div><div class="slide-title">The 1-Standard-Error Rule</div></div>
+<div class="cbox"><p>CV gives not just a mean error but also a standard error for each model. For each complexity level \(d\) (e.g., polynomial degree or number of features):</p></div>
+<div class="fbox"><div class="fl">Standard Error of CV Estimate</div>\[ \widehat{SE}\bigl(\text{CV}_{(K)}^{(d)}\bigr) = \sqrt{\frac{1}{K}\sum_{k=1}^K \frac{(\text{MSE}_k^{(d)} - \overline{\text{MSE}}^{(d)})^2}{K-1}} \]</div>
+<div class="hbox blue"><div class="ht">The 1-SE Rule</div><p>Choose the <em>simplest</em> model whose CV error is within one standard error of the minimum CV error. That is, find \(d^* = \arg\min_d \text{CV}^{(d)}\), then choose the simplest \(d\) such that \(\text{CV}^{(d)} \leq \text{CV}^{(d^*)} + \widehat{SE}^{(d^*)}\).</p></div>
+<div class="hbox amber"><div class="ht">Why prefer a simpler model?</div><ul style="padding-left:1.2rem">
+<li>Lower variance in predictions</li>
+<li>More interpretable (useful for inference)</li>
+<li>Difference in test error is within statistical noise</li>
+<li>More stable under slight data changes</li>
+</ul></div>
+</div>
+
+<div class="slide" data-slide="12">
+<div class="slide-header"><div class="slide-label">Slide 12 of 16</div><div class="slide-title">Worked Example 2: K-Fold CV for KNN</div></div>
+<div class="cbox"><p>KNN classifier with neighbourhood size \(K_{\text{knn}} = 1, 2, 3, \ldots, 20\) on a classification task with \(n = 200\). We run 10-fold CV:</p></div>
+<table class="tbl"><tr><th>\(K_{\text{knn}}\)</th><th>CV Error (%)</th><th>SE</th><th>Decision</th></tr>
+<tr><td>1</td><td>28.3</td><td>2.8</td><td>Overfitting (too flexible)</td></tr>
+<tr><td>5</td><td>20.1</td><td>2.1</td><td></td></tr>
+<tr><td>10</td><td>16.8</td><td>1.9</td><td></td></tr>
+<tr><td>15</td><td><strong>15.4</strong></td><td>1.8</td><td>Minimum CV error</td></tr>
+<tr><td>18</td><td>15.9</td><td>1.7</td><td>Within 1 SE of min: 15.4 + 1.8 = 17.2 &gt; 15.9, choose this by 1-SE rule</td></tr>
+<tr><td>20</td><td>17.8</td><td>1.6</td><td>Underfitting</td></tr>
+</table>
+<div class="hbox amber"><div class="ht">1-SE rule conclusion</div><p>Minimum is at \(K=15\) (CV = 15.4%, SE = 1.8%). Threshold = 15.4 + 1.8 = 17.2%. The largest \(K\) (simplest model) with CV error below 17.2% is \(K=18\) (CV = 15.9%). Choose \(K = 18\) by the 1-SE rule for a simpler, more stable model.</p></div>
+</div>
+
+<div class="slide" data-slide="13">
+<div class="slide-header"><div class="slide-label">Slide 13 of 16</div><div class="slide-title">Classification: Error Rate and Bayes Classifier</div></div>
+<div class="cbox"><p>For classification, \(Y\) is categorical. The natural quality measure is the error rate (fraction of misclassified observations).</p></div>
+<div class="fbox2">
+<div class="fb"><div class="fl">Training Error Rate</div>\[ \frac{1}{n}\sum_{i=1}^{n}\mathbf{1}(y_i \neq \hat{y}_i) \]</div>
+<div class="fb"><div class="fl">Test Error Rate</div>\[ E\bigl[\mathbf{1}(y_0 \neq \hat{y}_0)\bigr] \]</div>
+</div>
+<div class="hbox blue"><div class="ht">Bayes Classifier (Optimal Decision Rule)</div><p>Assign observation \(x_0\) to class \(j\) that maximises \(P(Y = j \mid X = x_0)\). The Bayes error rate is \(1 - E[\max_j P(Y=j \mid X)]\), which is the irreducible error for classification. No classifier can do better in expectation.</p></div>
+<div class="hbox amber"><div class="ht">Why not just minimise training error rate?</div><p>A 1-nearest-neighbour classifier achieves 0% training error: every training point is its own nearest neighbour and is classified correctly. But its test error is often much higher than simpler classifiers because of very high variance.</p></div>
+</div>
+
+<div class="slide" data-slide="14">
+<div class="slide-header"><div class="slide-label">Slide 14 of 16</div><div class="slide-title">In-Class Exercise</div></div>
+<div class="pit">
+<div class="pn">Scenario 1</div>
+<div class="pq">A company has 500 customer records and wants to pick between linear discriminant analysis, logistic regression, and KNN (K = 1, 5, 10, 15). They want a reliable error estimate. Design the full evaluation pipeline: type of CV, value of K, and metric.</div>
+<button class="ssol" onclick="togSol('ex2a')">Show Solution</button>
+<div class="sol" id="ex2a"><strong>CV type:</strong> Stratified 10-fold CV. With n = 500 stratified folds preserve class balance in each fold. 10 folds give good bias-variance balance.<br><br><strong>Pipeline:</strong> (1) For each candidate model (LDA, logistic, KNN with K = 1, 5, 10, 15): run 10-fold CV and record mean CV error rate and SE. (2) Select the model with lowest mean CV error, or apply the 1-SE rule to prefer a simpler model within one SE of the minimum. (3) Refit the chosen model on all 500 records before deployment.<br><br><strong>Metric:</strong> Error rate (fraction misclassified). If classes are imbalanced, also report AUC or F1.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 2</div>
+<div class="pq">A research team computes 5-fold CV for polynomial regression of degrees 1 to 8. Minimum CV error is 12.4 at degree 5, SE = 1.3. Degrees 3 and 4 have CV errors 13.2 and 12.9. Which degree does the 1-SE rule select? Justify.</div>
+<button class="ssol" onclick="togSol('ex2b')">Show Solution</button>
+<div class="sol" id="ex2b"><strong>Threshold</strong> = 12.4 + 1.3 = 13.7.<br><br>Check each degree in increasing order of simplicity: degree 3 has CV = 13.2 \(\leq\) 13.7. Degree 4 has CV = 12.9 \(\leq\) 13.7. Both qualify. The 1-SE rule picks the <em>simplest</em> qualifying model.<br><br><strong>Answer: degree 3.</strong> It is within one SE of the minimum, and it is simpler and more interpretable than degrees 4 or 5. The difference in CV error (13.2 vs 12.4) is within statistical noise.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 3</div>
+<div class="pq">True or false: "If a model has lower training error than another model, it will always have lower test error." Explain.</div>
+<button class="ssol" onclick="togSol('ex2c')">Show Solution</button>
+<div class="sol" id="ex2c"><strong>False.</strong> Lower training error often means higher flexibility. A very flexible model can memorise the training data (training error near 0) while performing poorly on new data because of high variance. For example, a degree-15 polynomial may have lower training error than a degree-3 polynomial yet much higher test error. What matters for deployment is test error, not training error.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 4</div>
+<div class="pq">A model has training MSE = 4 and test MSE = 40. What does this gap tell you? What would you check or change?</div>
+<button class="ssol" onclick="togSol('ex2d')">Show Solution</button>
+<div class="sol" id="ex2d"><strong>Diagnosis:</strong> The 10-fold gap between training and test MSE is a classic overfitting signature. The model memorised the training data (near-zero error there) but does not generalise, indicating very high variance.<br><br><strong>What to check and change:</strong><br>
+(1) <em>Regularise</em>: add ridge or lasso penalty, or dropout for neural networks, to reduce variance.<br>
+(2) <em>Reduce complexity</em>: lower polynomial degree, prune a decision tree, or reduce the number of hidden units.<br>
+(3) <em>Get more training data</em>: variance typically falls as n grows.<br>
+(4) <em>Use cross-validation</em> to select the regularisation strength or model complexity objectively.</div>
+</div>
+</div>
+
+<div class="slide" data-slide="15">
+<div class="slide-header"><div class="slide-label">Slide 15 of 16</div><div class="slide-title">Practice Problems</div></div>
+<div class="pit">
+<div class="pn">Problem 1</div>
+<div class="pq">Model A: training MSE = 2, test MSE = 45. Model B: training MSE = 18, test MSE = 22.<br>(a) Which model has a larger bias-variance gap? What does this suggest?<br>(b) Which model would you choose for deployment and why?<br>(c) Name two concrete actions to reduce the test MSE of Model A.</div>
+<button class="ssol" onclick="togSol('sp1')">Show Solution</button>
+<div class="sol" id="sp1">(a) Model A gap = 43, Model B gap = 4. Model A is severely overfitting: it memorised training data but does not generalise. Model B underfits slightly but generalises consistently.<br><br>(b) <strong>Model B.</strong> What matters in deployment is test MSE (22 vs 45). The lower training MSE of Model A is irrelevant once deployed.<br><br>(c) (i) Regularise Model A (ridge, lasso, or dropout) to reduce variance. (ii) Reduce complexity (fewer parameters, lower polynomial degree, or tree pruning).</div>
+</div>
+<div class="pit">
+<div class="pn">Problem 2</div>
+<div class="pq">Write out the complete 5-fold CV algorithm for selecting polynomial degree on n = 100 observations. Be specific: what is fitted on each fold, what is computed, and what is the final selection criterion?</div>
+<button class="ssol" onclick="togSol('sp2')">Show Solution</button>
+<div class="sol" id="sp2"><strong>Step 1.</strong> Randomly partition 100 observations into 5 folds \(C_1,\ldots,C_5\), each of size 20.<br><br><strong>Step 2.</strong> For each degree \(d\) and fold \(k\): fit polynomial of degree \(d\) on 80 training points, compute \(\text{MSE}_k^{(d)} = \frac{1}{20}\sum_{i\in C_k}(y_i - \hat{f}^{(-k)}(x_i))^2\).<br><br><strong>Step 3.</strong> Average: \(\text{CV}_{(5)}^{(d)} = \frac{1}{5}\sum_k \text{MSE}_k^{(d)}\).<br><br><strong>Step 4.</strong> Select \(d^* = \arg\min_d \text{CV}_{(5)}^{(d)}\), or apply 1-SE rule. Optionally refit on all 100 observations at \(d^*\).</div>
+</div>
+<div class="pit">
+<div class="pn">Problem 3</div>
+<div class="pq">The bias-variance decomposition: \(E[(y_0-\hat{f}(x_0))^2]=\text{Bias}^2+\text{Var}+\sigma^2\).<br>(a) Bias\(^2\)=16, Var=9, \(\sigma^2\)=4. Compute expected test MSE.<br>(b) Bias\(^2\) drops to 4 but Var rises to 20. Is this an improvement?<br>(c) Can we ever achieve \(E[(y_0-\hat{f}(x_0))^2]=0\)? Explain.</div>
+<button class="ssol" onclick="togSol('sp3')">Show Solution</button>
+<div class="sol" id="sp3">(a) Test MSE = 16+9+4 = <strong>29</strong>.<br><br>(b) New Test MSE = 4+20+4 = <strong>28</strong>. Marginally better, but barely. The large variance increase almost cancels the bias reduction.<br><br>(c) <strong>No.</strong> The irreducible error \(\sigma^2=\operatorname{Var}(\varepsilon)>0\) remains even if \(\hat{f}=f\). No model can achieve expected squared error below \(\sigma^2\).</div>
+</div>
+<div class="pit">
+<div class="pn">Problem 4</div>
+<div class="pq">10-fold CV for KNN (K=3,5,7,9,11) on n=200 gives CV errors: 22.1%, 18.4%, 16.2%, 15.8%, 16.9% with SEs: 2.2, 2.0, 1.8, 1.7, 1.6.<br>(a) Which K minimises CV error?<br>(b) Apply the 1-SE rule. What is the threshold? Which K do you choose?<br>(c) Why does the 1-SE rule prefer a larger K?</div>
+<button class="ssol" onclick="togSol('sp4')">Show Solution</button>
+<div class="sol" id="sp4">(a) <strong>K=9</strong> with CV error 15.8%.<br><br>(b) Threshold = 15.8+1.7 = 17.5%. Largest K with CV \(\leq\) 17.5%: K=11 gives 16.9%. <strong>Choose K=11</strong> by the 1-SE rule.<br><br>(c) Larger K averages over more neighbours, producing a smoother, lower-variance decision boundary. The accuracy sacrifice (16.9% vs 15.8%) is within statistical noise, while K=11 is more stable.</div>
+</div>
+</div>
+<div class="slide" data-slide="16">
+<div class="slide-header"><div class="slide-label">Slide 16 of 16</div><div class="slide-title">Key Takeaways</div></div>
+<div class="kta">
+<div class="ktai"><strong>Training vs Test Error</strong>Training MSE always decreases with flexibility. Test MSE follows a U-shape. Never evaluate a model on training data alone.</div>
+<div class="ktai"><strong>Bias-Variance Decomposition</strong>Test MSE = Bias\(^2\) + Variance + Irreducible. As flexibility rises, bias falls and variance rises.</div>
+<div class="ktai"><strong>Overfitting</strong>Low training error with high test error. Caused by too much flexibility relative to data size.</div>
+<div class="ktai"><strong>Underfitting</strong>Both training and test error are high. Model is too simple to capture the true pattern.</div>
+<div class="ktai"><strong>K-Fold CV</strong>K = 10 is the standard choice. Fits \(K\) models, averages errors. Better than a single validation split.</div>
+<div class="ktai"><strong>1-SE Rule</strong>Pick the simplest model within one SE of the minimum CV error. Favours interpretability without meaningfully worse accuracy.</div>
+<div class="ktai"><strong>Classification</strong>Error rate replaces MSE. Bayes classifier is optimal. 1-NN achieves 0% training error but often overfits badly.</div>
+<div class="ktai"><strong>Next: Module 03</strong>Bias-variance tradeoff in depth: mathematical derivation, simulation studies, and practical implications for model selection.</div>
+</div>
+</div>
+
+<div class="slide-nav">
+<button class="nbtn" id="pbtn" onclick="chg(-1)" disabled>&larr; Previous</button>
+<span class="sc-ctr" id="sct">Slide 1 of 16</span>
+<button class="nbtn" id="nbtn" onclick="chg(1)">Next &rarr;</button>
+</div>
+</div>
+
+<script>
+const SK='aiml-m02-v3';
+let cs=1, ts=16, bsz=18;
+
+function showSlide(n) {
+  try {
+    var prev = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs = Math.max(1, Math.min(ts, n));
+    var next = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct = document.getElementById('sct');
+    if(sct) sct.textContent = 'Slide '+cs+' of '+ts;
+    var pbtn = document.getElementById('pbtn');
+    var nbtn = document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled = (cs===1);
+    if(nbtn) nbtn.disabled = (cs===ts);
+    var pfill = document.getElementById('pfill');
+    if(pfill) pfill.style.width = (cs/ts*100)+'%';
+    try { localStorage.setItem(SK, JSON.stringify({cs:cs})); } catch(e) {}
+    try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+  } catch(err) { console.error('Nav error:', err); }
+}
+function chg(d) { showSlide(cs+d); }
+function zoom(d) {
+  bsz = d===0 ? 18 : Math.min(28, Math.max(14, bsz+d*2));
+  document.documentElement.style.setProperty('--base', bsz+'px');
+  try { localStorage.setItem(SK+'_sz', bsz); } catch(e) {}
+}
+function togSol(id) {
+  var s = document.getElementById(id);
+  if(s) s.style.display = s.style.display==='block' ? 'none' : 'block';
+  try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+}
+document.addEventListener('keydown', function(e) {
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); chg(1); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); chg(-1); }
+});
+(function(){
+  try {
+    var sv = JSON.parse(localStorage.getItem(SK));
+    if(sv && sv.cs>1) showSlide(sv.cs);
+    var sz = localStorage.getItem(SK+'_sz');
+    if(sz){ bsz=parseInt(sz,10); document.documentElement.style.setProperty('--base',bsz+'px'); }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>

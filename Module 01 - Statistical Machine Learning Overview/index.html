@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 01 - What is Statistical Machine Learning?</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--blue:#2563eb;--dark:#1d4ed8;--slate:#334155;--muted:#64748b;--bg-blue:#dbeafe;--bg-green:#d1fae5;--bg-amber:#fef3c7;--bg-red:#fee2e2;--green:#059669;--amber:#d97706;--red:#dc2626;--border:#e2e8f0;--card:#f8fafc;--base:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh;font-size:var(--base)}
+.module-header{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.hdr-left{display:flex;align-items:center;gap:.9rem}
+.mod-badge{background:rgba(255,255,255,.2);border-radius:8px;padding:.3rem .8rem;font-size:.8rem;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.mod-title{font-size:1.1rem;font-weight:700}
+.mod-sub{font-size:.78rem;opacity:.8;margin-top:.12rem}
+.zoom-ctrl{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.15);border-radius:8px;padding:.3rem .6rem}
+.zoom-ctrl span{font-size:.75rem;color:rgba(255,255,255,.8);white-space:nowrap}
+.zbtn{background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:5px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.zbtn:hover{background:rgba(255,255,255,.4)}
+
+
+
+#slides{padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+
+.slide{display:none;animation:fadeIn .25s}
+.slide.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.slide-header{background:var(--blue);color:#fff;border-radius:10px;padding:.9rem 1.3rem;margin-bottom:1rem}
+.slide-label{font-size:.72rem;opacity:.72;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.18rem}
+.slide-title{font-size:1.5rem;font-weight:800;line-height:1.25}
+.slide-subtitle{font-size:.88rem;opacity:.85;margin-top:.22rem}
+.cbox{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:.8rem;line-height:1.7}
+.cbox p{margin-bottom:.45rem}.cbox p:last-child{margin-bottom:0}
+.hbox{border-radius:10px;padding:.9rem 1.2rem;margin-bottom:.8rem}
+.hbox.blue{background:var(--bg-blue);border-left:5px solid var(--blue)}
+.hbox.green{background:var(--bg-green);border-left:5px solid var(--green)}
+.hbox.amber{background:var(--bg-amber);border-left:5px solid var(--amber)}
+.hbox .ht{font-weight:800;font-size:.95rem;margin-bottom:.35rem}
+.hbox.blue .ht{color:var(--dark)}.hbox.green .ht{color:#065f46}.hbox.amber .ht{color:#92400e}
+.hbox p,.hbox li{line-height:1.7}
+.fbox{background:#1e293b;color:#e2e8f0;border-radius:10px;padding:.95rem 1.2rem;margin-bottom:.8rem;text-align:center}
+.fbox .fl{font-size:.7rem;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.3rem}
+.tcol{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem}
+.colc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.colc h4{font-size:1rem;font-weight:800;color:var(--blue);margin-bottom:.4rem}
+.colc ul{list-style:none;padding:0}
+.colc ul li{padding:.18rem 0 .18rem 1.1rem;position:relative;line-height:1.6}
+.colc ul li:before{content:"›";position:absolute;left:0;color:var(--blue);font-weight:700}
+.step{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.45rem;display:flex;gap:.75rem;align-items:flex-start}
+.snum{background:var(--blue);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;margin-top:.1rem}
+.stxt{line-height:1.65}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.8rem}
+.sc{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem}
+.sc .sq{color:var(--slate);margin-bottom:.4rem;font-style:italic}
+.sc .sa span{display:inline-block;background:var(--bg-blue);color:var(--dark);border-radius:4px;padding:.1rem .5rem;margin:.12rem .1rem;font-size:.82rem;font-weight:700}
+.sc .why{color:var(--muted);margin-top:.32rem;font-size:.88rem}
+.exbox{background:#fff;border:2.5px dashed var(--blue);border-radius:10px;padding:1rem 1.2rem;margin-bottom:.8rem}
+.exbox h3{color:var(--blue);font-size:1rem;font-weight:800;margin-bottom:.5rem}
+.exbox ol{padding-left:1.2rem}
+.exbox ol li{margin-bottom:.4rem;line-height:1.65}
+.tbl{width:100%;border-collapse:collapse;margin-bottom:.8rem}
+.tbl th{background:var(--blue);color:#fff;padding:.5rem .8rem;text-align:left;font-weight:700}
+.tbl td{padding:.42rem .8rem;border-bottom:1px solid var(--border);color:var(--slate)}
+.tbl tr:nth-child(even) td{background:var(--card)}
+.kta{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.ktai{background:#fff;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:.65rem .9rem;line-height:1.55}
+.ktai strong{color:#1e293b;display:block;margin-bottom:.18rem;font-size:.95rem}
+.slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border)}
+.nbtn{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:.5rem 1.3rem;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .15s}
+.nbtn:hover{background:var(--dark)}.nbtn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.sc-ctr{font-size:.85rem;color:var(--muted);font-weight:600}
+.pbar{height:4px;background:var(--border);border-radius:99px;margin-bottom:1rem}
+.pfill{height:100%;background:var(--blue);border-radius:99px;transition:width .3s}
+.pit{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:.9rem}
+.pit .pn{font-size:.78rem;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem}
+.pit .pq{color:#1e293b;line-height:1.7;margin-bottom:.75rem}
+.pit .pq ol{padding-left:1.2rem;margin-top:.35rem}
+.pit .pq ol li{margin-bottom:.3rem}
+.ssol{background:var(--bg-blue);border:none;border-radius:7px;padding:.42rem 1rem;font-size:.85rem;font-weight:700;color:var(--dark);cursor:pointer;margin-bottom:.4rem}
+.ssol:hover{background:#bfdbfe}
+.sol{display:none;background:var(--bg-green);border-left:4px solid var(--green);border-radius:8px;padding:.9rem 1.1rem;margin-top:.45rem;color:#064e3b;line-height:1.7}
+.sol ol{padding-left:1.2rem;margin-top:.28rem}.sol ol li{margin-bottom:.3rem}
+</style>
+</head>
+<body>
+<div class="module-header">
+  <div class="hdr-left">
+    <div class="mod-badge">MODULE 01</div>
+    <div>
+      <div class="mod-title">What is Statistical Machine Learning?</div>
+      <div class="mod-sub">AST402 &middot; Statistics for AI and ML &middot; IASDS, University of Dhaka</div>
+    </div>
+  </div>
+  <div class="zoom-ctrl">
+    <span>Text size</span>
+    <button class="zbtn" onclick="zoom(-1)">A&minus;</button>
+    <button class="zbtn" onclick="zoom(0)">A</button>
+    <button class="zbtn" onclick="zoom(1)">A+</button>
+  </div>
+</div>
+
+<div id="slides">
+<div class="pbar"><div class="pfill" id="pfill" style="width:7.14%"></div></div>
+
+<div class="slide active" data-slide="1">
+<div class="slide-header"><div class="slide-label">Slide 1 of 14</div><div class="slide-title">Module Overview</div></div>
+<div class="hbox blue"><div class="ht">Learning Objectives</div><ul style="padding-left:1.2rem">
+<li>Define statistical machine learning and state the central problem</li>
+<li>Write and explain every term in \(Y = f(\mathbf{X}) + \varepsilon\)</li>
+<li>Distinguish prediction from inference with examples</li>
+<li>Compare parametric and nonparametric approaches</li>
+<li>Classify any problem as supervised or unsupervised, regression or classification</li>
+</ul></div>
+<div class="tcol">
+<div class="colc"><h4>Core Concepts</h4><ul>
+<li>The model \(Y = f(\mathbf{X}) + \varepsilon\)</li>
+<li>Reducible vs irreducible error</li>
+<li>Prediction vs inference</li>
+<li>Parametric vs nonparametric</li>
+<li>Supervised vs unsupervised</li>
+<li>Regression vs classification</li>
+</ul></div>
+<div class="colc"><h4>Class Activity</h4><ul>
+<li>Worked Example 1: classify 4 ML problems</li>
+<li>Worked Example 2: advertising data</li>
+<li>In-class exercise: 4 new scenarios</li>
+<li>4 practice problems with solutions</li>
+</ul></div>
+</div>
+</div>
+
+<div class="slide" data-slide="2">
+<div class="slide-header"><div class="slide-label">Slide 2 of 14</div><div class="slide-title">What is Statistical Machine Learning?</div></div>
+<div class="cbox"><p>We observe inputs \(\mathbf{X} = (X_1, X_2, \ldots, X_p)\) and an output \(Y\). We assume a relationship:</p></div>
+<div class="fbox"><div class="fl">The Core Model</div>\[ Y = f(\mathbf{X}) + \varepsilon \]</div>
+<div class="hbox blue"><div class="ht">What each symbol means</div><ul style="padding-left:1.2rem">
+<li>\(Y\): the response variable we want to understand or predict</li>
+<li>\(\mathbf{X} = (X_1, \ldots, X_p)\): the \(p\) input features (predictors)</li>
+<li>\(f(\mathbf{X})\): the unknown true function linking inputs to output</li>
+<li>\(\varepsilon\): random error term, independent of \(\mathbf{X}\), with \(E[\varepsilon]=0\)</li>
+</ul></div>
+<div class="hbox amber"><div class="ht">The Problem</div><p>We never observe \(f\) directly. From training data \(\{(x_i,y_i)\}_{i=1}^{n}\) we estimate \(f\) with \(\hat{f}\), then predict \(\hat{Y} = \hat{f}(\mathbf{X})\).</p></div>
+</div>
+
+<div class="slide" data-slide="3">
+<div class="slide-header"><div class="slide-label">Slide 3 of 14</div><div class="slide-title">Reducible vs Irreducible Error</div></div>
+<div class="fbox"><div class="fl">Error Decomposition</div>\[ E\!\left[(Y - \hat{Y})^2\right] = \underbrace{\!\left[f(\mathbf{X}) - \hat{f}(\mathbf{X})\right]^2}_{\text{Reducible}} + \underbrace{\,\operatorname{Var}(\varepsilon)\,}_{\text{Irreducible}} \]</div>
+<div class="tcol">
+<div class="colc"><h4 style="color:var(--blue)">Reducible Error</h4><ul>
+<li>Because \(\hat{f} \neq f\) in general</li>
+<li>Reduced by better methods or more data</li>
+<li>This is what we try to minimise</li>
+</ul></div>
+<div class="colc"><h4 style="color:var(--red)">Irreducible Error</h4><ul>
+<li>Due to noise \(\varepsilon\) in the process</li>
+<li>Cannot be reduced even if \(\hat{f} = f\)</li>
+<li>Sets a lower bound on prediction error</li>
+</ul></div>
+</div>
+<div class="hbox amber"><div class="ht">Key Insight</div><p>Zero training error does not mean a good model. Even a perfect model makes errors because of \(\varepsilon\). Zero training error usually means the model memorised the training data.</p></div>
+</div>
+
+<div class="slide" data-slide="4">
+<div class="slide-header"><div class="slide-label">Slide 4 of 14</div><div class="slide-title">Goal 1: Prediction</div></div>
+<div class="hbox blue"><div class="ht">We want to predict Y accurately for new observations</div><p>Treat \(\hat{f}\) as a black box. The exact form of \(\hat{f}\) does not matter, only accuracy matters.</p></div>
+<div class="hbox green"><div class="ht">Examples</div><ul style="padding-left:1.2rem">
+<li><strong>Medical:</strong> Given blood tests \(\mathbf{X}\), predict whether patient has cancer \(Y\). We need accuracy, not which test matters most.</li>
+<li><strong>Finance:</strong> Predict tomorrow's stock price from today's market data.</li>
+<li><strong>Security:</strong> Predict if a transaction is fraudulent \((Y \in \{0,1\})\).</li>
+</ul></div>
+<table class="tbl"><tr><th>Aspect</th><th>Prediction setting</th></tr>
+<tr><td>Model form</td><td>Doesn't matter, black box is fine</td></tr>
+<tr><td>Key metric</td><td>Test MSE (regression) or test error rate (classification)</td></tr>
+<tr><td>Interpretability</td><td>Not required</td></tr>
+</table>
+</div>
+
+<div class="slide" data-slide="5">
+<div class="slide-header"><div class="slide-label">Slide 5 of 14</div><div class="slide-title">Goal 2: Inference</div></div>
+<div class="hbox blue"><div class="ht">We want to understand HOW inputs X affect output Y</div><p>The exact form of \(\hat{f}\) matters. We must interpret coefficients and test hypotheses.</p></div>
+<div class="hbox green"><div class="ht">Inference Questions</div><ul style="padding-left:1.2rem">
+<li><strong>Which \(X_j\) matter?</strong> Variable selection</li>
+<li><strong>Direction and size:</strong> Does increasing \(X_j\) raise or lower \(Y\)? By how much?</li>
+<li><strong>Functional form:</strong> Is the \(X_j \to Y\) relationship linear or nonlinear?</li>
+</ul></div>
+<div class="hbox amber"><div class="ht">Examples</div><ul style="padding-left:1.2rem">
+<li><strong>Marketing:</strong> How do TV, radio, newspaper budgets each affect sales? Which gives best return?</li>
+<li><strong>Public health:</strong> Which risk factors are most strongly linked to heart disease?</li>
+<li><strong>Economics:</strong> How does education affect wages, controlling for experience?</li>
+</ul></div>
+<div class="cbox"><p>For inference we prefer <strong>simple, interpretable models</strong> (e.g., linear regression) even if a black box would be more accurate.</p></div>
+</div>
+
+<div class="slide" data-slide="6">
+<div class="slide-header"><div class="slide-label">Slide 6 of 14</div><div class="slide-title">Parametric vs Nonparametric</div></div>
+<div class="tcol">
+<div class="colc" style="border-top:3px solid var(--blue)"><h4>Parametric</h4><ul>
+<li>Assume a form: \(f(\mathbf{X}) = \beta_0 + \beta_1 X_1 + \cdots\)</li>
+<li>Estimate finite set of parameters</li>
+<li>Simple, interpretable, needs less data</li>
+<li>Risk: wrong assumed form</li>
+<li><strong>Examples:</strong> Linear regression, logistic regression</li>
+</ul></div>
+<div class="colc" style="border-top:3px solid var(--green)"><h4>Nonparametric</h4><ul>
+<li>No assumed form for \(f\)</li>
+<li>Data determines the shape</li>
+<li>Fits complex patterns</li>
+<li>Needs much more data, may overfit</li>
+<li><strong>Examples:</strong> KNN, decision trees, random forests</li>
+</ul></div>
+</div>
+<div class="hbox amber"><div class="ht">The Flexibility, Interpretability Tradeoff</div><p>More flexible models fit complex patterns but are harder to interpret and more prone to overfitting. This tradeoff runs through the entire course.</p></div>
+<table class="tbl"><tr><th></th><th>Parametric</th><th>Nonparametric</th></tr>
+<tr><td>Assumed form</td><td>Yes</td><td>No</td></tr>
+<tr><td>Interpretable</td><td>High</td><td>Low to Medium</td></tr>
+<tr><td>Data needed</td><td>Less</td><td>Much more</td></tr>
+</table>
+</div>
+
+<div class="slide" data-slide="7">
+<div class="slide-header"><div class="slide-label">Slide 7 of 14</div><div class="slide-title">Supervised vs Unsupervised</div></div>
+<div class="tcol">
+<div class="colc" style="border-top:3px solid var(--blue)"><h4>Supervised</h4><ul>
+<li>Observe both \(\mathbf{X}\) and \(Y\)</li>
+<li>Training data: \(\{(x_i, y_i)\}_{i=1}^n\)</li>
+<li>Goal: learn \(f: \mathbf{X} \to Y\)</li>
+<li>\(Y\) supervises the learning</li>
+<li><strong>Examples:</strong> Regression, classification</li>
+</ul></div>
+<div class="colc" style="border-top:3px solid var(--green)"><h4>Unsupervised</h4><ul>
+<li>Observe only \(\mathbf{X}\), no \(Y\)</li>
+<li>Training data: \(\{x_i\}_{i=1}^n\)</li>
+<li>Goal: find hidden structure in \(\mathbf{X}\)</li>
+<li>No correct answer to guide learning</li>
+<li><strong>Examples:</strong> K-means, PCA, clustering</li>
+</ul></div>
+</div>
+<table class="tbl"><tr><th></th><th>Supervised</th><th>Unsupervised</th></tr>
+<tr><td>Labels needed?</td><td>Yes, \(Y\) required</td><td>No, only \(\mathbf{X}\)</td></tr>
+<tr><td>Goal</td><td>Predict or explain \(Y\)</td><td>Discover structure in \(\mathbf{X}\)</td></tr>
+<tr><td>Evaluation</td><td>Compare \(\hat{Y}\) to true \(Y\)</td><td>Harder, no ground truth</td></tr>
+</table>
+</div>
+
+<div class="slide" data-slide="8">
+<div class="slide-header"><div class="slide-label">Slide 8 of 14</div><div class="slide-title">Regression vs Classification</div></div>
+<div class="tcol">
+<div class="colc" style="border-top:3px solid var(--blue)"><h4>Regression</h4><ul>
+<li>\(Y\) is quantitative (continuous)</li>
+<li>Output is a real number</li>
+<li>Examples: salary, temperature, price</li>
+<li>Ask: "How much?" or "How many?"</li>
+<li>Metrics: MSE, RMSE, R\(^2\)</li>
+</ul></div>
+<div class="colc" style="border-top:3px solid var(--amber)"><h4>Classification</h4><ul>
+<li>\(Y\) is qualitative (categorical)</li>
+<li>Output is a class label</li>
+<li>Examples: spam or not-spam, disease type</li>
+<li>Ask: "Which category?"</li>
+<li>Metrics: Accuracy, F1, ROC-AUC</li>
+</ul></div>
+</div>
+<div class="hbox blue"><div class="ht">Rule</div><p>Always look at \(Y\). If it is continuous, use regression. If it is categorical, use classification. Logistic regression predicts a probability but classifies into a category, so it is a classification method.</p></div>
+</div>
+
+<div class="slide" data-slide="9">
+<div class="slide-header"><div class="slide-label">Slide 9 of 14</div><div class="slide-title">Four Questions for Any ML Problem</div></div>
+<table class="tbl"><tr><th>#</th><th>Question</th><th>Options</th><th>Determines</th></tr>
+<tr><td><strong>1</strong></td><td>Is there a labelled output \(Y\)?</td><td>Yes or No</td><td>Supervised vs Unsupervised</td></tr>
+<tr><td><strong>2</strong></td><td>What type is \(Y\)?</td><td>Continuous or Categorical</td><td>Regression vs Classification</td></tr>
+<tr><td><strong>3</strong></td><td>What is the goal?</td><td>Predict \(Y\) or Understand \(X \to Y\)</td><td>Prediction vs Inference</td></tr>
+<tr><td><strong>4</strong></td><td>How much do we assume about \(f\)?</td><td>Specific form or Data decides</td><td>Parametric vs Nonparametric</td></tr>
+</table>
+<div class="hbox green"><div class="ht">Course Roadmap</div><p>We apply these 4 questions to every method: linear regression, logistic regression, decision trees, random forests, boosting, SVM, neural networks, and unsupervised methods.</p></div>
+</div>
+
+<div class="slide" data-slide="10">
+<div class="slide-header"><div class="slide-label">Slide 10 of 14</div><div class="slide-title">Worked Example 1: Classifying ML Problems</div><div class="slide-subtitle">For each: supervised or unsupervised, regression or classification, prediction or inference</div></div>
+<div class="sgrid">
+<div class="sc"><div class="sq"><strong>A.</strong> A bank predicts annual salary of applicants from age, education, and experience.</div><div class="sa"><span>Supervised</span><span>Regression</span><span>Prediction</span></div><div class="why">Y = salary (continuous). Bank wants accurate forecasts. Form of \(\hat{f}\) doesn't matter.</div></div>
+<div class="sc"><div class="sq"><strong>B.</strong> A hospital groups patients using blood tests. No diagnosis labels.</div><div class="sa"><span style="background:var(--bg-green);color:#065f46">Unsupervised</span><span style="background:var(--bg-green);color:#065f46">Clustering</span></div><div class="why">No label \(Y\). Goal: find natural groups in \(\mathbf{X}\) alone.</div></div>
+<div class="sc"><div class="sq"><strong>C.</strong> An email system labels messages as spam or not spam.</div><div class="sa"><span>Supervised</span><span>Classification</span><span>Prediction</span></div><div class="why">\(Y \in \{\text{spam, not-spam}\}\) (categorical). Goal is accurate labelling.</div></div>
+<div class="sc"><div class="sq"><strong>D.</strong> An economist measures the effect of education on wages, controlling for experience.</div><div class="sa"><span>Supervised</span><span>Regression</span><span>Inference</span></div><div class="why">\(Y\) = wages (continuous). Goal is to quantify the education to wage effect.</div></div>
+</div>
+</div>
+
+<div class="slide" data-slide="11">
+<div class="slide-header"><div class="slide-label">Slide 11 of 14</div><div class="slide-title">Worked Example 2: Same Data, Different Goals</div><div class="slide-subtitle">Advertising data: TV, radio, newspaper spend vs sales, n = 200 weeks</div></div>
+<div class="hbox blue"><div class="ht">Setting</div><p>\(X_1\) = TV spend, \(X_2\) = Radio spend, \(X_3\) = Newspaper spend (in $000s), \(Y\) = Sales (units). Three different questions from the same dataset:</p></div>
+<div class="step"><div class="snum">Q1</div><div class="stxt"><strong>Forecast next week's sales to order enough stock.</strong><br><span style="color:var(--dark);font-weight:700">PREDICTION.</span> Need accurate \(\hat{Y}\). Black box (XGBoost, random forest) is fine.</div></div>
+<div class="step"><div class="snum">Q2</div><div class="stxt"><strong>Which channel gives the best return on investment?</strong><br><span style="color:var(--dark);font-weight:700">INFERENCE.</span> Need to read \(\hat{\beta}_1, \hat{\beta}_2, \hat{\beta}_3\). Interpretable linear model required.</div></div>
+<div class="step"><div class="snum">Q3</div><div class="stxt"><strong>Does TV advertising work better when radio spend is also high?</strong><br><span style="color:var(--dark);font-weight:700">INFERENCE.</span> Must test interaction term \(\beta_{12} X_1 X_2\). Black-box models cannot answer this.</div></div>
+<div class="hbox amber"><div class="ht">Key Takeaway</div><p>The same dataset can address prediction and inference questions. The goal determines the model choice.</p></div>
+</div>
+
+<div class="slide" data-slide="12">
+<div class="slide-header"><div class="slide-label">Slide 12 of 14</div><div class="slide-title">In-Class Exercise</div></div>
+<div class="hbox blue"><div class="ht">For each scenario: (a) supervised or unsupervised, (b) regression or classification if supervised, (c) prediction or inference, (d) parametric or nonparametric</div></div>
+<div class="pit">
+<div class="pn">Scenario 1</div>
+<div class="pq">A university predicts whether an applicant will enrol (Yes or No) from test score, GPA, and family income.</div>
+<button class="ssol" onclick="togSol('ex1a')">Show Solution</button>
+<div class="sol" id="ex1a">(a) <strong>Supervised</strong>: we have labelled outcomes (enrolled or not). (b) <strong>Classification</strong>: Y is binary (Yes/No). (c) <strong>Prediction</strong>: the university wants accurate forecasts for future applicants. (d) Either parametric (logistic regression) or nonparametric (KNN, decision tree) is fine since the goal is prediction, not explanation.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 2</div>
+<div class="pq">A music service groups 10 million songs into thematic clusters to improve recommendations. No genre labels exist.</div>
+<button class="ssol" onclick="togSol('ex1b')">Show Solution</button>
+<div class="sol" id="ex1b">(a) <strong>Unsupervised</strong>: no label Y, only audio features X. (b) <strong>Not applicable</strong>: regression/classification require a Y. The task is clustering. (c) <strong>Not applicable</strong>: prediction/inference also require Y. The goal is to discover hidden structure. (d) Nonparametric: K-means or hierarchical clustering make no parametric assumption about f.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 3</div>
+<div class="pq">An economist measures the causal effect of a minimum wage increase on unemployment, controlling for other factors.</div>
+<button class="ssol" onclick="togSol('ex1c')">Show Solution</button>
+<div class="sol" id="ex1c">(a) <strong>Supervised</strong>: Y = unemployment rate (or change in unemployment), X includes minimum wage and controls. (b) <strong>Regression</strong>: Y is continuous. (c) <strong>Inference</strong>: the economist wants to quantify the specific effect of minimum wage, not just predict Y for new values. (d) <strong>Parametric</strong>: a linear or log-linear regression model is required to read and interpret the coefficient on minimum wage directly.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 4</div>
+<div class="pq">A hospital predicts the number of days a patient will stay after surgery, from age, diagnosis code, and surgical complexity.</div>
+<button class="ssol" onclick="togSol('ex1d')">Show Solution</button>
+<div class="sol" id="ex1d">(a) <strong>Supervised</strong>: Y = length of stay (a number), X = patient and surgery features. (b) <strong>Regression</strong>: Y is a count/continuous quantity. (c) <strong>Prediction</strong>: the hospital wants accurate forecasts to allocate beds and staff. (d) Either works: parametric (linear regression, Poisson regression) or nonparametric (random forest, gradient boosting). Since the goal is prediction accuracy, a flexible nonparametric method is often preferred.</div>
+</div>
+</div>
+
+<div class="slide" data-slide="13">
+<div class="slide-header"><div class="slide-label">Slide 13 of 14</div><div class="slide-title">Practice Problems</div></div>
+<div class="pit">
+<div class="pn">Problem 1</div>
+<div class="pq">For each scenario, state (i) supervised or unsupervised, (ii) regression or classification if supervised, (iii) prediction or inference.
+<ol style="padding-left:1.2rem;margin-top:.35rem"><li>Predicting a student's final exam score from attendance, assignment marks, and mid-term score.</li><li>Grouping news articles by topic with no predefined categories.</li><li>Detecting fraudulent bank transactions (fraud = yes or no).</li><li>Estimating the market value of houses from size, location, and age.</li></ol></div>
+<button class="ssol" onclick="togSol('sp1')">Show Solution</button>
+<div class="sol" id="sp1"><ol><li><strong>Supervised, Regression, Prediction.</strong> Y = exam score (continuous). Goal: accurate prediction for future students.</li><li><strong>Unsupervised.</strong> No label Y. Goal: find groups in X alone. Regression/classification and prediction/inference do not apply.</li><li><strong>Supervised, Classification, Prediction.</strong> Y ∈ {fraud, not-fraud} (categorical). Goal: accurate labelling of new transactions.</li><li><strong>Supervised, Regression, Prediction.</strong> Y = house value (continuous). If the goal were "which features drive price?" it would be inference instead.</li></ol></div>
+</div>
+<div class="pit">
+<div class="pn">Problem 2</div>
+<div class="pq">Model: Crop Yield = \(f\)(Rainfall, Temperature, Fertiliser) + \(\varepsilon\).<br>(a) What does \(f\) represent in words?<br>(b) Give two reasons why \(\varepsilon \neq 0\) even with perfect \(f\).<br>(c) A farmer says doubling fertiliser doubles yield. When is this approximately true? When is it wrong?</div>
+<button class="ssol" onclick="togSol('sp2')">Show Solution</button>
+<div class="sol" id="sp2">(a) \(f\) is the systematic, non-random part: the expected crop yield given fixed values of rainfall, temperature, and fertiliser. It captures the true underlying relationship.<br><br>(b) (i) Random within-season weather fluctuations not captured by average temperature or rainfall. (ii) Unmeasured variables such as soil quality, pest pressure, and seed variety that affect yield but are absent from the model.<br><br>(c) Approximately true if \(f\) is linear in fertiliser over the relevant range. Wrong when fertiliser is at saturation (diminishing returns), or excess fertiliser damages the crop (non-monotone relationship).</div>
+</div>
+<div class="pit">
+<div class="pn">Problem 3</div>
+<div class="pq">A data scientist says: "I achieved 100% accuracy on my training data, so my model is perfect." Identify two statistical problems and explain how you would address each.</div>
+<button class="ssol" onclick="togSol('sp3')">Show Solution</button>
+<div class="sol" id="sp3"><strong>Problem 1: Overfitting.</strong> A flexible model can memorise training data and achieve perfect training accuracy while performing poorly on new data. Fix: evaluate on a held-out test set or use cross-validation.<br><br><strong>Problem 2: Class imbalance.</strong> If only 1% of observations are in the positive class, a model that always predicts "negative" achieves 99% training accuracy without learning anything useful. Fix: report precision, recall, F1, or ROC-AUC instead of raw accuracy.</div>
+</div>
+<div class="pit">
+<div class="pn">Problem 4</div>
+<div class="pq">(a) Why might a doctor prefer a simpler interpretable model over a more accurate black-box model?<br>(b) What is the difference between \(f(\mathbf{X})\) and \(\hat{f}(\mathbf{X})\)? Which do we actually use?<br>(c) If \(\operatorname{Var}(\varepsilon) = 25\), what is the lowest possible expected squared prediction error?</div>
+<button class="ssol" onclick="togSol('sp4')">Show Solution</button>
+<div class="sol" id="sp4">(a) Doctors need to explain diagnoses to patients, verify alignment with medical knowledge, and ensure legal and ethical accountability. A black-box model provides no justification.<br><br>(b) \(f(\mathbf{X})\) is the unknown true function that exists in nature but cannot be observed. \(\hat{f}(\mathbf{X})\) is our estimate learned from training data. We use \(\hat{f}\) in practice.<br><br>(c) Minimum \(E[(Y-\hat{Y})^2] = \operatorname{Var}(\varepsilon) = 25\). Even with a perfect \(\hat{f} = f\), the irreducible error remains. No model achieves expected squared error below 25.</div>
+</div>
+</div>
+<div class="slide" data-slide="14">
+<div class="slide-header"><div class="slide-label">Slide 14 of 14</div><div class="slide-title">Key Takeaways</div></div>
+<div class="kta">
+<div class="ktai"><strong>The Statistical Model</strong>\(Y = f(\mathbf{X}) + \varepsilon\). Error = reducible + irreducible. Irreducible error is unavoidable.</div>
+<div class="ktai"><strong>Prediction vs Inference</strong>Prediction: maximise accuracy of \(\hat{Y}\). Inference: understand \(X_j \to Y\). Same data, different model choices.</div>
+<div class="ktai"><strong>Parametric vs Nonparametric</strong>Parametric: assume form, estimate parameters, interpretable. Nonparametric: no form assumed, flexible, risk of overfitting.</div>
+<div class="ktai"><strong>Supervised vs Unsupervised</strong>Supervised: labels \(Y\) exist. Unsupervised: only \(\mathbf{X}\), find hidden structure.</div>
+<div class="ktai"><strong>Regression vs Classification</strong>\(Y\) continuous: regression. \(Y\) categorical: classification.</div>
+<div class="ktai"><strong>Next: Module 02</strong>How do we measure model quality? Why does low training error not mean a good model? MSE, overfitting, and cross-validation.</div>
+</div>
+</div>
+
+<div class="slide-nav">
+<button class="nbtn" id="pbtn" onclick="chg(-1)" disabled>&larr; Previous</button>
+<span class="sc-ctr" id="sct">Slide 1 of 14</span>
+<button class="nbtn" id="nbtn" onclick="chg(1)">Next &rarr;</button>
+</div>
+</div>
+
+<script>
+const SK='aiml-m01-v4';
+let cs=1, ts=14, bsz=18;
+
+function showSlide(n) {
+  try {
+    var prev = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs = Math.max(1, Math.min(ts, n));
+    var next = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct = document.getElementById('sct');
+    if(sct) sct.textContent = 'Slide '+cs+' of '+ts;
+    var pbtn = document.getElementById('pbtn');
+    var nbtn = document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled = (cs===1);
+    if(nbtn) nbtn.disabled = (cs===ts);
+    var pfill = document.getElementById('pfill');
+    if(pfill) pfill.style.width = (cs/ts*100)+'%';
+    try { localStorage.setItem(SK, JSON.stringify({cs:cs})); } catch(e) {}
+    try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+  } catch(err) { console.error('Nav error:', err); }
+}
+function chg(d) { showSlide(cs+d); }
+function zoom(d) {
+  bsz = d===0 ? 18 : Math.min(28, Math.max(14, bsz+d*2));
+  document.documentElement.style.setProperty('--base', bsz+'px');
+  try { localStorage.setItem(SK+'_sz', bsz); } catch(e) {}
+}
+function togSol(id) {
+  var s = document.getElementById(id);
+  if(s) s.style.display = s.style.display==='block' ? 'none' : 'block';
+  try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+}
+document.addEventListener('keydown', function(e) {
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); chg(1); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); chg(-1); }
+});
+(function(){
+  try {
+    var sv = JSON.parse(localStorage.getItem(SK));
+    if(sv && sv.cs>1) showSlide(sv.cs);
+    var sz = localStorage.getItem(SK+'_sz');
+    if(sz){ bsz=parseInt(sz,10); document.documentElement.style.setProperty('--base',bsz+'px'); }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
