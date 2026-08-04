@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 03 - Bias-Variance Tradeoff in Depth</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--blue:#2563eb;--dark:#1d4ed8;--slate:#334155;--muted:#64748b;--bg-blue:#dbeafe;--bg-green:#d1fae5;--bg-amber:#fef3c7;--bg-red:#fee2e2;--green:#059669;--amber:#d97706;--red:#dc2626;--border:#e2e8f0;--card:#f8fafc;--base:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh;font-size:var(--base)}
+.module-header{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.hdr-left{display:flex;align-items:center;gap:.9rem}
+.mod-badge{background:rgba(255,255,255,.2);border-radius:8px;padding:.3rem .8rem;font-size:.8rem;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.mod-title{font-size:1.1rem;font-weight:700}
+.mod-sub{font-size:.78rem;opacity:.8;margin-top:.12rem}
+.zoom-ctrl{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.15);border-radius:8px;padding:.3rem .6rem}
+.zoom-ctrl span{font-size:.75rem;color:rgba(255,255,255,.8);white-space:nowrap}
+.zbtn{background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:5px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.zbtn:hover{background:rgba(255,255,255,.4)}
+.slide{display:none;animation:fadeIn .25s}
+.slide.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.slide-header{background:var(--blue);color:#fff;border-radius:10px;padding:.9rem 1.3rem;margin-bottom:1rem}
+.slide-label{font-size:.72rem;opacity:.72;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.18rem}
+.slide-title{font-size:1.5rem;font-weight:800;line-height:1.25}
+.slide-subtitle{font-size:.88rem;opacity:.85;margin-top:.22rem}
+.cbox{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:.8rem;line-height:1.7}
+.cbox p{margin-bottom:.45rem}.cbox p:last-child{margin-bottom:0}
+.hbox{border-radius:10px;padding:.9rem 1.2rem;margin-bottom:.8rem}
+.hbox.blue{background:var(--bg-blue);border-left:5px solid var(--blue)}
+.hbox.green{background:var(--bg-green);border-left:5px solid var(--green)}
+.hbox.amber{background:var(--bg-amber);border-left:5px solid var(--amber)}
+.hbox.red{background:var(--bg-red);border-left:5px solid var(--red)}
+.hbox .ht{font-weight:800;font-size:.95rem;margin-bottom:.35rem}
+.hbox.blue .ht{color:var(--dark)}.hbox.green .ht{color:#065f46}.hbox.amber .ht{color:#92400e}.hbox.red .ht{color:#991b1b}
+.hbox p,.hbox li{line-height:1.7}
+.fbox{background:#1e293b;color:#e2e8f0;border-radius:10px;padding:.95rem 1.2rem;margin-bottom:.8rem;text-align:center}
+.fbox .fl{font-size:.7rem;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.3rem}
+.fbox2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem}
+.fbox2 .fb{background:#1e293b;color:#e2e8f0;border-radius:10px;padding:.9rem 1rem;text-align:center}
+.fbox2 .fb .fl{font-size:.7rem;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.28rem}
+.tcol{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem}
+.colc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.colc h4{font-size:1rem;font-weight:800;color:var(--blue);margin-bottom:.4rem}
+.colc ul{list-style:none;padding:0}
+.colc ul li{padding:.18rem 0 .18rem 1.1rem;position:relative;line-height:1.6}
+.colc ul li:before{content:"›";position:absolute;left:0;color:var(--blue);font-weight:700}
+.step{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.45rem;display:flex;gap:.75rem;align-items:flex-start}
+.snum{background:var(--blue);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;margin-top:.1rem}
+.stxt{line-height:1.65}
+.tbl{width:100%;border-collapse:collapse;margin-bottom:.8rem}
+.tbl th{background:var(--blue);color:#fff;padding:.5rem .8rem;text-align:left;font-weight:700}
+.tbl td{padding:.42rem .8rem;border-bottom:1px solid var(--border);color:var(--slate)}
+.tbl tr:nth-child(even) td{background:var(--card)}
+.kta{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.ktai{background:#fff;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:.65rem .9rem;line-height:1.55}
+.ktai strong{color:#1e293b;display:block;margin-bottom:.18rem;font-size:.95rem}
+.slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border)}
+.nbtn{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:.5rem 1.3rem;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .15s}
+.nbtn:hover{background:var(--dark)}.nbtn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.sc-ctr{font-size:.85rem;color:var(--muted);font-weight:600}
+.pbar{height:4px;background:var(--border);border-radius:99px;margin-bottom:1rem}
+.pfill{height:100%;background:var(--blue);border-radius:99px;transition:width .3s}
+.pit{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:.9rem}
+.pit .pn{font-size:.78rem;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem}
+.pit .pq{color:#1e293b;line-height:1.7;margin-bottom:.75rem}
+.pit .pq ol{padding-left:1.2rem;margin-top:.35rem}
+.ssol{background:var(--bg-blue);border:none;border-radius:7px;padding:.42rem 1rem;font-size:.85rem;font-weight:700;color:var(--dark);cursor:pointer;margin-bottom:.4rem}
+.ssol:hover{background:#bfdbfe}
+.sol{display:none;background:var(--bg-green);border-left:4px solid var(--green);border-radius:8px;padding:.9rem 1.1rem;margin-top:.45rem;color:#064e3b;line-height:1.7}
+.sol ol{padding-left:1.2rem;margin-top:.28rem}.sol ol li{margin-bottom:.3rem}
+.bvrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.bvc{border-radius:9px;padding:.85rem 1rem}
+.bvc h4{font-weight:800;font-size:.95rem;margin-bottom:.35rem}
+.bvc ul{list-style:none;padding:0}.bvc ul li{padding:.15rem 0 .15rem 1rem;position:relative;line-height:1.6}
+.bvc ul li:before{content:"›";position:absolute;left:0;font-weight:700}
+#slides{padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+</style>
+</head>
+<body>
+<div class="module-header">
+  <div class="hdr-left">
+    <div class="mod-badge">MODULE 03</div>
+    <div>
+      <div class="mod-title">Bias-Variance Tradeoff in Depth</div>
+      <div class="mod-sub">AST402 &middot; Statistics for AI and ML &middot; IASDS, University of Dhaka</div>
+    </div>
+  </div>
+  <div class="zoom-ctrl">
+    <span>Text size</span>
+    <button class="zbtn" onclick="zoom(-1)">A&minus;</button>
+    <button class="zbtn" onclick="zoom(0)">A</button>
+    <button class="zbtn" onclick="zoom(1)">A+</button>
+  </div>
+</div>
+
+<div id="slides">
+<div class="pbar"><div class="pfill" id="pfill" style="width:6.67%"></div></div>
+
+<!-- SLIDE 1 -->
+<div class="slide active" data-slide="1">
+<div class="slide-header"><div class="slide-label">Slide 1 of 15</div><div class="slide-title">Module Overview</div></div>
+<div class="hbox blue"><div class="ht">Learning Objectives</div><ul style="padding-left:1.2rem">
+<li>Derive the bias-variance decomposition from first principles</li>
+<li>Define bias and variance precisely and interpret each geometrically</li>
+<li>Explain why reducing bias always increases variance and vice versa</li>
+<li>Trace how \(n\) and model flexibility each affect bias and variance separately</li>
+<li>Apply the decomposition to KNN and polynomial regression</li>
+<li>Explain how regularisation manages the bias-variance tradeoff</li>
+</ul></div>
+<div class="tcol">
+<div class="colc"><h4>Core Concepts</h4><ul>
+<li>Formal derivation of the decomposition</li>
+<li>Bias: systematic error from assumptions</li>
+<li>Variance: sensitivity to training data</li>
+<li>Effect of \(n\) vs model complexity</li>
+<li>KNN: K controls the tradeoff</li>
+<li>Regularisation: ridge and lasso</li>
+</ul></div>
+<div class="colc"><h4>Class Activity</h4><ul>
+<li>Step-by-step derivation walkthrough</li>
+<li>Worked Example 1: KNN bias-variance</li>
+<li>Worked Example 2: polynomial regression</li>
+<li>In-class exercise with solutions</li>
+<li>4 practice problems with solutions</li>
+</ul></div>
+</div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" data-slide="2">
+<div class="slide-header"><div class="slide-label">Slide 2 of 15</div><div class="slide-title">Deriving the Decomposition: Setup</div></div>
+<div class="cbox"><p>Fix a test point \(x_0\). The true model is \(Y = f(x_0) + \varepsilon\) where \(E[\varepsilon]=0\) and \(\operatorname{Var}(\varepsilon)=\sigma^2\). We train \(\hat{f}\) on a random training set \(\mathcal{T}\) and predict \(\hat{f}(x_0)\). We want to find \(E_{\mathcal{T}}\left[(y_0 - \hat{f}(x_0))^2\right]\), averaging over all possible training sets and over the noise in \(y_0\).</p></div>
+<div class="step"><div class="snum">1</div><div class="stxt">Let \(\bar{f}(x_0) = E_{\mathcal{T}}[\hat{f}(x_0)]\) be the average prediction across all possible training sets. This is a fixed number for a given \(x_0\) and method.</div></div>
+<div class="step"><div class="snum">2</div><div class="stxt">Add and subtract \(\bar{f}(x_0)\) and \(f(x_0)\) inside the squared error. Use the identity \((a+b)^2 = a^2 + 2ab + b^2\) with the cross terms vanishing under expectation.</div></div>
+<div class="step"><div class="snum">3</div><div class="stxt">The three resulting terms are Bias\(^2\), Variance, and Irreducible error. Each term is non-negative, so they sum to give a lower bound on test MSE.</div></div>
+<div class="hbox amber"><div class="ht">Key assumption</div><p>\(\varepsilon\) is independent of \(\hat{f}(x_0)\): the noise in a new test observation is independent of how we fitted the model on training data.</p></div>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" data-slide="3">
+<div class="slide-header"><div class="slide-label">Slide 3 of 15</div><div class="slide-title">The Full Derivation</div></div>
+<div class="cbox"><p>Starting from the expected squared error at \(x_0\), where expectation is over both the training set \(\mathcal{T}\) and the test noise \(\varepsilon_0\):</p></div>
+<div class="fbox"><div class="fl">Step 1: expand</div>\[E\!\left[(y_0 - \hat{f}(x_0))^2\right] = E\!\left[(f(x_0)+\varepsilon_0 - \hat{f}(x_0))^2\right]\]</div>
+<div class="fbox"><div class="fl">Step 2: add and subtract the mean prediction \(\bar{f}(x_0)\)</div>\[= E\!\left[(\underbrace{f(x_0)-\bar{f}(x_0)}_{\text{const w.r.t. }\mathcal{T}} + \underbrace{\bar{f}(x_0)-\hat{f}(x_0)}_{\text{mean zero}} + \varepsilon_0)^2\right]\]</div>
+<div class="fbox"><div class="fl">Step 3: cross terms vanish, leaving three squares</div>\[\boxed{E\!\left[(y_0-\hat{f}(x_0))^2\right] = \underbrace{\left[f(x_0)-\bar{f}(x_0)\right]^2}_{\text{Bias}^2} + \underbrace{E\!\left[(\hat{f}(x_0)-\bar{f}(x_0))^2\right]}_{\text{Variance}} + \underbrace{\sigma^2}_{\text{Irreducible}}}\]</div>
+<div class="hbox green"><div class="ht">Why do cross terms vanish?</div><ul style="padding-left:1.2rem">
+<li>\(E[\varepsilon_0]=0\) kills any term involving \(\varepsilon_0\) alone or multiplied by a quantity that does not depend on \(\varepsilon_0\).</li>
+<li>\(E[\hat{f}(x_0) - \bar{f}(x_0)] = 0\) by definition of \(\bar{f}\), killing the cross term between the bias term and the variance term.</li>
+</ul></div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide" data-slide="4">
+<div class="slide-header"><div class="slide-label">Slide 4 of 15</div><div class="slide-title">Understanding Bias</div></div>
+<div class="fbox"><div class="fl">Definition of Bias</div>\[\operatorname{Bias}(\hat{f}(x_0)) = E_{\mathcal{T}}[\hat{f}(x_0)] - f(x_0) = \bar{f}(x_0) - f(x_0)\]</div>
+<div class="hbox blue"><div class="ht">Intuition</div><p>Bias measures how far the average prediction (over all possible training sets of size \(n\)) is from the true value. It is the systematic error caused by wrong model assumptions, not by randomness in the data.</p></div>
+<div class="tcol">
+<div class="colc" style="border-top:3px solid var(--red)"><h4 style="color:var(--red)">High Bias</h4><ul>
+<li>Model is too simple</li>
+<li>Misses the true shape of \(f\)</li>
+<li>More data does NOT fix it</li>
+<li>Example: fitting a line to curved data</li>
+<li>Symptom: high training AND test error</li>
+</ul></div>
+<div class="colc" style="border-top:3px solid var(--green)"><h4 style="color:var(--green)">Low Bias</h4><ul>
+<li>Model is flexible enough</li>
+<li>Can approximate the true \(f\)</li>
+<li>Average prediction close to truth</li>
+<li>Example: high-degree polynomial, deep net</li>
+<li>Risk: may have high variance instead</li>
+</ul></div>
+</div>
+<div class="hbox amber"><div class="ht">Key point</div><p>Bias is a property of the learning method, not any single fitted model. Even with infinite data, a linear model fitting a cubic truth will always have nonzero bias.</p></div>
+</div>
+
+<!-- SLIDE 5 -->
+<div class="slide" data-slide="5">
+<div class="slide-header"><div class="slide-label">Slide 5 of 15</div><div class="slide-title">Understanding Variance</div></div>
+<div class="fbox"><div class="fl">Definition of Variance</div>\[\operatorname{Var}(\hat{f}(x_0)) = E_{\mathcal{T}}\!\left[(\hat{f}(x_0) - \bar{f}(x_0))^2\right]\]</div>
+<div class="hbox blue"><div class="ht">Intuition</div><p>Variance measures how much the prediction at \(x_0\) changes when we train on different samples of size \(n\). A high-variance method produces very different \(\hat{f}\) for each new training set, even if on average it is unbiased.</p></div>
+<div class="tcol">
+<div class="colc" style="border-top:3px solid var(--red)"><h4 style="color:var(--red)">High Variance</h4><ul>
+<li>Model is too flexible</li>
+<li>Fits noise in training data</li>
+<li>Small data change, big model change</li>
+<li>Example: KNN with \(K=1\), degree-15 poly</li>
+<li>Symptom: low training error, high test error</li>
+</ul></div>
+<div class="colc" style="border-top:3px solid var(--green)"><h4 style="color:var(--green)">Low Variance</h4><ul>
+<li>Model is stable across training sets</li>
+<li>Predictions change little with new data</li>
+<li>Example: linear regression, large \(K\) KNN</li>
+<li>Risk: may have high bias instead</li>
+<li>More data shrinks variance</li>
+</ul></div>
+</div>
+<div class="hbox green"><div class="ht">Analogy</div><p>Bias is like a rifle with incorrect sighting: every shot lands in the same wrong spot. Variance is like a rifle with a shaky grip: shots scatter around the target. A good model has both correct sighting (low bias) and a steady grip (low variance).</p></div>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide" data-slide="6">
+<div class="slide-header"><div class="slide-label">Slide 6 of 15</div><div class="slide-title">Why the Tradeoff is Unavoidable</div></div>
+<div class="hbox blue"><div class="ht">The fundamental tension</div><p>Reducing bias requires a more flexible model that can adapt to the training data. But greater flexibility means the model is more sensitive to which training points it happened to see, increasing variance. You cannot simultaneously drive both to zero.</p></div>
+<div class="cbox"><p>Formally: let the model complexity be controlled by parameter \(\lambda\) (e.g., polynomial degree, or \(1/K\) in KNN). Then:</p></div>
+<div class="fbox2">
+<div class="fb"><div class="fl">As complexity increases</div>\[\text{Bias}^2 \downarrow \quad \text{Var} \uparrow\]</div>
+<div class="fb"><div class="fl">As complexity decreases</div>\[\text{Bias}^2 \uparrow \quad \text{Var} \downarrow\]</div>
+</div>
+<div class="hbox green"><div class="ht">The optimal point</div><p>Minimise \(\text{Test MSE} = \text{Bias}^2 + \text{Var} + \sigma^2\) by choosing flexibility where \(-\frac{d}{d\lambda}\text{Bias}^2 = \frac{d}{d\lambda}\text{Var}\): the marginal bias reduction equals the marginal variance increase.</p></div>
+<div class="hbox amber"><div class="ht">Practical consequence</div><p>We cannot observe \(\text{Bias}^2\) and \(\text{Var}\) separately from data. We can only observe total test MSE (via cross-validation), which is why CV is our main tool for finding the optimal complexity.</p></div>
+</div>
+
+<!-- SLIDE 7 -->
+<div class="slide" data-slide="7">
+<div class="slide-header"><div class="slide-label">Slide 7 of 15</div><div class="slide-title">Effect of Training Sample Size n</div></div>
+<div class="cbox"><p>As \(n\) increases, what happens to bias and variance separately?</p></div>
+<div class="tcol">
+<div class="colc"><h4>Variance</h4><ul>
+<li>Variance always decreases as \(n \to \infty\)</li>
+<li>More data: each training set looks more like the true population</li>
+<li>For OLS: \(\operatorname{Var}(\hat{\beta}) = \sigma^2(\mathbf{X}^\top\mathbf{X})^{-1} \to 0\)</li>
+<li>For KNN: variance \(\approx \sigma^2 / K\), independent of \(n\)</li>
+<li>Large \(n\) is the most reliable way to reduce variance</li>
+</ul></div>
+<div class="colc"><h4>Bias</h4><ul>
+<li>Bias depends on the model class, not \(n\)</li>
+<li>If the model is wrong (e.g., linear fit to cubic truth), more data does NOT reduce bias</li>
+<li>Bias is fixed by what the method can represent</li>
+<li>Exception: nonparametric methods whose complexity grows with \(n\) (e.g., KNN with \(K = \sqrt{n}\))</li>
+</ul></div>
+</div>
+<div class="hbox amber"><div class="ht">Learning Curves</div><p>Plot training error and validation error vs \(n\). Both converge to \(\sigma^2 + \text{Bias}^2\) as \(n \to \infty\). If the gap between training and validation error is large at large \(n\), variance is high. If both errors are large regardless of \(n\), bias is the problem.</p></div>
+</div>
+
+<!-- SLIDE 8 -->
+<div class="slide" data-slide="8">
+<div class="slide-header"><div class="slide-label">Slide 8 of 15</div><div class="slide-title">KNN: How K Controls the Tradeoff</div></div>
+<div class="cbox"><p>KNN predicts \(\hat{f}(x_0) = \frac{1}{K}\sum_{i \in \mathcal{N}_K(x_0)} y_i\) where \(\mathcal{N}_K(x_0)\) is the set of \(K\) nearest training points to \(x_0\).</p></div>
+<div class="fbox2">
+<div class="fb"><div class="fl">KNN Bias (approx, for smooth f)</div>\[\text{Bias}^2 \approx \left[f(x_0) - \frac{1}{K}\sum_{i \in \mathcal{N}_K} f(x_i)\right]^2 \uparrow \text{ as } K \uparrow\]</div>
+<div class="fb"><div class="fl">KNN Variance (exact)</div>\[\operatorname{Var}(\hat{f}(x_0)) = \frac{\sigma^2}{K} \downarrow \text{ as } K \uparrow\]</div>
+</div>
+<table class="tbl"><tr><th>\(K\)</th><th>Bias\(^2\)</th><th>Variance</th><th>Behaviour</th></tr>
+<tr><td>1</td><td>~0 (fits each point exactly)</td><td>\(\sigma^2\) (very high)</td><td>Extreme overfitting</td></tr>
+<tr><td>5</td><td>Low</td><td>\(\sigma^2/5\)</td><td>Usually good</td></tr>
+<tr><td>10</td><td>Moderate</td><td>\(\sigma^2/10\)</td><td>Often near optimal</td></tr>
+<tr><td>\(n\)</td><td>High (predicts global mean)</td><td>\(\sigma^2/n \approx 0\)</td><td>Extreme underfitting</td></tr>
+</table>
+<div class="hbox green"><div class="ht">Rule of thumb</div><p>Select \(K\) by cross-validation. Larger \(K\) gives smoother decision boundaries (lower variance, higher bias). The optimal \(K\) balances the two components of test MSE.</p></div>
+</div>
+
+<!-- SLIDE 9 -->
+<div class="slide" data-slide="9">
+<div class="slide-header"><div class="slide-label">Slide 9 of 15</div><div class="slide-title">Worked Example 1: KNN on Simulated Data</div></div>
+<div class="hbox blue"><div class="ht">Setup</div><p>True model: \(f(x) = \sin(2\pi x)\), \(n=50\), \(\sigma^2=0.25\). We fit KNN for \(K = 1, 3, 7, 15, 25\) and estimate Bias\(^2\), Var, and MSE at \(x_0=0.5\) by simulation (1000 training sets).</p></div>
+<table class="tbl"><tr><th>\(K\)</th><th>Bias\(^2\)</th><th>Variance</th><th>Test MSE</th><th>Verdict</th></tr>
+<tr><td>1</td><td>0.02</td><td>0.24</td><td>0.51</td><td>Overfit: variance dominates</td></tr>
+<tr><td>3</td><td>0.04</td><td>0.09</td><td>0.38</td><td>Better balance</td></tr>
+<tr><td>7</td><td>0.08</td><td>0.04</td><td><strong>0.37</strong></td><td>Near optimal</td></tr>
+<tr><td>15</td><td>0.19</td><td>0.02</td><td>0.46</td><td>Bias rising fast</td></tr>
+<tr><td>25</td><td>0.38</td><td>0.01</td><td>0.64</td><td>Underfit: bias dominates</td></tr>
+</table>
+<div class="hbox amber"><div class="ht">Observations</div><ul style="padding-left:1.2rem">
+<li>As \(K\) increases, Bias\(^2\) rises and Variance falls monotonically. Both move in opposite directions.</li>
+<li>Test MSE is minimised at \(K=7\), not at the extremes.</li>
+<li>Irreducible error \(\sigma^2 = 0.25\) sets the floor. Even at \(K=7\): MSE = 0.08 + 0.04 + 0.25 = 0.37. Confirmed.</li>
+</ul></div>
+</div>
+
+<!-- SLIDE 10 -->
+<div class="slide" data-slide="10">
+<div class="slide-header"><div class="slide-label">Slide 10 of 15</div><div class="slide-title">Worked Example 2: Polynomial Regression</div></div>
+<div class="hbox blue"><div class="ht">Setup</div><p>True model: \(f(x) = 2x - x^2 + 0.5x^3\) (cubic), \(n=30\), \(\sigma^2=1\). We fit polynomial regression of degrees \(d = 1, 2, 3, 5, 10\) and estimate components by 500 simulations.</p></div>
+<table class="tbl"><tr><th>Degree \(d\)</th><th>Bias\(^2\)</th><th>Variance</th><th>Test MSE</th><th>Verdict</th></tr>
+<tr><td>1 (linear)</td><td>1.82</td><td>0.14</td><td>2.96</td><td>High bias: misses cubic shape</td></tr>
+<tr><td>2</td><td>0.91</td><td>0.18</td><td>2.09</td><td>Better but still underfitting</td></tr>
+<tr><td>3</td><td>0.03</td><td>0.22</td><td><strong>1.25</strong></td><td>Near optimal: matches true form</td></tr>
+<tr><td>5</td><td>0.04</td><td>0.61</td><td>1.65</td><td>Variance rising, bias flat</td></tr>
+<tr><td>10</td><td>0.05</td><td>3.87</td><td>4.92</td><td>Severe overfit</td></tr>
+</table>
+<div class="hbox green"><div class="ht">Key observations</div><ul style="padding-left:1.2rem">
+<li>Degree 3 nearly eliminates bias (the true function IS cubic), so bias drops sharply from \(d=2\) to \(d=3\).</li>
+<li>Beyond degree 3, bias stays near zero but variance explodes: the extra degrees of freedom are spent fitting noise.</li>
+<li>The optimal degree equals the true polynomial degree, but in practice we do not know this, so we use CV.</li>
+</ul></div>
+</div>
+
+<!-- SLIDE 11 -->
+<div class="slide" data-slide="11">
+<div class="slide-header"><div class="slide-label">Slide 11 of 15</div><div class="slide-title">Regularisation as Bias-Variance Management</div></div>
+<div class="cbox"><p>Regularisation deliberately introduces bias to reduce variance, aiming for a lower total test MSE. The two main linear regularisation methods are ridge and lasso.</p></div>
+<div class="fbox"><div class="fl">Ridge Regression (L2)</div>\[\hat{\beta}^{\text{ridge}} = \arg\min_\beta \left\{\sum_{i=1}^n (y_i - \mathbf{x}_i^\top\beta)^2 + \lambda\sum_{j=1}^p \beta_j^2\right\}\]</div>
+<div class="fbox"><div class="fl">Lasso Regression (L1)</div>\[\hat{\beta}^{\text{lasso}} = \arg\min_\beta \left\{\sum_{i=1}^n (y_i - \mathbf{x}_i^\top\beta)^2 + \lambda\sum_{j=1}^p |\beta_j|\right\}\]</div>
+<table class="tbl"><tr><th>\(\lambda\)</th><th>Effect on coefficients</th><th>Bias</th><th>Variance</th><th>Best when</th></tr>
+<tr><td>0</td><td>OLS: unregularised</td><td>Low</td><td>High</td><td>Large \(n\), few predictors</td></tr>
+<tr><td>Small</td><td>Slight shrinkage</td><td>Slightly higher</td><td>Lower</td><td>Moderate \(p\)</td></tr>
+<tr><td>Large</td><td>Strong shrinkage to 0</td><td>High</td><td>Very low</td><td>Small \(n\), large \(p\)</td></tr>
+<tr><td>\(\infty\)</td><td>All \(\hat{\beta}_j = 0\) (predict mean)</td><td>Very high</td><td>~0</td><td>Never optimal</td></tr>
+</table>
+<div class="hbox amber"><div class="ht">Choosing \(\lambda\)</div><p>Always select \(\lambda\) by cross-validation on the training set only. The optimal \(\lambda\) balances the bias introduced by shrinkage against the variance it removes.</p></div>
+</div>
+
+<!-- SLIDE 12 -->
+<div class="slide" data-slide="12">
+<div class="slide-header"><div class="slide-label">Slide 12 of 15</div><div class="slide-title">In-Class Exercise</div></div>
+<div class="pit">
+<div class="pn">Scenario 1</div>
+<div class="pq">A linear regression model is fitted to data generated by \(f(x) = x^3\). As you increase the training sample size \(n\) from 50 to 5000, what happens to (a) bias, (b) variance, (c) test MSE? Explain each.</div>
+<button class="ssol" onclick="togSol('ex1')">Show Solution</button>
+<div class="sol" id="ex1">(a) <strong>Bias stays the same.</strong> Bias depends on the model class (linear), not on \(n\). A linear model can never capture the cubic shape, regardless of how much data we have. Bias\(^2\) is fixed at a positive value determined by how different the best linear approximation is from \(x^3\).<br><br>(b) <strong>Variance decreases.</strong> With more data, the OLS estimates become more stable. \(\operatorname{Var}(\hat{\beta}) = \sigma^2(\mathbf{X}^\top\mathbf{X})^{-1} \to 0\) as \(n \to \infty\).<br><br>(c) <strong>Test MSE decreases and plateaus.</strong> As \(n \to \infty\), Variance \(\to 0\) so Test MSE \(\to\) Bias\(^2\) + \(\sigma^2\). More data cannot drive test MSE below this floor. If the bias is large, gathering more data has diminishing returns.</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 2</div>
+<div class="pq">You are comparing KNN with \(K=1\) and KNN with \(K=50\) on a dataset with \(n=100\) and \(\sigma^2=4\). (a) Which has higher variance? Compute the approximate variance for each at \(x_0\). (b) A colleague says "I will just use \(K=1\) and get more data to fix it." Is this correct?</div>
+<button class="ssol" onclick="togSol('ex2')">Show Solution</button>
+<div class="sol" id="ex2">(a) \(K=1\) has higher variance. Approximate variance: \(K=1\): \(\sigma^2/K = 4/1 = 4\). \(K=50\): \(\sigma^2/K = 4/50 = 0.08\). The difference is enormous.<br><br>(b) <strong>Partly correct, but incomplete.</strong> Getting more data does reduce variance for KNN with \(K=1\), since the nearest neighbour becomes a better local average as density increases. However, \(K=1\) remains a very noisy estimator for fixed \(K\). A better approach is to increase \(K\) (or let \(K\) grow with \(n\)) rather than relying solely on more data. Simply getting more data with \(K=1\) fixed leaves variance at \(\sigma^2/1 = 4\) since the formula \(\operatorname{Var} = \sigma^2/K\) does not depend on \(n\).</div>
+</div>
+<div class="pit">
+<div class="pn">Scenario 3</div>
+<div class="pq">Ridge regression with large \(\lambda\) gives low test MSE on a dataset with \(n=20, p=18\). When you collect \(n=2000\) more observations, the optimal \(\lambda\) from cross-validation drops close to 0. Why?</div>
+<button class="ssol" onclick="togSol('ex3')">Show Solution</button>
+<div class="sol" id="ex3">With \(n=20\) and \(p=18\), the OLS estimator has very high variance (near-singular \(\mathbf{X}^\top\mathbf{X}\)). Ridge shrinkage introduces bias but dramatically reduces variance, giving a better bias-variance balance and lower test MSE.<br><br>With \(n=2000\), the OLS variance is already very small (many more observations per parameter). The benefit of shrinkage (variance reduction) is negligible, while the cost (bias) remains. So the optimal tradeoff shifts towards \(\lambda \approx 0\) (near-OLS). In the limit of infinite data, regularisation becomes unnecessary for fixed \(p\).</div>
+</div>
+</div>
+
+<!-- SLIDE 13 -->
+<div class="slide" data-slide="13">
+<div class="slide-header"><div class="slide-label">Slide 13 of 15</div><div class="slide-title">Practice Problems</div></div>
+<div class="pit">
+<div class="pn">Problem 1</div>
+<div class="pq">Suppose \(\text{Bias}^2 = 12 - 2\lambda\) and \(\text{Var} = 3\lambda\) for a model parameterised by flexibility \(\lambda \geq 0\), with irreducible error \(\sigma^2 = 3\).
+<ol type="a"><li>Write the test MSE as a function of \(\lambda\).</li><li>Find the optimal \(\lambda^*\) that minimises test MSE. Show your working.</li><li>Compute the minimum test MSE.</li><li>At \(\lambda^*\), what fraction of the reducible error comes from bias?</li></ol></div>
+<button class="ssol" onclick="togSol('sp1')">Show Solution</button>
+<div class="sol" id="sp1"><ol type="a"><li>\(\text{Test MSE}(\lambda) = (12-2\lambda) + 3\lambda + 3 = 15 + \lambda\).</li><li>This is linear and increasing in \(\lambda\)! So the minimum is at \(\lambda^* = 0\). Wait, but that gives Bias\(^2 = 12\) and Var = 0, which seems extreme. This illustrates that when Var increases faster than Bias\(^2\) decreases, the optimal is at the boundary. Checking: \(d(\text{MSE})/d\lambda = -2 + 3 = 1 > 0\), so MSE increases with \(\lambda\). Optimal: \(\lambda^* = 0\).</li><li>Minimum Test MSE = \(12 + 0 + 3 = 15\).</li><li>At \(\lambda^*=0\): reducible error = Bias\(^2\) + Var = 12 + 0 = 12. Fraction from bias = 12/12 = 100%.</li></ol></div>
+</div>
+<div class="pit">
+<div class="pn">Problem 2</div>
+<div class="pq">Now suppose \(\text{Bias}^2 = 8e^{-\lambda}\) and \(\text{Var} = 2\lambda\) with \(\sigma^2 = 1\).
+<ol type="a"><li>Find the optimal \(\lambda^*\) by setting \(d(\text{MSE})/d\lambda = 0\). (Hint: solve \(8e^{-\lambda} = 2\).)</li><li>Compute Bias\(^2\), Var, and Test MSE at \(\lambda^*\).</li><li>Is the optimal model more biased or more variable? Justify.</li></ol></div>
+<button class="ssol" onclick="togSol('sp2')">Show Solution</button>
+<div class="sol" id="sp2"><ol type="a"><li>\(\text{MSE}(\lambda) = 8e^{-\lambda} + 2\lambda + 1\). Taking derivative: \(d\text{MSE}/d\lambda = -8e^{-\lambda} + 2 = 0 \Rightarrow e^{-\lambda} = 1/4 \Rightarrow \lambda^* = \ln 4 \approx 1.386\).</li><li>Bias\(^2 = 8e^{-\ln 4} = 8 \times \frac{1}{4} = 2\). Var \(= 2\ln 4 \approx 2.77\). Test MSE \(= 2 + 2.77 + 1 = 5.77\).</li><li>At \(\lambda^*\), Var \(\approx 2.77 >\) Bias\(^2 = 2\), so the model is slightly more variable than biased. This is typical near the optimum: since increasing \(\lambda\) reduces bias exponentially but increases variance only linearly, the balance point leaves slightly more variance than bias.</li></ol></div>
+</div>
+<div class="pit">
+<div class="pn">Problem 3</div>
+<div class="pq">A student fits a very flexible model (degree-20 polynomial) and then a rigid model (linear) to a dataset with \(n=25\) and \(\sigma^2=2\). The training MSEs are 0.3 and 8.1. The test MSEs are 15.2 and 9.4.
+<ol type="a"><li>For each model, is test MSE closer to Bias\(^2\) or to Variance? Explain.</li><li>What does the large gap (0.3 vs 15.2) for the flexible model tell you about its bias and variance?</li><li>Propose one change that would likely reduce the test MSE of the flexible model without changing the model class.</li></ol></div>
+<button class="ssol" onclick="togSol('sp3')">Show Solution</button>
+<div class="sol" id="sp3"><ol type="a"><li>Flexible model: test MSE = 15.2, training MSE = 0.3. The test MSE is driven by high Variance (large gap between training and test). Linear model: test MSE = 9.4, training MSE = 8.1. Both are large and close, suggesting the test MSE is driven primarily by Bias\(^2\) (both stay high, little gap).</li><li>The gap of 14.9 is almost entirely Variance. The model memorised the 25 training points (near-zero bias on training) but does not generalise. Bias\(^2\) is likely close to 0 (degree-20 can match almost any smooth function), while Variance \(\approx 15.2 - 2 - 0 = 13.2\).</li><li>Add regularisation (ridge or lasso with cross-validated \(\lambda\)). This shrinks the polynomial coefficients, reducing variance at the cost of a small bias increase, and will almost certainly lower test MSE from 15.2.</li></ol></div>
+</div>
+<div class="pit">
+<div class="pn">Problem 4</div>
+<div class="pq">True or false? Justify each.
+<ol type="a"><li>"If two models have the same training MSE, they have the same bias."</li><li>"Adding more training data always reduces test MSE."</li><li>"The irreducible error \(\sigma^2\) can be estimated from training data."</li><li>"A model with zero bias is always the best choice."</li></ol></div>
+<button class="ssol" onclick="togSol('sp4')">Show Solution</button>
+<div class="sol" id="sp4"><ol type="a"><li><strong>False.</strong> Training MSE is a function of the fitted model on one dataset. Bias is defined as the average over all training sets. Two models can have the same training MSE on one dataset but very different biases.</li><li><strong>False.</strong> More data reduces Variance, but if the model has high Bias, test MSE converges to Bias\(^2\) + \(\sigma^2\) which may still be large. More data does not help a misspecified model.</li><li><strong>True, approximately.</strong> In linear regression, \(\hat{\sigma}^2 = \text{RSS}/(n-p-1)\) is an unbiased estimator of \(\sigma^2\). For nonparametric methods, it is harder but still possible with large enough \(n\).</li><li><strong>False.</strong> Zero-bias models tend to have very high variance, which can make test MSE worse than a biased but low-variance model. The goal is to minimise total test MSE, not any single component.</li></ol></div>
+</div>
+</div>
+
+<!-- SLIDE 14 -->
+<div class="slide" data-slide="14">
+<div class="slide-header"><div class="slide-label">Slide 14 of 15</div><div class="slide-title">Summary: Bias-Variance at a Glance</div></div>
+<table class="tbl">
+<tr><th>Situation</th><th>Bias</th><th>Variance</th><th>Fix</th></tr>
+<tr><td>Simple model, any \(n\)</td><td>High</td><td>Low</td><td>Use more flexible model</td></tr>
+<tr><td>Complex model, small \(n\)</td><td>Low</td><td>High</td><td>Regularise or get more data</td></tr>
+<tr><td>Complex model, large \(n\)</td><td>Low</td><td>Low</td><td>Good: near optimal</td></tr>
+<tr><td>Simple model, large \(n\)</td><td>High</td><td>~0</td><td>Use more flexible model</td></tr>
+<tr><td>KNN with \(K=1\)</td><td>~0</td><td>\(\sigma^2\)</td><td>Increase \(K\)</td></tr>
+<tr><td>KNN with \(K=n\)</td><td>High</td><td>~0</td><td>Decrease \(K\)</td></tr>
+<tr><td>Ridge with large \(\lambda\)</td><td>High</td><td>Low</td><td>Decrease \(\lambda\) via CV</td></tr>
+</table>
+<div class="hbox blue"><div class="ht">Diagnostic guide</div><ul style="padding-left:1.2rem">
+<li><strong>Both training and test error are high:</strong> high bias. Use a more flexible model.</li>
+<li><strong>Training error is low but test error is high:</strong> high variance. Regularise, reduce complexity, or get more data.</li>
+<li><strong>Both errors are low:</strong> you are in a good region. Apply the 1-SE rule to pick the simplest model near this point.</li>
+</ul></div>
+</div>
+
+<!-- SLIDE 15 -->
+<div class="slide" data-slide="15">
+<div class="slide-header"><div class="slide-label">Slide 15 of 15</div><div class="slide-title">Key Takeaways</div></div>
+<div class="kta">
+<div class="ktai"><strong>The Decomposition</strong>Test MSE = Bias\(^2\) + Variance + \(\sigma^2\). All three terms are non-negative. Only Bias\(^2\) and Variance are controllable.</div>
+<div class="ktai"><strong>Bias</strong>Systematic error from wrong model assumptions. Fixed by the model class, not by more data. High in simple, inflexible models.</div>
+<div class="ktai"><strong>Variance</strong>Sensitivity to which training set you happened to observe. Reduced by more data or less flexibility. High in complex models on small datasets.</div>
+<div class="ktai"><strong>The Tradeoff</strong>You cannot reduce both simultaneously. Optimal complexity is where marginal bias reduction equals marginal variance increase.</div>
+<div class="ktai"><strong>KNN</strong>Variance = \(\sigma^2/K\). Bias increases with \(K\). Use CV to find the optimal \(K\).</div>
+<div class="ktai"><strong>Regularisation</strong>Ridge and lasso add bias deliberately to reduce variance. Tune \(\lambda\) by CV. Essential when \(p\) is large relative to \(n\).</div>
+<div class="ktai"><strong>Diagnostics</strong>High training and test error: bias problem. Low training, high test error: variance problem. Both low: good model.</div>
+<div class="ktai"><strong>Next: Module 04</strong>Linear regression revisited: estimation, inference, and model selection with the bias-variance lens.</div>
+</div>
+</div>
+
+<div class="slide-nav">
+<button class="nbtn" id="pbtn" onclick="chg(-1)" disabled>&larr; Previous</button>
+<span class="sc-ctr" id="sct">Slide 1 of 15</span>
+<button class="nbtn" id="nbtn" onclick="chg(1)">Next &rarr;</button>
+</div>
+</div>
+
+<script>
+const SK='aiml-m03-v1';
+let cs=1, ts=15, bsz=18;
+
+function showSlide(n) {
+  try {
+    var prev = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs = Math.max(1, Math.min(ts, n));
+    var next = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct = document.getElementById('sct');
+    if(sct) sct.textContent = 'Slide '+cs+' of '+ts;
+    var pbtn = document.getElementById('pbtn');
+    var nbtn = document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled = (cs===1);
+    if(nbtn) nbtn.disabled = (cs===ts);
+    var pfill = document.getElementById('pfill');
+    if(pfill) pfill.style.width = (cs/ts*100)+'%';
+    try { localStorage.setItem(SK, JSON.stringify({cs:cs})); } catch(e) {}
+    try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+  } catch(err) { console.error('Nav error:', err); }
+}
+function chg(d) { showSlide(cs+d); }
+function zoom(d) {
+  bsz = d===0 ? 18 : Math.min(28, Math.max(14, bsz+d*2));
+  document.documentElement.style.setProperty('--base', bsz+'px');
+  try { localStorage.setItem(SK+'_sz', bsz); } catch(e) {}
+}
+function togSol(id) {
+  var s = document.getElementById(id);
+  if(s) s.style.display = s.style.display==='block' ? 'none' : 'block';
+  try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+}
+document.addEventListener('keydown', function(e) {
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); chg(1); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); chg(-1); }
+});
+(function(){
+  try {
+    var sv = JSON.parse(localStorage.getItem(SK));
+    if(sv && sv.cs>1) showSlide(sv.cs);
+    var sz = localStorage.getItem(SK+'_sz');
+    if(sz){ bsz=parseInt(sz,10); document.documentElement.style.setProperty('--base',bsz+'px'); }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
