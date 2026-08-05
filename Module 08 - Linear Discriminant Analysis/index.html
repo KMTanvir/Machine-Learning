@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 08 – Linear Discriminant Analysis | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 08: Linear Discriminant Analysis (LDA)</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button><button onclick="zoom(0)">A</button><button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 08</span>
+  <h2>Linear Discriminant Analysis (LDA)</h2>
+  <p>We begin <strong>Part C: Classification Methods</strong>. LDA is an alternative to logistic regression that classifies observations using Bayes' theorem with Gaussian class-conditional distributions.</p>
+  <div class="box def">
+    <strong>Classification Problem</strong>
+    Given $\mathbf{X}$, assign an observation to one of $K$ classes. LDA models $P(Y = k \mid \mathbf{X})$ indirectly via Bayes' theorem, modelling $P(\mathbf{X} \mid Y = k)$ instead.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Apply Bayes' theorem for classification</li>
+    <li>Derive the LDA decision rule for $K = 2$ and $K > 2$ classes</li>
+    <li>Interpret the linear decision boundary</li>
+    <li>Compare LDA with logistic regression</li>
+    <li>Evaluate classifiers using error rates and confusion matrices</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 4 (Sections 4.4–4.5)</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Bayes Classifier</span>
+  <h2>Bayes' Theorem for Classification</h2>
+  <p>The ideal classifier assigns observation $\mathbf{x}$ to the class with the highest posterior probability.</p>
+  <div class="box formula">
+    <strong>Bayes' theorem:</strong>
+    $$P(Y = k \mid \mathbf{X} = \mathbf{x}) = \frac{\pi_k \cdot f_k(\mathbf{x})}{\sum_{l=1}^K \pi_l \cdot f_l(\mathbf{x})}$$
+    where $\pi_k = P(Y = k)$ is the <b>prior probability</b> of class $k$, and $f_k(\mathbf{x}) = P(\mathbf{X} = \mathbf{x} \mid Y = k)$ is the class-conditional density.
+  </div>
+  <div class="box def">
+    <strong>Bayes classifier:</strong> Assign $\mathbf{x}$ to class $k^* = \arg\max_k P(Y = k \mid \mathbf{X} = \mathbf{x})$.
+    This minimises the overall misclassification rate (Bayes error rate).
+  </div>
+  <div class="box note">The Bayes classifier is the gold standard but requires knowing $\pi_k$ and $f_k(\mathbf{x})$. LDA estimates these from training data under specific assumptions about $f_k$.</div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">LDA Setup</span>
+  <h2>LDA Assumptions</h2>
+  <div class="box def">
+    <strong>LDA assumptions:</strong>
+    <ol>
+      <li>Each class-conditional density is Gaussian: $\mathbf{X} \mid Y = k \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma)$</li>
+      <li>All classes share the <strong>same covariance matrix</strong> $\boldsymbol\Sigma$ (homoscedasticity across classes)</li>
+    </ol>
+  </div>
+  <div class="two-col">
+    <div class="box formula">
+      <strong>Univariate ($p = 1$):</strong>
+      $$f_k(x) = \frac{1}{\sqrt{2\pi}\sigma}\exp\!\left(-\frac{(x-\mu_k)^2}{2\sigma^2}\right)$$
+      with common variance $\sigma^2$.
+    </div>
+    <div class="box formula">
+      <strong>Multivariate ($p > 1$):</strong>
+      $$f_k(\mathbf{x}) = \frac{1}{(2\pi)^{p/2}|\boldsymbol\Sigma|^{1/2}}\exp\!\left(-\frac{1}{2}(\mathbf{x}-\boldsymbol\mu_k)^\top\boldsymbol\Sigma^{-1}(\mathbf{x}-\boldsymbol\mu_k)\right)$$
+    </div>
+  </div>
+  <div class="box note">The shared covariance assumption is what makes the decision boundaries <em>linear</em>. Relaxing this gives Quadratic Discriminant Analysis (QDA), covered in Module 09.</div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">Decision Rule</span>
+  <h2>LDA Decision Rule: One Predictor</h2>
+  <p>For $p = 1$ and $K = 2$ classes, plugging Gaussian $f_k(x)$ into Bayes' theorem and taking logs, assign $x$ to class $k$ with the largest <strong>discriminant score</strong>:</p>
+  <div class="box formula">
+    <strong>Linear discriminant score:</strong>
+    $$\delta_k(x) = x \cdot \frac{\mu_k}{\sigma^2} - \frac{\mu_k^2}{2\sigma^2} + \log\pi_k$$
+    Classify $x$ to class $k^* = \arg\max_k \delta_k(x)$.
+  </div>
+  <h3>Decision Boundary for $K = 2$</h3>
+  <p>The boundary where $\delta_1(x) = \delta_2(x)$:</p>
+  <div class="box formula">
+    $$x^* = \frac{\mu_1^2 - \mu_2^2}{2(\mu_1 - \mu_2)} - \frac{\sigma^2 \log(\pi_1/\pi_2)}{\mu_1 - \mu_2} = \frac{\mu_1 + \mu_2}{2} - \frac{\sigma^2\log(\pi_1/\pi_2)}{\mu_1-\mu_2}$$
+    With equal priors ($\pi_1 = \pi_2$): boundary is the midpoint $x^* = (\mu_1 + \mu_2)/2$.
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Decision Rule</span>
+  <h2>LDA for Multiple Predictors</h2>
+  <p>For $p$ predictors and $K$ classes, the multivariate discriminant score is:</p>
+  <div class="box formula">
+    $$\delta_k(\mathbf{x}) = \mathbf{x}^\top\boldsymbol\Sigma^{-1}\boldsymbol\mu_k - \frac{1}{2}\boldsymbol\mu_k^\top\boldsymbol\Sigma^{-1}\boldsymbol\mu_k + \log\pi_k$$
+    Classify $\mathbf{x}$ to class $k^* = \arg\max_k \delta_k(\mathbf{x})$.
+  </div>
+  <div class="box def">
+    <strong>Why "Linear"?</strong> The decision boundaries between any two classes $k$ and $l$ are where $\delta_k(\mathbf{x}) = \delta_l(\mathbf{x})$. This simplifies to a <em>linear function</em> of $\mathbf{x}$ because the quadratic $\mathbf{x}^\top\boldsymbol\Sigma^{-1}\mathbf{x}$ term is the same for all classes and cancels.
+  </div>
+  <div class="box note">The decision boundaries are hyperplanes in $\mathbb{R}^p$: lines in 2D, planes in 3D, etc. This is the defining characteristic of LDA.</div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">Estimation</span>
+  <h2>Estimating LDA Parameters</h2>
+  <p>In practice, $\mu_k$, $\Sigma$, and $\pi_k$ are estimated from training data:</p>
+  <div class="box formula">
+    <strong>Prior:</strong> $\hat\pi_k = n_k / n$ (fraction of observations in class $k$)
+
+    <strong>Class mean:</strong> $\hat{\boldsymbol\mu}_k = \frac{1}{n_k}\sum_{i:\, y_i=k} \mathbf{x}_i$
+
+    <strong>Pooled covariance:</strong>
+    $$\hat{\boldsymbol\Sigma} = \frac{1}{n - K}\sum_{k=1}^K \sum_{i:\,y_i=k}(\mathbf{x}_i - \hat{\boldsymbol\mu}_k)(\mathbf{x}_i - \hat{\boldsymbol\mu}_k)^\top$$
+  </div>
+  <div class="box note">The pooled covariance averages the within-class scatter matrices, weighted by class size. This enforces the shared covariance assumption.</div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Evaluation</span>
+  <h2>Evaluating a Classifier</h2>
+  <div class="box def">
+    <strong>Confusion matrix</strong> (for $K = 2$ classes, Positive = class 1):
+    <table>
+      <tr><th></th><th>Predicted Negative</th><th>Predicted Positive</th></tr>
+      <tr><td><strong>Actual Negative</strong></td><td>TN</td><td>FP</td></tr>
+      <tr><td><strong>Actual Positive</strong></td><td>FN</td><td>TP</td></tr>
+    </table>
+  </div>
+  <div class="two-col">
+    <div class="box formula">
+      <strong>Key metrics:</strong>
+      <ul>
+        <li>Sensitivity (recall, TPR): $\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$</li>
+        <li>Specificity (TNR): $\mathrm{TN}/(\mathrm{TN}+\mathrm{FP})$</li>
+        <li>Precision (PPV): $\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})$</li>
+        <li>Error rate: $(\mathrm{FP}+\mathrm{FN})/n$</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>ROC curve:</strong> Plots TPR vs FPR as the classification threshold varies from 0 to 1. AUC (area under ROC): 0.5 = random, 1 = perfect. AUC is threshold-independent.
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">LDA vs Logistic</span>
+  <h2>LDA vs. Logistic Regression</h2>
+  <table>
+    <tr><th>Property</th><th>LDA</th><th>Logistic Regression</th></tr>
+    <tr><td>Model</td><td>Generative: models $P(\mathbf{X}\mid Y)$</td><td>Discriminative: models $P(Y\mid\mathbf{X})$</td></tr>
+    <tr><td>Decision boundary</td><td>Linear</td><td>Linear</td></tr>
+    <tr><td>Estimation</td><td>Plug-in (moments)</td><td>MLE (iterative)</td></tr>
+    <tr><td>Assumptions</td><td>Gaussian features, shared $\boldsymbol\Sigma$</td><td>Few distributional assumptions</td></tr>
+    <tr><td>Works well when</td><td>Gaussianity holds, small $n$, $K > 2$</td><td>Non-Gaussian features, large $n$</td></tr>
+    <tr><td>Handles $K > 2$</td><td>Naturally</td><td>Requires extension</td></tr>
+  </table>
+  <div class="box note">When classes are well-separated or features are truly Gaussian, LDA outperforms logistic regression. In practice, results are often similar. LDA also produces a low-dimensional representation (useful for visualisation).</div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">Threshold</span>
+  <h2>Adjusting the Classification Threshold</h2>
+  <p>LDA (like logistic regression) uses threshold $c = 0.5$ by default. Adjusting $c$ trades off sensitivity and specificity.</p>
+  <div class="box warn">
+    <strong>Default threshold is not always best.</strong> For rare diseases, a lower threshold increases sensitivity (catches more true positives) at the cost of more false positives. The optimal threshold depends on the relative costs of FP and FN.
+  </div>
+  <div class="box formula">
+    <strong>Optimal Bayes threshold</strong> (minimises expected cost):
+    $$c^* = \frac{C_{10}}{C_{10} + C_{01}}$$
+    where $C_{10}$ = cost of FN (miss a positive) and $C_{01}$ = cost of FP.
+    With equal costs: $c^* = 0.5$.
+  </div>
+  <div class="box note">The ROC curve shows the full sensitivity-specificity tradeoff. Choose the threshold appropriate for the application, not just the default.</div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Example</span>
+  <h2>LDA Example: Default Data</h2>
+  <p>LDA applied to the Credit Default dataset ($n = 10{,}000$, 2 classes) using Balance and Student as predictors.</p>
+  <table>
+    <tr><th></th><th>Predicted No Default</th><th>Predicted Default</th><th>Total</th></tr>
+    <tr><td><strong>No Default</strong></td><td>9,644</td><td>23</td><td>9,667</td></tr>
+    <tr><td><strong>Default</strong></td><td>252</td><td>81</td><td>333</td></tr>
+    <tr><td><strong>Total</strong></td><td>9,896</td><td>104</td><td>10,000</td></tr>
+  </table>
+  <ul>
+    <li>Overall error rate: $(23 + 252)/10{,}000 = 2.75\%$</li>
+    <li>Sensitivity (true default rate caught): $81/333 = 24.3\%$</li>
+    <li>Specificity: $9{,}644/9{,}667 = 99.8\%$</li>
+  </ul>
+  <div class="box warn"><strong>Class imbalance problem:</strong> Only 3.3% of customers default. Even predicting "no default" always gives 96.7% accuracy. The low sensitivity (24.3%) shows LDA with default threshold misses most actual defaults. Lowering the threshold improves sensitivity.</div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise: LDA Decision Rule</h2>
+  <p>Two classes, one predictor ($p = 1$). Training data gives: $\hat\mu_1 = 2$, $\hat\mu_2 = 6$, $\hat\sigma^2 = 4$, $\hat\pi_1 = 0.6$, $\hat\pi_2 = 0.4$.</p>
+  <ol>
+    <li>Compute the discriminant scores $\delta_1(x)$ and $\delta_2(x)$.</li>
+    <li>Find the decision boundary $x^*$. Which class would $x = 3.5$ be assigned to?</li>
+    <li>If priors were equal ($\pi_1 = \pi_2 = 0.5$), what would the boundary be?</li>
+    <li>Explain why unequal priors shift the boundary toward the less common class.</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex11')">Show Solution</button>
+  <div class="solution" id="sol-ex11">
+    <p><strong>1.</strong> $\delta_k(x) = x\mu_k/\sigma^2 - \mu_k^2/(2\sigma^2) + \log\pi_k$</p>
+    <p>$\delta_1(x) = x(2)/4 - 4/8 + \log(0.6) = 0.5x - 0.5 - 0.511 = 0.5x - 1.011$</p>
+    <p>$\delta_2(x) = x(6)/4 - 36/8 + \log(0.4) = 1.5x - 4.5 - 0.916 = 1.5x - 5.416$</p>
+    <p><strong>2.</strong> Set $\delta_1 = \delta_2$: $0.5x - 1.011 = 1.5x - 5.416 \Rightarrow -x = -4.405 \Rightarrow x^* = 4.405$.</p>
+    <p>For $x = 3.5 < 4.405$: $\delta_1(3.5) = 0.75$, $\delta_2(3.5) = -0.166$. Assign to class 1.</p>
+    <p><strong>3.</strong> Equal priors: $x^* = (\mu_1 + \mu_2)/2 = (2+6)/2 = 4$.</p>
+    <p><strong>4.</strong> The prior term $\log\pi_k$ rewards the more common class. With $\pi_1 > \pi_2$, class 1 gets a bonus, so the boundary shifts toward class 2 (higher $x$), making it harder to be classified as class 2.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Discriminant Scores</strong>
+    <p>LDA with $K=2$, $p=1$: $\hat\mu_1 = -1$, $\hat\mu_2 = 3$, $\hat\sigma^2 = 2$, equal priors.</p>
+    <ol type="a">
+      <li>Compute $\delta_1(x)$ and $\delta_2(x)$.</li>
+      <li>Find the decision boundary. Classify $x = 0.5$ and $x = 2$.</li>
+      <li>How does increasing $\sigma^2$ affect the boundary?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> $\delta_k(x)=x\mu_k/\sigma^2-\mu_k^2/(2\sigma^2)+\log\pi_k$. With equal priors: $\delta_1(x)=-x/2-1/4$, $\delta_2(x)=3x/2-9/4$.</p><p><strong>b.</strong> Set $\delta_1(x)=\delta_2(x)$: boundary at $x=1$. $x=0.5\Rightarrow\delta_1>\delta_2\Rightarrow$ class 1. $x=2\Rightarrow\delta_2>\delta_1\Rightarrow$ class 2.</p><p><strong>c.</strong> With equal priors the boundary is always the midpoint $(\mu_1+\mu_2)/2=1$, independent of $\sigma^2$. Larger $\sigma^2$ only widens the overlap region but does not shift the boundary.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Confusion Matrix and Metrics</strong>
+    <p>A classifier tested on $n = 200$ observations: TP = 45, FP = 15, FN = 10, TN = 130.</p>
+    <ol type="a">
+      <li>Compute overall error rate, sensitivity, specificity, and precision.</li>
+      <li>If the cost of FN is 4 times that of FP, what threshold adjustment is needed?</li>
+      <li>Would you say this classifier has good performance? Justify.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> Error$=25/200=12.5\%$. Sensitivity$=45/55=81.8\%$. Specificity$=130/145=89.7\%$. Precision$=45/60=75\%$.</p><p><strong>b.</strong> Since FN costs $4\times$ FP, lower the classification threshold so the model predicts positive more readily, reducing FN at the cost of more FP.</p><p><strong>c.</strong> Generally yes: 12.5\% error rate with 81.8\% sensitivity and 89.7\% specificity is solid. However, "good" depends on context. If FN is costly (e.g., disease screening), 18.2\% missed positives may still be unacceptable. Precision of 75\% means 1 in 4 positive predictions is wrong.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: LDA vs Logistic Regression</strong>
+    <p>For each scenario, state which method (LDA or logistic regression) is likely preferable and why.</p>
+    <ol type="a">
+      <li>Features are approximately Gaussian within each class, $n = 80$, $K = 3$ classes.</li>
+      <li>Features include binary indicators and skewed counts, $n = 5{,}000$, $K = 2$ classes.</li>
+      <li>Classes are perfectly linearly separable in the training data.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> LDA: small $n$, Gaussian, $K=3$. <strong>b.</strong> Logistic regression: large $n$, binary/skewed features. <strong>c.</strong> Logistic regression: perfect separation causes LDA scores to diverge; regularised logistic is more stable.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 4: True or False</strong>
+    <ol type="a">
+      <li>LDA assumes each class has its own covariance matrix.</li>
+      <li>The Bayes classifier minimises the overall misclassification error rate.</li>
+      <li>LDA decision boundaries are always straight lines (or hyperplanes).</li>
+      <li>A classifier with 99% accuracy on a dataset where 99% of observations belong to one class is necessarily a good classifier.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p4')">Show Solution</button>
+  <div class="solution" id="sol-p4">
+    <p><strong>a. False</strong>: LDA assumes a shared $\Sigma$; QDA does not. <strong>b. True.</strong> <strong>c. True</strong>: linear discriminant scores give hyperplane boundaries. <strong>d. False</strong>: 99% accuracy on a 99/1 split can be achieved by always predicting the majority class; sensitivity is 0%.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="13">
+  <span class="tag module">Summary</span>
+  <h2>Module 08 Summary</h2>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Key Formulas</strong>
+      <ul>
+        <li>$P(Y=k\mid\mathbf{x}) \propto \pi_k f_k(\mathbf{x})$</li>
+        <li>$\delta_k(\mathbf{x}) = \mathbf{x}^\top\boldsymbol\Sigma^{-1}\boldsymbol\mu_k - \frac{1}{2}\boldsymbol\mu_k^\top\boldsymbol\Sigma^{-1}\boldsymbol\mu_k + \log\pi_k$</li>
+        <li>Boundary: $x^* = \frac{\mu_1+\mu_2}{2}$ (equal priors, $p=1$)</li>
+        <li>Sensitivity: TP/(TP+FN)</li>
+        <li>Specificity: TN/(TN+FP)</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Key Ideas</strong>
+      <ul>
+        <li>LDA uses Bayes' theorem with Gaussian $f_k$</li>
+        <li>Shared $\boldsymbol\Sigma$ gives linear boundaries</li>
+        <li>Estimated from training data (plug-in)</li>
+        <li>Compare via confusion matrix and ROC/AUC</li>
+        <li>Adjust threshold based on costs</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula"><strong>Next: Module 09</strong> covers QDA (class-specific covariances, quadratic boundaries) and Naive Bayes (independent features).</div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 13</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div></div>
+<script>
+const SK='aiml-m08-v1';
+let cs=1, ts=13, bsz=18;
+function showSlide(n){try{var p=document.querySelector('.slide[data-slide="'+cs+'"]');if(p)p.classList.remove('active');cs=Math.max(1,Math.min(ts,n));var nx=document.querySelector('.slide[data-slide="'+cs+'"]');if(nx)nx.classList.add('active');var s=document.getElementById('sct');if(s)s.textContent='Slide '+cs+' of '+ts;var pb=document.getElementById('pbtn'),nb=document.getElementById('nbtn');if(pb)pb.disabled=(cs===1);if(nb)nb.disabled=(cs===ts);var pf=document.getElementById('pfill');if(pf)pf.style.width=(cs/ts*100)+'%';try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}}catch(err){console.error(err);}}
+function chg(d){showSlide(cs+d);}
+function zoom(d){bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));document.documentElement.style.setProperty('--base',bsz+'px');try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}}
+function togSol(id){var s=document.getElementById(id);if(s)s.style.display=s.style.display==='block'?'none':'block';try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}});
+(function(){try{var sv=JSON.parse(localStorage.getItem(SK));if(sv&&sv.cs>1)showSlide(sv.cs);var sz=localStorage.getItem(SK+'_sz');if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}}catch(e){}})();
+</script>
+</body></html>

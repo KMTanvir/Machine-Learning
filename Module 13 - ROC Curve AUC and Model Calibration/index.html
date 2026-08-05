@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 13 – ROC, AUC, Calibration | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 13: ROC Curve, AUC, and Model Calibration</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 13</span>
+  <h2>ROC Curve, AUC, and Model Calibration</h2>
+  <p>A single threshold gives a single confusion matrix. The ROC curve and AUC evaluate a classifier across all thresholds. Model calibration asks whether predicted probabilities are reliable.</p>
+  <div class="box def">
+    <strong>Key distinction</strong>
+    A classifier outputs a <em>score</em> (probability or decision function). A threshold converts that score to a class label. The ROC curve separates the quality of the score from the choice of threshold.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Construct and interpret the ROC curve</li>
+    <li>Compute and interpret AUC</li>
+    <li>Understand the Precision-Recall curve for imbalanced data</li>
+    <li>Define model calibration and the Brier score</li>
+    <li>Compare classifiers using AUC rather than a single threshold metric</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 4.4; Module 08 (LDA), Module 07 (logistic regression probability output)</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Threshold</span>
+  <h2>Classification Threshold</h2>
+  <p>Most classifiers output a probability $\hat{p}(x) = P(Y=1 \mid X=x)$. A threshold $t \in [0,1]$ converts this to a label:</p>
+  <div class="box formula">
+    $$\hat{y} = \begin{cases} 1 & \text{if } \hat{p}(x) \geq t \\ 0 & \text{if } \hat{p}(x) < t \end{cases}$$
+  </div>
+  <div class="two-col">
+    <div class="box note">
+      <strong>Low threshold $t$ (e.g., 0.1)</strong>
+      <ul>
+        <li>More positives predicted</li>
+        <li>High recall (sensitivity)</li>
+        <li>Low precision, more FP</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>High threshold $t$ (e.g., 0.9)</strong>
+      <ul>
+        <li>Fewer positives predicted</li>
+        <li>High precision, fewer FP</li>
+        <li>Low recall, more FN</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box warn">
+    The default threshold is $t = 0.5$, but this is almost never optimal. The optimal threshold depends on the relative costs of FP and FN errors, and the class prevalence.
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">ROC</span>
+  <h2>The ROC Curve</h2>
+  <div class="box def">
+    <strong>ROC (Receiver Operating Characteristic) Curve</strong>
+    Plot of TPR (Sensitivity) on the $y$-axis versus FPR ($1 -$ Specificity) on the $x$-axis as the threshold $t$ varies from 1 down to 0.
+  </div>
+  <h3>How to construct the ROC curve</h3>
+  <ol>
+    <li>Rank all $n$ observations by predicted score $\hat{p}(x_i)$, highest to lowest</li>
+    <li>Start at $(0, 0)$ (threshold $= 1$, predict all negative)</li>
+    <li>For each decreasing threshold: if the next observation is a true positive, step up; if it is a false positive, step right</li>
+    <li>End at $(1, 1)$ (threshold $= 0$, predict all positive)</li>
+  </ol>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Perfect classifier:</strong> curve passes through $(0, 1)$. AUC $= 1$.
+    </div>
+    <div class="box note">
+      <strong>Random classifier:</strong> diagonal line (TPR $=$ FPR). AUC $= 0.5$.
+    </div>
+  </div>
+  <div class="box warn">A classifier below the diagonal (AUC $< 0.5$) performs worse than random: flip its predictions.</div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">AUC</span>
+  <h2>Area Under the ROC Curve (AUC)</h2>
+  <div class="box formula">
+    <strong>AUC</strong>
+    $$\mathrm{AUC} = \int_0^1 \mathrm{TPR}(t)\, d\mathrm{FPR}(t) \in [0, 1]$$
+  </div>
+  <div class="box def">
+    <strong>Probabilistic interpretation</strong>
+    AUC $= P(\hat{p}(x^+) > \hat{p}(x^-))$ where $x^+$ is a randomly chosen positive and $x^-$ is a randomly chosen negative. It is the probability that the classifier ranks a random positive above a random negative.
+  </div>
+  <table>
+    <tr><th>AUC value</th><th>Interpretation</th></tr>
+    <tr><td>1.0</td><td>Perfect discrimination</td></tr>
+    <tr><td>0.9 – 1.0</td><td>Excellent</td></tr>
+    <tr><td>0.8 – 0.9</td><td>Good</td></tr>
+    <tr><td>0.7 – 0.8</td><td>Fair</td></tr>
+    <tr><td>0.6 – 0.7</td><td>Poor</td></tr>
+    <tr><td>0.5</td><td>No discrimination (random)</td></tr>
+  </table>
+  <div class="box note">AUC is <strong>threshold-independent</strong> and <strong>class-imbalance robust</strong> (it does not depend on the proportion of positives). It summarises overall discriminative ability across all operating points.</div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Comparing Models</span>
+  <h2>Using AUC to Compare Classifiers</h2>
+  <p>AUC allows fair comparison of classifiers without committing to a threshold. The classifier with the higher AUC has better overall discriminative ability.</p>
+  <div class="box note">
+    <strong>Limitation of AUC:</strong> if two ROC curves cross, one model may be better at low FPR (preferred in rare-disease screening) while the other is better at high FPR. A single AUC number can hide this. Always inspect the full curve, especially in the operating region of interest.
+  </div>
+  <h3>Partial AUC</h3>
+  <p>When only a specific FPR range matters (e.g., FPR $\leq 0.1$ for high-stakes screening), compute the <strong>partial AUC</strong> over that range only. Normalise by the range width for comparability.</p>
+  <div class="box def">
+    <strong>Practical guideline for threshold selection</strong>
+    <ul>
+      <li>Choose $t$ that maximises $F_1$ (balanced applications)</li>
+      <li>Choose $t$ that achieves a minimum required sensitivity (medical screening)</li>
+      <li>Choose $t$ that minimises expected cost $= c_{FP} \cdot FP + c_{FN} \cdot FN$</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">PR Curve</span>
+  <h2>Precision-Recall Curve</h2>
+  <div class="box def">
+    <strong>PR Curve</strong>
+    Plot of Precision on the $y$-axis versus Recall on the $x$-axis as the threshold varies. Area under the PR curve = <strong>Average Precision (AP)</strong>.
+  </div>
+  <div class="two-col">
+    <div class="box note">
+      <strong>When to prefer PR over ROC</strong>
+      <ul>
+        <li>Severe class imbalance (positive class is rare)</li>
+        <li>Performance on negatives is not relevant (e.g., information retrieval)</li>
+        <li>FPR can be misleading when TN $\gg$ TP+FP</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <strong>Why ROC is optimistic under imbalance</strong>
+      <p>With 99% negatives, even many FPs produce a small FPR (small relative to large TN). ROC curve looks better than PR curve in this case, but PR reflects true performance more honestly.</p>
+    </div>
+  </div>
+  <div class="box formula">
+    <strong>Average Precision (AP)</strong>
+    $$\mathrm{AP} = \sum_{k} (R_k - R_{k-1}) P_k$$
+    where $P_k$ and $R_k$ are precision and recall at threshold $k$.
+  </div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Calibration</span>
+  <h2>Model Calibration</h2>
+  <div class="box def">
+    <strong>Calibration</strong>
+    A model is well-calibrated if its predicted probability $\hat{p}(x)$ matches the true frequency of the positive class among observations with that predicted probability.
+    <p>If $\hat{p}(x) = 0.7$ for a group of patients, about 70% of them should actually have the disease.</p>
+  </div>
+  <p>Discrimination (AUC) and calibration are independent: a well-discriminating model can be poorly calibrated, and vice versa.</p>
+  <div class="two-col">
+    <div class="box note">
+      <strong>Well-calibrated:</strong> $E[Y \mid \hat{p}(X)=p] = p$ for all $p \in [0,1]$.
+    </div>
+    <div class="box warn">
+      <strong>Miscalibrated:</strong> overconfident (predicted 0.9, true frequency 0.6) or underconfident (predicted 0.6, true frequency 0.9).
+    </div>
+  </div>
+  <div class="box note">Calibration matters when the <em>probability itself</em> is used (e.g., personalised risk scores, insurance pricing, medical decision support). If only the ranking matters (e.g., top-$k$ retrieval), calibration is irrelevant: discrimination suffices.</div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Brier Score</span>
+  <h2>Reliability Diagrams and Brier Score</h2>
+  <div class="box formula">
+    <strong>Brier Score</strong>
+    $$\mathrm{BS} = \frac{1}{n}\sum_{i=1}^n (\hat{p}(x_i) - y_i)^2 \in [0, 1]$$
+    MSE applied to probability predictions. Lower is better; BS $= 0$ is perfect.
+  </div>
+  <div class="box def">
+    <strong>Reliability Diagram (Calibration Plot)</strong>
+    Group observations into bins by predicted probability (e.g., $[0, 0.1), [0.1, 0.2), \ldots$). Plot the mean predicted probability vs the actual fraction of positives in each bin.
+    <ul>
+      <li>Perfect calibration: points on the diagonal $y = x$</li>
+      <li>Above diagonal: model is underconfident (actual rate higher than predicted)</li>
+      <li>Below diagonal: model is overconfident (actual rate lower than predicted)</li>
+    </ul>
+  </div>
+  <div class="box note">
+    <strong>Calibration methods:</strong> Platt scaling (logistic regression on scores), isotonic regression (non-parametric). Both are post-hoc recalibration methods applied after model training.
+  </div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">ROC vs PR vs Calibration</span>
+  <h2>Choosing the Right Evaluation Tool</h2>
+  <table>
+    <tr><th>Tool</th><th>What it measures</th><th>Use when</th></tr>
+    <tr><td>ROC / AUC</td><td>Discrimination across thresholds</td><td>Balanced classes; overall ranking ability matters</td></tr>
+    <tr><td>PR / AP</td><td>Discrimination with focus on positives</td><td>Severe imbalance; rare positive class</td></tr>
+    <tr><td>Brier score</td><td>Probability prediction quality</td><td>Probabilities will be used directly</td></tr>
+    <tr><td>Reliability diagram</td><td>Calibration pattern</td><td>Diagnosing over/under-confidence</td></tr>
+    <tr><td>$F_1$ at threshold $t$</td><td>Balanced precision-recall at one operating point</td><td>Single deployment threshold needed</td></tr>
+  </table>
+  <div class="box def">
+    <strong>Complete evaluation checklist:</strong> report AUC, chosen threshold with confusion matrix, sensitivity, specificity, $F_1$, and Brier score if probabilities are used directly.
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Example</span>
+  <h2>Worked Example: ROC Construction</h2>
+  <p>Six observations, true labels $y$ and predicted scores $\hat{p}$, sorted by score descending:</p>
+  <table>
+    <tr><th>Rank</th><th>Score $\hat{p}$</th><th>Label $y$</th><th>TPR</th><th>FPR</th></tr>
+    <tr><td>1</td><td>0.92</td><td>1 (TP)</td><td>1/3</td><td>0/3</td></tr>
+    <tr><td>2</td><td>0.80</td><td>0 (FP)</td><td>1/3</td><td>1/3</td></tr>
+    <tr><td>3</td><td>0.75</td><td>1 (TP)</td><td>2/3</td><td>1/3</td></tr>
+    <tr><td>4</td><td>0.60</td><td>1 (TP)</td><td>3/3</td><td>1/3</td></tr>
+    <tr><td>5</td><td>0.45</td><td>0 (FP)</td><td>3/3</td><td>2/3</td></tr>
+    <tr><td>6</td><td>0.20</td><td>0 (FP)</td><td>3/3</td><td>3/3</td></tr>
+  </table>
+  <p>Points on ROC curve: $(0,0) \to (0, 1/3) \to (1/3, 1/3) \to (1/3, 2/3) \to (1/3, 1) \to (2/3, 1) \to (1, 1)$.</p>
+  <div class="box formula">
+    AUC $= (1/3)(1/3) + (1/3)(1/3) + 0 + (1/3)(2/3)$? Using trapezoid rule:
+    $\mathrm{AUC} \approx \frac{1}{3}(1/3) + \frac{1}{3}(2/3-1/3) + \frac{1}{3}(1-2/3+\ldots) \approx 0.722$
+  </div>
+  <div class="box note">This model is reasonably discriminating (AUC $\approx 0.72$); most true positives are ranked higher than true negatives.</div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>Four patients, true labels and scores:</p>
+  <table>
+    <tr><th>Patient</th><th>Score</th><th>True label</th></tr>
+    <tr><td>A</td><td>0.85</td><td>1</td></tr>
+    <tr><td>B</td><td>0.70</td><td>0</td></tr>
+    <tr><td>C</td><td>0.55</td><td>1</td></tr>
+    <tr><td>D</td><td>0.30</td><td>0</td></tr>
+  </table>
+  <ol>
+    <li>Construct the ROC curve step by step (start at $(0,0)$).</li>
+    <li>Compute AUC using the trapezoid rule.</li>
+    <li>At threshold $t=0.60$, compute the confusion matrix, sensitivity, specificity, and $F_1$.</li>
+    <li>Compute the Brier score for these four observations.</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex13')">Show Solution</button>
+  <div class="solution" id="sol-ex13">
+    <p><strong>1.</strong> Sort: A(1), B(0), C(1), D(0). Positives: 2, Negatives: 2. Steps: start $(0,0)$. A is TP: up to $(0, 0.5)$. B is FP: right to $(0.5, 0.5)$. C is TP: up to $(0.5, 1.0)$. D is FP: right to $(1.0, 1.0)$.</p>
+    <p><strong>2.</strong> Rectangles: from $(0,0)$ to $(0, 0.5)$: width 0, area 0. From $(0,0.5)$ to $(0.5, 0.5)$: width 0.5, height 0.5, area 0.25. From $(0.5, 0.5)$ to $(0.5, 1.0)$: width 0. From $(0.5, 1.0)$ to $(1, 1)$: width 0.5, height 1.0, area 0.5. AUC $= 0.25 + 0.5 = 0.75$.</p>
+    <p><strong>3.</strong> At $t=0.60$: predict positive for A (0.85) and B (0.70). TP=1 (A), FP=1 (B), FN=1 (C), TN=1 (D). Sensitivity $= 1/2 = 0.5$. Specificity $= 1/2 = 0.5$. Precision $= 1/2 = 0.5$. $F_1 = 2(0.5)(0.5)/(0.5+0.5) = 0.5$.</p>
+    <p><strong>4.</strong> Brier $= [(0.85{-}1)^2 + (0.70{-}0)^2 + (0.55{-}1)^2 + (0.30{-}0)^2]/4 = [0.0225 + 0.49 + 0.2025 + 0.09]/4 = 0.805/4 = 0.201$.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: AUC and comparison</strong>
+    <p>Model A: AUC $= 0.88$. Model B: AUC $= 0.79$. Both tested on the same data (5% positive prevalence).</p>
+    <ol type="a">
+      <li>Interpret AUC $= 0.88$ in probabilistic terms.</li>
+      <li>Can we conclude Model A is always better? What additional information helps?</li>
+      <li>If the task is rare disease screening (minimise FN), which additional curve (ROC or PR) is more informative, and why?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> AUC$=0.88$: if we randomly pick one positive and one negative, Model A assigns a higher score to the positive 88% of the time.</p><p><strong>b.</strong> Not necessarily: the ROC curves may cross, making Model B better at low FPR. We need the full curves, the operating region of interest, and cost structure.</p><p><strong>c.</strong> PR curve. With 5% prevalence, FPR is dominated by the large negative class and ROC looks optimistic. The PR curve directly shows the precision-recall trade-off for the rare positive class.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Brier score and calibration</strong>
+    <p>Three predictions: $(\hat{p}_1, y_1) = (0.9, 1)$, $(\hat{p}_2, y_2) = (0.4, 0)$, $(\hat{p}_3, y_3) = (0.7, 0)$.</p>
+    <ol type="a">
+      <li>Compute the Brier score.</li>
+      <li>Is the model well-calibrated based on these three points?</li>
+      <li>The model is recalibrated using Platt scaling: new predictions are $(0.85, 0.35, 0.55)$. Recompute the Brier score. Did calibration improve?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> BS$=[(0.9{-}1)^2+(0.4{-}0)^2+(0.7{-}0)^2]/3=[0.01+0.16+0.49]/3=0.220$.</p><p><strong>b.</strong> Not well-calibrated. Obs 3 predicts 0.70 for a true negative ($y=0$): substantial overconfidence. Obs 2 (0.40 for $y=0$) is acceptable; obs 1 (0.90 for $y=1$) is reasonable.</p><p><strong>c.</strong> After Platt scaling, new predictions: $(0.85,0.35,0.55)$. New BS$=[(0.85{-}1)^2+(0.35{-}0)^2+(0.55{-}0)^2]/3=[0.0225+0.1225+0.3025]/3\approx0.149$. Calibration improved (0.220 to 0.149).</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: True or False</strong>
+    <ol type="a">
+      <li>A model with AUC $= 0.5$ is useless and should be discarded.</li>
+      <li>The ROC curve is invariant to the class prevalence (proportion of positives).</li>
+      <li>A perfectly calibrated model necessarily has AUC $= 1$.</li>
+      <li>The Brier score can be greater than 1.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a. False</strong>: a random model gives AUC$=0.5$, meaning the scores are uninformative. It should be replaced or re-examined.</p><p><strong>b. True</strong>: ROC uses TPR and FPR, both of which normalise by their respective class totals; changing prevalence does not affect them.</p><p><strong>c. False</strong>: calibration and discrimination are independent. A perfectly calibrated model could have AUC$=0.5$.</p><p><strong>d. False</strong>: for $y\in\{0,1\}$ and $\hat p\in[0,1]$, each squared term is at most 1, so BS$\in[0,1]$.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 12</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m13-v1';
+let cs=1, ts=12, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

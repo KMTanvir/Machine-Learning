@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 06 – Model Assessment | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; }
+.slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 06: Model Assessment: R², F-test, CIs</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<!-- SLIDE 1 -->
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 06</span>
+  <h2>Model Assessment: R², F-test, CIs</h2>
+  <p>After fitting a regression model, we need to answer: <em>how good is it?</em> This module consolidates the key tools for assessing and comparing linear regression models.</p>
+  <div class="box def">
+    <strong>Three core questions in model assessment:</strong>
+    <ol>
+      <li><strong>Is the model useful?</strong> (F-test, individual t-tests)</li>
+      <li><strong>How well does it fit the data?</strong> (RSE, R², adjusted R²)</li>
+      <li><strong>How precise are predictions?</strong> (CIs, prediction intervals)</li>
+    </ol>
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Interpret RSE, $R^2$, and adjusted $R^2$ correctly</li>
+    <li>Conduct and interpret $F$-tests for nested models</li>
+    <li>Distinguish confidence intervals from prediction intervals</li>
+    <li>Use AIC and BIC for model comparison</li>
+  </ul>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" data-slide="2">
+  <span class="tag topic">Fit</span>
+  <h2>Residual Standard Error</h2>
+  <div class="box formula">
+    $$\mathrm{RSE} = \sqrt{\frac{\mathrm{RSS}}{n - p - 1}}$$
+    where $p$ is the number of predictors (not counting the intercept).
+  </div>
+  <h3>Interpretation</h3>
+  <ul>
+    <li>RSE estimates $\sigma$, the standard deviation of the error $\varepsilon$</li>
+    <li>It is in the same units as $Y$</li>
+    <li>It represents the average amount that the response deviates from the true regression plane</li>
+    <li>A model is a good fit if RSE is small relative to the mean of $Y$</li>
+  </ul>
+  <div class="box note">
+    <strong>Relative RSE:</strong> $\mathrm{RSE}/\bar y \times 100\%$ gives a percentage measure of fit. For the Advertising data, $\mathrm{RSE} = 1.69$ and $\bar y = 14.02$, so typical error is about 12%.
+  </div>
+  <div class="box warn">RSE depends on $n$ and $p$ via the degrees of freedom $n-p-1$. Adding useless predictors reduces $n-p-1$ but barely reduces RSS, so RSE can increase.</div>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" data-slide="3">
+  <span class="tag topic">Fit</span>
+  <h2>R² and Its Limits</h2>
+  <div class="box formula">
+    $$R^2 = 1 - \frac{\mathrm{RSS}}{\mathrm{TSS}} = \frac{\mathrm{ESS}}{\mathrm{TSS}}$$
+    Always between 0 and 1. Proportion of variance in $Y$ explained by the model.
+  </div>
+  <div class="box warn">
+    <strong>Problem: $R^2$ always increases when predictors are added</strong>, even if the new predictor is completely irrelevant (noise). It can never decrease.
+  </div>
+  <div class="box formula">
+    <strong>Adjusted R²</strong> penalises for the number of predictors:
+    $$\bar R^2 = 1 - \frac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$$
+    $\bar R^2$ can decrease when a useless predictor is added. Use $\bar R^2$ (not $R^2$) when comparing models with different numbers of predictors.
+  </div>
+  <table>
+    <tr><th>Metric</th><th>Increases with useless predictors?</th><th>Use for</th></tr>
+    <tr><td>$R^2$</td><td>Yes, always</td><td>Single model description only</td></tr>
+    <tr><td>$\bar R^2$</td><td>No</td><td>Comparing models of different sizes</td></tr>
+  </table>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide" data-slide="4">
+  <span class="tag topic">F-test</span>
+  <h2>F-test for Nested Models</h2>
+  <p>Compare a <strong>full model</strong> (with $p$ predictors) against a <strong>reduced model</strong> (with $q < p$ predictors, where the reduced model is obtained by setting some coefficients to zero).</p>
+  <div class="box def">
+    <strong>Hypotheses:</strong>
+    $H_0:$ the reduced model is adequate vs $H_a:$ the full model is needed.
+    Equivalently: $H_0: \beta_{q+1} = \cdots = \beta_p = 0$
+  </div>
+  <div class="box formula">
+    $$F = \frac{(\mathrm{RSS}_{\text{red}} - \mathrm{RSS}_{\text{full}})/(p - q)}{\mathrm{RSS}_{\text{full}}/(n - p - 1)}$$
+    Under $H_0$: $F \sim F_{p-q,\; n-p-1}$
+  </div>
+  <div class="box note">
+    <strong>Special case:</strong> When $q = 0$ (comparing against intercept-only model), this becomes the overall $F$-test from Module 05.
+  </div>
+  <div class="box warn">The reduced model must be <em>nested</em> inside the full model: all predictors in the reduced model must also appear in the full model.</div>
+</div>
+
+<!-- SLIDE 5 -->
+<div class="slide" data-slide="5">
+  <span class="tag topic">F-test</span>
+  <h2>F-test Example: Is Newspaper Useful?</h2>
+  <p>Full model: Sales $\sim$ TV + Radio + Newspaper ($p=3$, $\mathrm{RSS}_{\text{full}} = 556.8$)</p>
+  <p>Reduced model: Sales $\sim$ TV + Radio ($q=2$, $\mathrm{RSS}_{\text{red}} = 556.9$)</p>
+  <p>$n = 200$</p>
+  <div class="box formula">
+    $$F = \frac{(556.9 - 556.8)/(3-2)}{556.8/(200-3-1)} = \frac{0.1/1}{556.8/196} = \frac{0.1}{2.841} \approx 0.035$$
+  </div>
+  <p>$p$-value $\approx 0.85$: no evidence that Newspaper adds value beyond TV and Radio.</p>
+  <div class="box note"><strong>Conclusion:</strong> The reduced model (TV + Radio only) is adequate. Newspaper can be dropped. This matches the individual $t$-test result for Newspaper in Module 05.</div>
+  <div class="box def">In this case, the individual $t$-test and the partial $F$-test give the same result. In general, when testing a single coefficient, $F = t^2$.</div>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide" data-slide="6">
+  <span class="tag topic">Prediction</span>
+  <h2>Confidence Intervals for Predictions</h2>
+  <p>At a new point $\mathbf{x}^* = (1, x_1^*, \ldots, x_p^*)^\top$, the predicted value is $\hat y^* = (\mathbf{x}^*)^\top \hat{\boldsymbol\beta}$.</p>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Confidence interval for $E[Y|\mathbf{x}^*]$</strong> (mean response):
+      $$\hat y^* \pm t_{n-p-1,\alpha/2} \cdot \mathrm{SE}(\hat\mu^*)$$
+      where $\mathrm{SE}(\hat\mu^*)^2 = \hat\sigma^2\,(\mathbf{x}^*)^\top(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{x}^*$
+    </div>
+    <div class="box warn">
+      <strong>Prediction interval for a new observation:</strong>
+      $$\hat y^* \pm t_{n-p-1,\alpha/2} \cdot \mathrm{SE}(\hat y^*)$$
+      where $\mathrm{SE}(\hat y^*)^2 = \hat\sigma^2\!\left[1 + (\mathbf{x}^*)^\top(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{x}^*\right]$
+    </div>
+  </div>
+  <div class="box note">The PI is always wider than the CI by $\hat\sigma^2$ inside the square root. Both intervals widen as $\mathbf{x}^*$ moves away from the centre of the training data.</div>
+</div>
+
+<!-- SLIDE 7 -->
+<div class="slide" data-slide="7">
+  <span class="tag topic">Prediction</span>
+  <h2>Extrapolation: A Warning</h2>
+  <div class="box warn">
+    <strong>Extrapolation:</strong> Predicting at values of $\mathbf{x}^*$ far outside the range of the training data. The model may be seriously wrong there, since linearity is only assumed (and verified) in the observed range.
+  </div>
+  <h3>Leverage and Influence</h3>
+  <ul>
+    <li><strong>Leverage</strong> $h_{ii} = (\mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top)_{ii}$: measures how far $\mathbf{x}_i$ is from the centre of the design. High-leverage points can have disproportionate influence on $\hat{\boldsymbol\beta}$.</li>
+    <li><strong>Cook's distance:</strong> measures how much $\hat{\boldsymbol\beta}$ changes if observation $i$ is removed. Combines leverage and residual size.</li>
+  </ul>
+  <div class="box formula">
+    $$D_i = \frac{(\hat{\boldsymbol\beta} - \hat{\boldsymbol\beta}_{(-i)})^\top \mathbf{X}^\top\mathbf{X}\,(\hat{\boldsymbol\beta} - \hat{\boldsymbol\beta}_{(-i)})}{(p+1)\hat\sigma^2}$$
+    Rule of thumb: $D_i > 1$ may indicate influential observation.
+  </div>
+</div>
+
+<!-- SLIDE 8 -->
+<div class="slide" data-slide="8">
+  <span class="tag topic">Model Comparison</span>
+  <h2>AIC and BIC for Model Comparison</h2>
+  <p>For comparing non-nested models (or as an alternative to $F$-tests for nested models):</p>
+  <div class="box formula">
+    $$\mathrm{AIC} = n\log\!\left(\frac{\mathrm{RSS}}{n}\right) + 2(p+1)$$
+    $$\mathrm{BIC} = n\log\!\left(\frac{\mathrm{RSS}}{n}\right) + (p+1)\log n$$
+  </div>
+  <table>
+    <tr><th>Criterion</th><th>Penalty per parameter</th><th>Favours</th></tr>
+    <tr><td>AIC</td><td>$2$</td><td>Prediction accuracy (larger models)</td></tr>
+    <tr><td>BIC</td><td>$\log n$</td><td>Parsimony (smaller models for $n > 7$)</td></tr>
+    <tr><td>Adj. $R^2$</td><td>$\frac{n-1}{n-p-1} - 1$</td><td>Goodness of fit (adjusted)</td></tr>
+  </table>
+  <div class="box note">BIC is consistent: as $n \to \infty$, it selects the true model (if it is among the candidates). AIC is not consistent but often gives better predictive models in finite samples.</div>
+  <div class="box warn"><strong>Best practice:</strong> Use cross-validation to estimate test MSE directly. AIC/BIC are approximations; CV is model-agnostic and more principled.</div>
+</div>
+
+<!-- SLIDE 9 -->
+<div class="slide" data-slide="9">
+  <span class="tag topic">Diagnostics</span>
+  <h2>Checking Regression Assumptions</h2>
+  <p>A complete model assessment always includes residual diagnostics.</p>
+  <table>
+    <tr><th>Plot</th><th>What to look for</th><th>Problem if seen</th></tr>
+    <tr><td>Residuals vs Fitted</td><td>Random scatter around 0</td><td>Non-linearity, heteroscedasticity</td></tr>
+    <tr><td>Normal Q-Q</td><td>Points on the diagonal</td><td>Non-normal errors</td></tr>
+    <tr><td>Scale-Location</td><td>Constant spread</td><td>Heteroscedasticity</td></tr>
+    <tr><td>Residuals vs Leverage</td><td>Points inside Cook's contours</td><td>Influential observations</td></tr>
+  </table>
+  <div class="box note"><strong>Remedies for violations:</strong>
+    <ul>
+      <li>Non-linearity: add polynomial terms or transform $X$</li>
+      <li>Heteroscedasticity: transform $Y$ (e.g., $\log Y$) or use weighted least squares</li>
+      <li>Outliers: investigate, do not silently remove</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SLIDE 10: In-Class Exercise -->
+<div class="slide" data-slide="10">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise: Model Comparison</h2>
+  <p>Three models are fitted to the same dataset ($n = 100$):</p>
+  <table>
+    <tr><th>Model</th><th>Predictors ($p$)</th><th>RSS</th><th>$R^2$</th></tr>
+    <tr><td>M1</td><td>1</td><td>1200</td><td>0.700</td></tr>
+    <tr><td>M2</td><td>3</td><td>900</td><td>0.775</td></tr>
+    <tr><td>M3</td><td>7</td><td>860</td><td>0.785</td></tr>
+  </table>
+  <p>TSS $= 4000$.</p>
+  <ol>
+    <li>Compute adjusted $R^2$ for each model. Which is best by this criterion?</li>
+    <li>Compute AIC for each model. Which model wins?</li>
+    <li>Test whether M2 is a significant improvement over M1 using a partial $F$-test.</li>
+    <li>Test whether M3 is a significant improvement over M2.</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex10')">Show Solution</button>
+  <div class="solution" id="sol-ex10">
+    <p><strong>1. Adjusted R²:</strong></p>
+    <p>M1: $\bar R^2 = 1 - \frac{1200/98}{4000/99} = 1 - \frac{12.24}{40.40} = 0.697$</p>
+    <p>M2: $\bar R^2 = 1 - \frac{900/96}{4000/99} = 1 - \frac{9.375}{40.40} = 0.768$</p>
+    <p>M3: $\bar R^2 = 1 - \frac{860/92}{4000/99} = 1 - \frac{9.348}{40.40} = 0.769$</p>
+    <p>M3 slightly edges M2, but the improvement is tiny.</p>
+    <p><strong>2. AIC:</strong> $\mathrm{AIC} = 100\log(\mathrm{RSS}/100) + 2(p+1)$</p>
+    <p>M1: $100\log(12) + 4 = 248.5 + 4 = 252.5$</p>
+    <p>M2: $100\log(9) + 8 = 219.7 + 8 = 227.7$</p>
+    <p>M3: $100\log(8.6) + 16 = 215.2 + 16 = 231.2$</p>
+    <p>M2 has the lowest AIC: best balance of fit and complexity.</p>
+    <p><strong>3. Partial F, M1 vs M2:</strong> $F = \frac{(1200-900)/(3-1)}{900/96} = \frac{150}{9.375} = 16.0$, $df=(2,96)$, $p \ll 0.001$. M2 is a significant improvement.</p>
+    <p><strong>4. Partial F, M2 vs M3:</strong> $F = \frac{(900-860)/(7-3)}{860/92} = \frac{10}{9.348} = 1.07$, $df=(4,92)$, $p \approx 0.38$. M3 is NOT a significant improvement over M2.</p>
+  </div>
+</div>
+
+<!-- SLIDE 11: Practice Problems -->
+<div class="slide" data-slide="11">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: RSE and R²</strong>
+    <p>A model with $p=2$ predictors fitted to $n=50$ observations gives $\mathrm{RSS}=480$ and $\mathrm{TSS}=2000$.</p>
+    <ol type="a">
+      <li>Compute $R^2$, adjusted $R^2$, and RSE.</li>
+      <li>A third predictor is added, giving $\mathrm{RSS}=470$. Compute the new adjusted $R^2$. Should the new predictor be retained?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> $R^2=1-480/2000=0.76$. $\bar R^2=1-(480/47)/(2000/49)=0.750$. RSE$=\sqrt{480/47}\approx3.196$.</p><p><strong>b.</strong> With third predictor: $\bar R^2=1-(470/46)/(2000/49)\approx0.750$. Adjusted $R^2$ is essentially unchanged; the predictor provides negligible improvement and need not be retained.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Nested F-test</strong>
+    <p>Full model ($p=5$, $n=80$): $\mathrm{RSS}=320$. Reduced model ($q=2$): $\mathrm{RSS}=410$.</p>
+    <ol type="a">
+      <li>Compute the partial $F$-statistic for testing whether the 3 additional predictors are jointly useful.</li>
+      <li>The critical value $F_{3,74,0.05} \approx 2.73$. State your conclusion.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> Partial $F=\frac{(410-320)/3}{320/74}=\frac{30}{4.324}\approx6.94$.</p><p><strong>b.</strong> Since $6.94>2.73$, reject $H_0$: the three additional predictors jointly improve the model; the full model is preferred.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: CI vs PI</strong>
+    <p>At $\mathbf{x}^* $: $\hat y^* = 45$, $\hat\sigma = 6$, $(\mathbf{x}^*)^\top(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{x}^* = 0.04$, $n-p-1 = 60$ (use $z = 1.96$).</p>
+    <ol type="a">
+      <li>Compute the 95% CI for the mean response.</li>
+      <li>Compute the 95% PI for a new observation.</li>
+      <li>The new point is far from the training data centre. How does this affect the intervals?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> SE$(\hat\mu)=6\sqrt{0.04}=1.2$. 95\% CI: $45\pm1.96\times1.2=(42.6,\ 47.4)$.</p><p><strong>b.</strong> SE(new)$=\sqrt{36+1.44}=\sqrt{37.44}\approx6.12$. 95\% PI: $45\pm1.96\times6.12=(33.0,\ 57.0)$.</p><p><strong>c.</strong> A point far from the training data centre has a larger leverage term $(\mathbf{x}^*)^\top(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{x}^*$, which widens both the CI and PI. The farther the point, the greater the extrapolation uncertainty.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 4: AIC and BIC</strong>
+    <p>Two models with $n=200$: Model A has $p=3$, $\mathrm{RSS}=800$. Model B has $p=6$, $\mathrm{RSS}=740$.</p>
+    <ol type="a">
+      <li>Compute AIC for both. Which is preferred?</li>
+      <li>Compute BIC for both. Do you reach the same conclusion?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p4')">Show Solution</button>
+  <div class="solution" id="sol-p4">
+    <p><strong>a.</strong> $\hat\sigma^2_A=800/196\approx4.08$. AIC$_A\approx200\ln(4.08)+8\approx292$. $\hat\sigma^2_B=740/193\approx3.83$. AIC$_B\approx200\ln(3.83)+14\approx280$. AIC prefers Model B ($280<292$).</p><p><strong>b.</strong> BIC$_A\approx200\ln(4.08)+4\ln(200)\approx305$. BIC$_B\approx200\ln(3.83)+7\ln(200)\approx303$. BIC also prefers Model B ($303<305$) but the margin is narrow.</p>
+  </div>
+</div>
+
+<!-- SLIDE 12: Summary -->
+<div class="slide" data-slide="12">
+  <span class="tag module">Summary</span>
+  <h2>Module 06 Summary</h2>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Key Formulas</strong>
+      <ul>
+        <li>$\mathrm{RSE} = \sqrt{\mathrm{RSS}/(n-p-1)}$</li>
+        <li>$R^2 = 1 - \mathrm{RSS}/\mathrm{TSS}$</li>
+        <li>$\bar R^2 = 1 - \frac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$</li>
+        <li>Partial $F = \frac{(\mathrm{RSS}_r-\mathrm{RSS}_f)/(p-q)}{\mathrm{RSS}_f/(n-p-1)}$</li>
+        <li>$\mathrm{AIC} = n\log(\mathrm{RSS}/n) + 2(p+1)$</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Key Rules</strong>
+      <ul>
+        <li>$R^2$ always increases: use $\bar R^2$ to compare models</li>
+        <li>Partial $F$-test for nested model comparison</li>
+        <li>PI always wider than CI</li>
+        <li>Both intervals widen with extrapolation</li>
+        <li>BIC penalises more than AIC for large $n$</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula">
+    <strong>Next: Module 07</strong> introduces logistic regression for classification: modelling $P(Y=1|X)$ when the response is binary.
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 12</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m06-v1';
+let cs=1, ts=12, bsz=18;
+function showSlide(n) {
+  try {
+    var prev = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs = Math.max(1, Math.min(ts, n));
+    var next = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct = document.getElementById('sct');
+    if(sct) sct.textContent = 'Slide '+cs+' of '+ts;
+    var pbtn = document.getElementById('pbtn');
+    var nbtn = document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled = (cs===1);
+    if(nbtn) nbtn.disabled = (cs===ts);
+    var pfill = document.getElementById('pfill');
+    if(pfill) pfill.style.width = (cs/ts*100)+'%';
+    try { localStorage.setItem(SK, JSON.stringify({cs:cs})); } catch(e) {}
+    try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+  } catch(err) { console.error('Nav error:', err); }
+}
+function chg(d) { showSlide(cs+d); }
+function zoom(d) {
+  bsz = d===0 ? 18 : Math.min(28, Math.max(14, bsz+d*2));
+  document.documentElement.style.setProperty('--base', bsz+'px');
+  try { localStorage.setItem(SK+'_sz', bsz); } catch(e) {}
+}
+function togSol(id) {
+  var s = document.getElementById(id);
+  if(s) s.style.display = s.style.display==='block' ? 'none' : 'block';
+  try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+}
+document.addEventListener('keydown', function(e) {
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); chg(1); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); chg(-1); }
+});
+(function(){
+  try {
+    var sv = JSON.parse(localStorage.getItem(SK));
+    if(sv && sv.cs>1) showSlide(sv.cs);
+    var sz = localStorage.getItem(SK+'_sz');
+    if(sz){ bsz=parseInt(sz,10); document.documentElement.style.setProperty('--base',bsz+'px'); }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>

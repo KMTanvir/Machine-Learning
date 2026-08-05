@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 11 – Regression Metrics | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 11: Regression Metrics: MSE, RMSE, MAE, R²</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 11</span>
+  <h2>Regression Metrics: MSE, RMSE, MAE, R²</h2>
+  <p>We now begin <strong>Part D: Performance Measures</strong>. A model is only as useful as our ability to measure how well it performs. This module covers the standard metrics for evaluating regression models.</p>
+  <div class="box def">
+    <strong>Central Question</strong>
+    Given a fitted model $\hat{f}$ and test data $(x_i, y_i)$, how do we summarise the gap between predictions $\hat{y}_i$ and true values $y_i$?
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Define and compute MSE, RMSE, and MAE</li>
+    <li>Explain the properties and differences between these metrics</li>
+    <li>Interpret $R^2$ and adjusted $R^2$ correctly</li>
+    <li>Choose the appropriate metric for a given problem</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 2.2, Chapter 3.5</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Motivation</span>
+  <h2>Why Metrics Matter</h2>
+  <p>Every metric encodes a different <strong>loss function</strong>: a different answer to "what counts as a mistake and how much?"</p>
+  <div class="two-col">
+    <div class="box note">
+      <strong>Example: House price prediction</strong>
+      <ul>
+        <li>Predicting 400k when true value is 500k: error = 100k</li>
+        <li>Predicting 200k when true value is 500k: error = 300k</li>
+        <li>MSE penalises the second error 9× more than the first</li>
+        <li>MAE penalises it exactly 3× more</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <strong>No universal best metric</strong>
+      <ul>
+        <li>MSE: penalises large errors heavily (outlier sensitive)</li>
+        <li>MAE: treats all errors proportionally (robust)</li>
+        <li>$R^2$: relative measure, scale-free</li>
+        <li>Choice depends on the cost structure of your application</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box def">
+    <strong>Notation</strong>
+    $n$ observations, true values $y_1,\ldots,y_n$, predictions $\hat{y}_1,\ldots,\hat{y}_n$, residuals $e_i = y_i - \hat{y}_i$.
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">MSE</span>
+  <h2>Mean Squared Error</h2>
+  <div class="box formula">
+    <strong>Mean Squared Error</strong>
+    $$\mathrm{MSE} = \frac{1}{n}\sum_{i=1}^n (y_i - \hat{y}_i)^2 = \frac{1}{n}\sum_{i=1}^n e_i^2$$
+  </div>
+  <h3>Properties</h3>
+  <ul>
+    <li>Always non-negative; MSE $= 0$ only if all predictions are perfect</li>
+    <li>Units are squared (e.g., dollars² if $Y$ is in dollars): hard to interpret directly</li>
+    <li><strong>Penalises large errors more than small ones</strong> (quadratic penalty)</li>
+    <li>Differentiable everywhere: convenient for optimisation (OLS minimises training MSE)</li>
+    <li>Sensitive to outliers: a single large error can dominate</li>
+  </ul>
+  <div class="box def">
+    <strong>Population vs Sample MSE</strong>
+    <ul>
+      <li><strong>Training MSE:</strong> $\frac{1}{n}\sum_{i=1}^n(y_i - \hat{f}(x_i))^2$, always decreases as model complexity increases</li>
+      <li><strong>Test MSE:</strong> $E[(y_0 - \hat{f}(x_0))^2]$ for new $(x_0,y_0)$: the quantity we actually care about</li>
+    </ul>
+  </div>
+  <div class="box note">The bias-variance decomposition applies to test MSE: $\mathrm{Test\,MSE} = \mathrm{Bias}^2(\hat{f}) + \mathrm{Var}(\hat{f}) + \sigma^2$.</div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">RMSE and MAE</span>
+  <h2>RMSE and Mean Absolute Error</h2>
+  <div class="two-col">
+    <div class="box formula">
+      <strong>Root Mean Squared Error</strong>
+      $$\mathrm{RMSE} = \sqrt{\mathrm{MSE}} = \sqrt{\frac{1}{n}\sum_{i=1}^n e_i^2}$$
+      Same units as $Y$. Directly comparable to $\bar{y}$.
+    </div>
+    <div class="box formula">
+      <strong>Mean Absolute Error</strong>
+      $$\mathrm{MAE} = \frac{1}{n}\sum_{i=1}^n |e_i|$$
+      Same units as $Y$. Median-optimal (minimised by the conditional median).
+    </div>
+  </div>
+  <h3>RMSE vs MAE</h3>
+  <table>
+    <tr><th>Property</th><th>RMSE</th><th>MAE</th></tr>
+    <tr><td>Penalty for large errors</td><td>Quadratic (heavy)</td><td>Linear (proportional)</td></tr>
+    <tr><td>Outlier sensitivity</td><td>High</td><td>Low</td></tr>
+    <tr><td>Differentiable</td><td>Yes</td><td>No (at $e_i=0$)</td></tr>
+    <tr><td>Optimal predictor</td><td>Conditional mean $E[Y|X]$</td><td>Conditional median</td></tr>
+    <tr><td>Interpretation</td><td>Typical error (RMS)</td><td>Average absolute error</td></tr>
+  </table>
+  <div class="box note">RMSE $\geq$ MAE always (Jensen's inequality). The ratio RMSE/MAE measures how much outliers inflate the error.</div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">R-squared</span>
+  <h2>R²: Coefficient of Determination</h2>
+  <div class="box formula">
+    <strong>R²</strong>
+    $$R^2 = 1 - \frac{\mathrm{RSS}}{\mathrm{TSS}} = 1 - \frac{\sum(y_i-\hat{y}_i)^2}{\sum(y_i-\bar{y})^2}$$
+    Proportion of variance in $Y$ explained by the model.
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="box def">
+        <strong>Interpretation</strong>
+        <ul>
+          <li>$R^2 = 1$: perfect predictions ($\hat{y}_i = y_i$ for all $i$)</li>
+          <li>$R^2 = 0$: model no better than predicting $\bar{y}$</li>
+          <li>$R^2 < 0$: model worse than the mean (possible on test data)</li>
+          <li>Scale-free: dimensionless and in $(-\infty, 1]$</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="box warn">
+        <strong>Limitations</strong>
+        <ul>
+          <li>Always increases (or stays equal) as predictors are added</li>
+          <li>High $R^2$ does not mean good predictions out-of-sample</li>
+          <li>Sensitive to the range of $Y$ in the dataset</li>
+          <li>Does not detect non-linearity or heteroscedasticity</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">Adjusted R²</span>
+  <h2>Adjusted R²</h2>
+  <div class="box formula">
+    <strong>Adjusted R²</strong>
+    $$\bar{R}^2 = 1 - \frac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)} = 1 - (1-R^2)\frac{n-1}{n-p-1}$$
+    where $p$ is the number of predictors.
+  </div>
+  <p>Adjusted $R^2$ penalises the addition of irrelevant predictors. Adding a predictor increases $\bar{R}^2$ only if the reduction in RSS more than offsets the loss of one degree of freedom.</p>
+  <table>
+    <tr><th></th><th>$R^2$</th><th>Adjusted $R^2$</th></tr>
+    <tr><td>Adding a useful predictor</td><td>Increases</td><td>Increases</td></tr>
+    <tr><td>Adding a useless predictor</td><td>Increases slightly</td><td>Decreases slightly</td></tr>
+    <tr><td>Comparable across models?</td><td>Only same $p$</td><td>Different $p$ OK</td></tr>
+    <tr><td>Range</td><td>$(-\infty, 1]$</td><td>$(-\infty, 1]$</td></tr>
+  </table>
+  <div class="box note">Adjusted $R^2$ is one of several model-selection criteria. AIC and BIC (Module 05) are more principled alternatives because they are grounded in likelihood theory.</div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Metric Selection</span>
+  <h2>Choosing the Right Metric</h2>
+  <table>
+    <tr><th>Scenario</th><th>Preferred metric</th><th>Reason</th></tr>
+    <tr><td>Large outliers are very costly</td><td>RMSE</td><td>Quadratic penalty flags them</td></tr>
+    <tr><td>Outliers are noise, not signal</td><td>MAE</td><td>Robust to extreme values</td></tr>
+    <tr><td>Comparing models on same data</td><td>$R^2$ or adjusted $R^2$</td><td>Scale-free, interpretable</td></tr>
+    <tr><td>Percentage accuracy matters</td><td>MAPE</td><td>Relative errors</td></tr>
+    <tr><td>Variable number of predictors</td><td>Adjusted $R^2$, AIC, BIC</td><td>Penalises complexity</td></tr>
+  </table>
+  <div class="box def">
+    <strong>Mean Absolute Percentage Error (MAPE)</strong>
+    $$\mathrm{MAPE} = \frac{100}{n}\sum_{i=1}^n \left|\frac{y_i - \hat{y}_i}{y_i}\right|$$
+    Useful when the scale of $Y$ varies widely. Undefined when $y_i = 0$.
+  </div>
+  <div class="box warn"><strong>Never use training error alone</strong> to select a model. Always evaluate on a held-out test set or via cross-validation (Module 14).</div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Bias-Variance</span>
+  <h2>Metrics and the Bias-Variance Tradeoff</h2>
+  <div class="box formula">
+    <strong>Decomposition of Expected Test MSE</strong>
+    $$E\!\left[(y_0 - \hat{f}(x_0))^2\right] = \underbrace{\left[\mathrm{Bias}(\hat{f}(x_0))\right]^2}_{\text{reducible: bias}} + \underbrace{\mathrm{Var}(\hat{f}(x_0))}_{\text{reducible: variance}} + \underbrace{\sigma^2}_{\text{irreducible}}$$
+  </div>
+  <ul>
+    <li><strong>Bias</strong> = error from wrong assumptions (underfitting)</li>
+    <li><strong>Variance</strong> = sensitivity to training data fluctuations (overfitting)</li>
+    <li><strong>Irreducible error</strong> $\sigma^2 = \mathrm{Var}(\varepsilon)$: a lower bound that no model can beat</li>
+  </ul>
+  <div class="box note">
+    <strong>Why test MSE is the right target:</strong> training MSE decreases monotonically as complexity increases. Test MSE forms a U-shape: it has a minimum at the optimal complexity. RMSE and $R^2$ on the test set share this property.
+  </div>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Overfitting signal:</strong> test MSE $\gg$ training MSE
+    </div>
+    <div class="box def">
+      <strong>Underfitting signal:</strong> both training and test MSE are high
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">RSE</span>
+  <h2>Residual Standard Error</h2>
+  <div class="box formula">
+    <strong>RSE (in regression context)</strong>
+    $$\mathrm{RSE} = \sqrt{\frac{\mathrm{RSS}}{n - p - 1}} = \sqrt{\frac{\sum e_i^2}{n - p - 1}}$$
+    Estimates the standard deviation of the irreducible error $\sigma$.
+  </div>
+  <p>RSE is the regression-specific version of RMSE, corrected for degrees of freedom. It has the same units as $Y$ and can be compared to $\bar{y}$ to assess relative model fit.</p>
+  <div class="two-col">
+    <div class="box def">
+      <strong>RSE vs RMSE</strong>
+      <ul>
+        <li>RMSE divides by $n$ (prediction error)</li>
+        <li>RSE divides by $n - p - 1$ (unbiased $\sigma$ estimate)</li>
+        <li>For large $n$ and small $p$, RSE $\approx$ RMSE</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Interpretation example:</strong> If $\bar{y} = 14$ and RSE $= 3.26$, then the model has about $3.26/14 = 23\%$ relative error, a moderate fit.
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Example</span>
+  <h2>Numerical Example</h2>
+  <p>Five test observations. True values and predictions:</p>
+  <table>
+    <tr><th>$i$</th><th>$y_i$</th><th>$\hat{y}_i$</th><th>$e_i$</th><th>$e_i^2$</th><th>$|e_i|$</th></tr>
+    <tr><td>1</td><td>10</td><td>12</td><td>$-2$</td><td>4</td><td>2</td></tr>
+    <tr><td>2</td><td>20</td><td>18</td><td>2</td><td>4</td><td>2</td></tr>
+    <tr><td>3</td><td>30</td><td>28</td><td>2</td><td>4</td><td>2</td></tr>
+    <tr><td>4</td><td>40</td><td>45</td><td>$-5$</td><td>25</td><td>5</td></tr>
+    <tr><td>5</td><td>50</td><td>51</td><td>$-1$</td><td>1</td><td>1</td></tr>
+    <tr><td><strong>Sum</strong></td><td>150</td><td>154</td><td>$-4$</td><td><strong>38</strong></td><td><strong>12</strong></td></tr>
+  </table>
+  <div class="box formula">
+    $\bar{y} = 30$, $\mathrm{TSS} = (10{-}30)^2+\cdots+(50{-}30)^2 = 400+100+0+100+400 = 1000$
+    $$\mathrm{MSE} = 38/5 = 7.6, \quad \mathrm{RMSE} = \sqrt{7.6} \approx 2.76, \quad \mathrm{MAE} = 12/5 = 2.4$$
+    $$R^2 = 1 - 38/1000 = 0.962$$
+  </div>
+  <p>Interpretation: the model explains 96.2% of variance; typical prediction error is about 2.76 units.</p>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>A model predicts exam scores for $n = 4$ students:</p>
+  <table>
+    <tr><th>Student</th><th>$y_i$ (true)</th><th>$\hat{y}_i$ (predicted)</th></tr>
+    <tr><td>1</td><td>70</td><td>72</td></tr>
+    <tr><td>2</td><td>80</td><td>75</td></tr>
+    <tr><td>3</td><td>90</td><td>88</td></tr>
+    <tr><td>4</td><td>60</td><td>70</td></tr>
+  </table>
+  <ol>
+    <li>Compute MSE, RMSE, and MAE.</li>
+    <li>Compute $R^2$ (note: $\bar{y} = 75$, $\mathrm{TSS} = 500$).</li>
+    <li>Student 4's prediction is the worst. By how much does removing this observation change MSE?</li>
+    <li>If a second model has RMSE $= 4.2$ and MAE $= 3.1$, which model is better and why might the two models give different rankings?</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex11')">Show Solution</button>
+  <div class="solution" id="sol-ex11">
+    <p><strong>1.</strong> Residuals: $-2, 5, 2, -10$. $\sum e_i^2 = 4+25+4+100 = 133$. MSE $= 133/4 = 33.25$. RMSE $= \sqrt{33.25} \approx 5.77$. MAE $= (2+5+2+10)/4 = 19/4 = 4.75$.</p>
+    <p><strong>2.</strong> RSS $= 133$. $R^2 = 1 - 133/500 = 1 - 0.266 = 0.734$. The model explains 73.4% of variance in scores.</p>
+    <p><strong>3.</strong> Without student 4: $\sum e_i^2 = 4+25+4 = 33$, MSE $= 33/3 = 11$. Change: $33.25 - 11 = 22.25$ reduction per observation (student 4 inflates MSE by the large squared error of 100).</p>
+    <p><strong>4.</strong> Our model: RMSE $\approx 5.77 > 4.2$ : the second model is better by RMSE. But MAE: ours is $4.75 > 3.1$, also better for second model. The two rankings could differ when one model makes fewer but larger errors (higher RMSE/MAE ratio) while the other is more consistently wrong. Here both metrics agree.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Computing and comparing metrics</strong>
+    <p>Test set with $n=5$: $y = (3, 7, 5, 9, 4)$, $\hat{y} = (4, 6, 6, 8, 5)$.</p>
+    <ol type="a">
+      <li>Compute MSE, RMSE, and MAE.</li>
+      <li>Compute $R^2$ (use $\bar{y} = 5.6$).</li>
+      <li>A second model has RMSE $= 1.0$ and MAE $= 0.9$. Is model 2 strictly better? What does the RMSE/MAE ratio tell you?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> $e_i=(-1,1,-1,1,-1)$. RSS$=5$. MSE$=1.0$, RMSE$=1.0$, MAE$=1.0$.</p><p><strong>b.</strong> TSS$=(3{-}5.6)^2{+}(7{-}5.6)^2{+}(5{-}5.6)^2{+}(9{-}5.6)^2{+}(4{-}5.6)^2=23.2$. $R^2=1-5/23.2\approx0.784$: the model explains 78.4\% of variation.</p><p><strong>c.</strong> Model 2 has the same RMSE$=1.0$ but lower MAE$=0.9$: not strictly better overall. RMSE/MAE$=1.0$ for model 1 (all errors equal); RMSE/MAE$\approx1.11$ for model 2, meaning some errors are larger than average, inflating RMSE relative to MAE.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: R² properties</strong>
+    <p>A model gives $R^2 = 0.85$ on training data. On test data, $\mathrm{TSS} = 2000$, $\mathrm{RSS} = 400$.</p>
+    <ol type="a">
+      <li>Compute test $R^2$.</li>
+      <li>Is the training $R^2$ higher or lower than test $R^2$? What does this indicate?</li>
+      <li>Can test $R^2$ be negative? Give a concrete example.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> Test $R^2=1-400/2000=0.80$.</p><p><strong>b.</strong> Training $R^2=0.85>$ test $R^2=0.80$, as expected: the model is fitted to training data. The gap of 0.05 suggests mild overfitting.</p><p><strong>c. Yes</strong>: test $R^2$ can be negative if the model performs worse than predicting $\bar y$. Example: a model always predicting 0 when $\bar y=10$ gives RSS$>$TSS.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Adjusted R²</strong>
+    <p>$n = 50$, $p = 3$: $R^2 = 0.72$. A fourth predictor is added: new $R^2 = 0.73$.</p>
+    <ol type="a">
+      <li>Compute adjusted $R^2$ before and after adding the predictor.</li>
+      <li>Should the fourth predictor be retained? Justify using adjusted $R^2$.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> Before: $\bar R^2=1-(1-0.72)(49/46)=1-0.298=0.702$. After: $\bar R^2=1-(1-0.73)(49/45)=1-0.294=0.706$. Slight increase.</p><p><strong>b.</strong> The fourth predictor marginally improves adjusted $R^2$ and can be retained, though the gain is small and other criteria (AIC, BIC) should also be checked.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 4: True or False</strong>
+    <ol type="a">
+      <li>RMSE is always greater than or equal to MAE for the same set of predictions.</li>
+      <li>A model with higher $R^2$ always has lower RMSE.</li>
+      <li>Adding any predictor to a regression model cannot decrease $R^2$.</li>
+      <li>Test MSE can be lower than training MSE in practice.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p4')">Show Solution</button>
+  <div class="solution" id="sol-p4">
+    <p><strong>a. True.</strong> MSE$=E[e^2]\geq(E|e|)^2=$MAE$^2$ by Jensen's inequality, so RMSE$\geq$MAE always.</p><p><strong>b. False.</strong> $R^2$ depends on TSS, which varies by dataset. Higher $R^2$ does not imply lower RMSE.</p><p><strong>c. True.</strong> OLS minimises RSS; adding a predictor cannot increase RSS (set its coefficient to 0), so $R^2$ cannot decrease.</p><p><strong>d. True.</strong> If training data is noisy or the model underfits, test MSE can be lower than training MSE.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 12</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m11-v1';
+let cs=1, ts=12, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

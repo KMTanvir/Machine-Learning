@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 09 – QDA and Naive Bayes | AST402</title>
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px;}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b;}
+#wrap{max-width:1100px;margin:0 auto;padding:0.6rem 1rem 2rem;}
+header{background:#1e3a5f;color:#fff;padding:0.7rem 1.2rem;border-radius:10px;margin-bottom:0.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700;}
+header .meta{font-size:calc(var(--base)*0.78);opacity:0.82;}
+.zoom-bar{display:flex;gap:0.35rem;align-items:center;}
+.zoom-bar button{background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.35);border-radius:6px;padding:0.18rem 0.55rem;font-size:calc(var(--base)*0.82);cursor:pointer;}
+.zoom-bar button:hover{background:rgba(255,255,255,0.32);}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto;}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem;}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width 0.3s;}
+.slide{display:none;}.slide.active{display:block;}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:0.7rem;border-bottom:2px solid #2563eb;padding-bottom:0.3rem;}
+.slide h3{font-size:calc(var(--base)*1.05);color:#1e3a5f;margin:0.9rem 0 0.4rem;}
+.slide p,.slide li{line-height:1.65;margin-bottom:0.45rem;}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:0.5rem;}
+.slide ul li,.slide ol li{margin-bottom:0.3rem;}
+.tag{display:inline-block;font-size:calc(var(--base)*0.72);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.13rem 0.55rem;border-radius:4px;margin-bottom:0.6rem;}
+.tag.module{background:#dbeafe;color:#1e40af;}.tag.topic{background:#f0fdf4;color:#166534;}
+.tag.exercise{background:#fef9c3;color:#854d0e;}.tag.practice{background:#fce7f3;color:#9d174d;}
+.box{border-radius:8px;padding:0.75rem 1rem;margin:0.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc;}
+.box.def{border-color:#2563eb;background:#eff6ff;}.box.formula{border-color:#7c3aed;background:#f5f3ff;}
+.box.note{border-color:#d97706;background:#fffbeb;}.box.warn{border-color:#dc2626;background:#fff1f2;}
+.box.ex{border-color:#059669;background:#f0fdf4;}
+.box strong{display:block;margin-bottom:0.3rem;color:#1e293b;}
+.sol-btn{margin-top:0.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:0.38rem 0.9rem;font-size:calc(var(--base)*0.83);cursor:pointer;}
+.sol-btn:hover{background:#2563eb;}
+.solution{display:none;margin-top:0.6rem;border-top:1px dashed #cbd5e1;padding-top:0.6rem;}
+table{border-collapse:collapse;width:100%;margin:0.6rem 0;font-size:calc(var(--base)*0.9);}
+th,td{border:1px solid #cbd5e1;padding:0.35rem 0.6rem;text-align:left;}
+th{background:#f1f5f9;font-weight:700;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:600px){.two-col{grid-template-columns:1fr;}}
+.slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:0.7rem;border-top:1px solid #e2e8f0;}
+.slide-nav button{background:#1e3a5f;color:#fff;border:none;border-radius:8px;padding:0.45rem 1.1rem;font-size:calc(var(--base)*0.88);cursor:pointer;}
+.slide-nav button:disabled{background:#cbd5e1;cursor:default;}
+.slide-nav button:not(:disabled):hover{background:#2563eb;}
+#sct{font-size:calc(var(--base)*0.82);color:#64748b;}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 09: QDA and Naive Bayes</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button><button onclick="zoom(0)">A</button><button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 09</span>
+  <h2>QDA and Naive Bayes</h2>
+  <p>Module 08 introduced LDA with a shared covariance matrix, giving linear boundaries. This module covers two extensions: <strong>QDA</strong> (class-specific covariances, quadratic boundaries) and <strong>Naive Bayes</strong> (independent features within each class).</p>
+  <div class="two-col">
+    <div class="box def">
+      <strong>QDA</strong>: Relaxes LDA's shared covariance assumption. Each class has its own $\boldsymbol\Sigma_k$. Decision boundaries become quadratic.
+    </div>
+    <div class="box def">
+      <strong>Naive Bayes</strong>: Assumes features are conditionally independent within each class. Works for any feature distribution. Extremely fast and scalable.
+    </div>
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Derive QDA discriminant scores and decision boundaries</li>
+    <li>Compare LDA and QDA: bias-variance tradeoff</li>
+    <li>State and apply the Naive Bayes assumption</li>
+    <li>Identify when each classifier is appropriate</li>
+  </ul>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">QDA</span>
+  <h2>Quadratic Discriminant Analysis</h2>
+  <div class="box def">
+    <strong>QDA assumption:</strong> $\mathbf{X} \mid Y = k \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k)$ with a <em>class-specific</em> covariance $\boldsymbol\Sigma_k$.
+  </div>
+  <div class="box formula">
+    <strong>QDA discriminant score:</strong>
+    $$\delta_k(\mathbf{x}) = -\frac{1}{2}(\mathbf{x}-\boldsymbol\mu_k)^\top\boldsymbol\Sigma_k^{-1}(\mathbf{x}-\boldsymbol\mu_k) - \frac{1}{2}\log|\boldsymbol\Sigma_k| + \log\pi_k$$
+    Assign $\mathbf{x}$ to class $k^* = \arg\max_k \delta_k(\mathbf{x})$.
+  </div>
+  <div class="box note">
+    <strong>Why quadratic?</strong> Unlike LDA, the $\mathbf{x}^\top\boldsymbol\Sigma_k^{-1}\mathbf{x}$ term now differs across classes (because $\boldsymbol\Sigma_k$ varies), so it does not cancel. The boundary is a <em>quadratic</em> function of $\mathbf{x}$.
+  </div>
+  <div class="box warn">QDA requires estimating a separate $\boldsymbol\Sigma_k$ for each class. With $p$ features, each $\boldsymbol\Sigma_k$ has $p(p+1)/2$ parameters. More flexible but higher variance: needs larger training sets.</div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">LDA vs QDA</span>
+  <h2>LDA vs QDA: Bias-Variance Tradeoff</h2>
+  <table>
+    <tr><th>Property</th><th>LDA</th><th>QDA</th></tr>
+    <tr><td>Covariance</td><td>Shared $\boldsymbol\Sigma$</td><td>Class-specific $\boldsymbol\Sigma_k$</td></tr>
+    <tr><td>Decision boundary</td><td>Linear</td><td>Quadratic</td></tr>
+    <tr><td>Parameters</td><td>Fewer (lower variance)</td><td>More (higher variance)</td></tr>
+    <tr><td>Bias</td><td>Higher (if covariances differ)</td><td>Lower</td></tr>
+    <tr><td>Prefer when</td><td>Small $n$, shared covariances hold</td><td>Large $n$, covariances differ across classes</td></tr>
+  </table>
+  <div class="box def">
+    <strong>Decision rule:</strong>
+    <ul>
+      <li>If the true decision boundary is approximately linear: use LDA</li>
+      <li>If the true boundary is non-linear and training set is large: use QDA</li>
+      <li>With small $n$, LDA's lower variance usually outperforms QDA despite potential bias</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">Naive Bayes</span>
+  <h2>The Naive Bayes Classifier</h2>
+  <div class="box def">
+    <strong>Naive Bayes assumption (conditional independence):</strong>
+    $$f_k(\mathbf{x}) = P(\mathbf{X} = \mathbf{x} \mid Y = k) = \prod_{j=1}^p f_{kj}(x_j)$$
+    Within each class $k$, all features $X_1, \ldots, X_p$ are assumed independent.
+  </div>
+  <div class="box formula">
+    <strong>Naive Bayes posterior:</strong>
+    $$P(Y = k \mid \mathbf{X} = \mathbf{x}) \propto \pi_k \prod_{j=1}^p f_{kj}(x_j)$$
+    Taking logs: classify to the class $k$ maximising
+    $$\log\pi_k + \sum_{j=1}^p \log f_{kj}(x_j)$$
+  </div>
+  <div class="box note">The assumption of conditional independence within classes is "naive" because it is usually violated in practice. Yet Naive Bayes often performs surprisingly well despite this, especially for text classification and spam filtering.</div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Naive Bayes</span>
+  <h2>Estimating Naive Bayes</h2>
+  <p>Each marginal density $f_{kj}(x_j)$ is estimated separately, making Naive Bayes very flexible:</p>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Quantitative $X_j$:</strong>
+      Assume $X_j \mid Y=k \sim \mathcal{N}(\mu_{kj}, \sigma_{kj}^2)$.
+      Estimate $\hat\mu_{kj}$ and $\hat\sigma_{kj}^2$ from class $k$ training observations.
+      This gives <em>Gaussian Naive Bayes</em>.
+    </div>
+    <div class="box def">
+      <strong>Categorical $X_j$:</strong>
+      Estimate $P(X_j = c \mid Y = k)$ by the fraction of class $k$ observations with $X_j = c$.
+      This is the classic Naive Bayes for text (bag-of-words).
+    </div>
+  </div>
+  <div class="box note">
+    <strong>Key insight:</strong> Naive Bayes only needs to estimate $p$ univariate densities per class rather than one $p$-dimensional joint density. This dramatically reduces the number of parameters: from $O(p^2)$ (QDA) to $O(p)$ per class.
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">Naive Bayes</span>
+  <h2>Why Naive Bayes Works Despite the Naive Assumption</h2>
+  <div class="box warn">
+    <strong>The independence assumption is almost always wrong.</strong> In real data, features are correlated. For example, in email spam detection, words like "free" and "offer" tend to co-occur.
+  </div>
+  <p>Despite this, Naive Bayes often gives good classification results because:</p>
+  <ul>
+    <li>We only need the <em>ranking</em> of posterior probabilities to classify correctly, not their exact values</li>
+    <li>The bias from the wrong assumption can be outweighed by the variance reduction from estimating far fewer parameters</li>
+    <li>When $p$ is large relative to $n$, this variance reduction is crucial</li>
+  </ul>
+  <div class="box def">
+    <strong>Relationship to LDA:</strong> Gaussian Naive Bayes is a special case of LDA where $\boldsymbol\Sigma$ is forced to be diagonal (off-diagonal covariances set to zero).
+  </div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Comparison</span>
+  <h2>Comparing All Four Classifiers</h2>
+  <table>
+    <tr><th>Method</th><th>Boundary</th><th>Assumption</th><th>Best for</th></tr>
+    <tr><td>Logistic Reg.</td><td>Linear</td><td>Minimal (discriminative)</td><td>Large $n$, any features</td></tr>
+    <tr><td>LDA</td><td>Linear</td><td>Gaussian, shared $\boldsymbol\Sigma$</td><td>Small $n$, Gaussian features, $K>2$</td></tr>
+    <tr><td>QDA</td><td>Quadratic</td><td>Gaussian, separate $\boldsymbol\Sigma_k$</td><td>Moderate $n$, covariances differ</td></tr>
+    <tr><td>Naive Bayes</td><td>Non-linear (generally)</td><td>Conditional independence</td><td>Large $p$, text data, mixed features</td></tr>
+  </table>
+  <div class="box note">No single method dominates. The best choice depends on the sample size, number of features, feature types, and how well each method's assumptions match the data. Always compare using cross-validation.</div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Example</span>
+  <h2>Naive Bayes Example: Spam Filter</h2>
+  <p>Binary classification: spam (1) vs ham (0). Two features: $X_1$ = contains "free" (1/0), $X_2$ = contains "meeting" (1/0).</p>
+  <p>Training data: 100 spam, 400 ham emails.</p>
+  <table>
+    <tr><th>Feature</th><th>$P(X_j=1 \mid \text{spam})$</th><th>$P(X_j=1 \mid \text{ham})$</th></tr>
+    <tr><td>Contains "free"</td><td>0.70</td><td>0.05</td></tr>
+    <tr><td>Contains "meeting"</td><td>0.10</td><td>0.60</td></tr>
+  </table>
+  <p>New email: contains "free" but not "meeting" ($x_1=1, x_2=0$). Priors: $\pi_1=0.2$, $\pi_0=0.8$.</p>
+  <div class="box formula">
+    $P(\text{spam}\mid\mathbf{x}) \propto 0.2 \times 0.70 \times 0.90 = 0.126$
+
+    $P(\text{ham}\mid\mathbf{x}) \propto 0.8 \times 0.05 \times 0.40 = 0.016$
+
+    Normalised: $P(\text{spam}\mid\mathbf{x}) = 0.126/(0.126+0.016) \approx 0.887$. Classify as spam.
+  </div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise: QDA vs LDA</h2>
+  <p>Two classes, one predictor. Class 1: $\hat\mu_1 = 0$, $\hat\sigma_1^2 = 1$. Class 2: $\hat\mu_2 = 3$, $\hat\sigma_2^2 = 4$. Equal priors.</p>
+  <ol>
+    <li>Write the QDA discriminant scores $\delta_1(x)$ and $\delta_2(x)$.</li>
+    <li>Is the decision boundary a single point or can there be two boundary points? Why?</li>
+    <li>What would the LDA boundary be (using pooled variance)?</li>
+    <li>At $x = 1.5$, which class does QDA assign? Which does LDA assign?</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex9')">Show Solution</button>
+  <div class="solution" id="sol-ex9">
+    <p><strong>1.</strong> $\delta_k(x) = -\frac{(x-\mu_k)^2}{2\sigma_k^2} - \frac{1}{2}\log\sigma_k^2 + \log\pi_k$</p>
+    <p>$\delta_1(x) = -(x-0)^2/2 - \frac{1}{2}\log 1 + 0 = -x^2/2$</p>
+    <p>$\delta_2(x) = -(x-3)^2/8 - \frac{1}{2}\log 4 + 0 = -(x-3)^2/8 - \log 2$</p>
+    <p><strong>2.</strong> Setting $\delta_1 = \delta_2$: $-x^2/2 = -(x-3)^2/8 - \log 2$. This is a quadratic equation in $x$ and can have up to <em>two</em> solutions (two boundary points), unlike LDA which always has exactly one.</p>
+    <p>Solving: $-4x^2 = -(x-3)^2 - 8\log 2 \Rightarrow -4x^2 = -x^2+6x-9-5.545 \Rightarrow 3x^2+6x-14.545=0$. Discriminant positive: two roots $\approx -3.55$ and $\approx 1.55$.</p>
+    <p><strong>3.</strong> LDA pooled variance: $\hat\sigma^2 = (n_1\sigma_1^2 + n_2\sigma_2^2)/(n_1+n_2-2)$. With equal class sizes: $\approx (1+4)/2 = 2.5$. Boundary: $(\mu_1+\mu_2)/2 = 1.5$.</p>
+    <p><strong>4.</strong> At $x=1.5$: $\delta_1(1.5) = -1.125$; $\delta_2(1.5) = -(1.5-3)^2/8 - \log 2 = -0.281 - 0.693 = -0.974$. QDA: $\delta_2 > \delta_1$, assign to class 2. LDA: $x=1.5$ is exactly at the boundary, tie broken as class 2 (or class 1, depending on convention).</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: QDA Parameters</strong>
+    <p>Three classes, $p = 2$ predictors. How many parameters does QDA need to estimate in total (means, covariances, priors)?</p>
+    <ol type="a">
+      <li>Count the parameters for QDA.</li>
+      <li>Count for LDA (shared covariance).</li>
+      <li>Count for Naive Bayes (Gaussian, class-specific variances).</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> QDA: $Kp=6$ means $+$ $K\cdot p(p+1)/2=9$ covariances $+$ $(K-1)=2$ priors $=17$ parameters.</p><p><strong>b.</strong> LDA (shared covariance): $Kp=6$ means $+$ $p(p+1)/2=3$ pooled covariances $+$ 2 priors $=11$ parameters.</p><p><strong>c.</strong> Gaussian NB (class-specific variances, no covariances): $Kp=6$ means $+$ $Kp=6$ variances $+$ 2 priors $=14$ parameters.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Naive Bayes Calculation</strong>
+    <p>Medical diagnosis. Disease (+) prevalence = 5%. Two test results: $P(T_1=+\mid +) = 0.90$, $P(T_1=+\mid -) = 0.10$; $P(T_2=+\mid +) = 0.80$, $P(T_2=+\mid -) = 0.20$. A patient has both tests positive.</p>
+    <ol type="a">
+      <li>Using Naive Bayes, compute $P(\text{disease} \mid T_1=+, T_2=+)$.</li>
+      <li>If only $T_1$ is positive, what is $P(\text{disease} \mid T_1=+)$ (standard Bayes)?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> $P(+,+\mid D)=0.72$, $P(+,+\mid\bar D)=0.02$. $P(D\mid+,+)=0.72\times0.05/(0.72\times0.05+0.02\times0.95)=0.036/0.055\approx0.655$.</p><p><strong>b.</strong> $P(D\mid T_1{=}+)=0.045/(0.045+0.095)\approx0.321$.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Choosing a Classifier</strong>
+    <p>For each dataset, recommend LDA, QDA, or Naive Bayes and justify.</p>
+    <ol type="a">
+      <li>$n = 50$, $p = 2$, $K = 2$, features approximately Gaussian, similar within-class spread.</li>
+      <li>$n = 10{,}000$, $p = 500$ binary features (word presence in documents), $K = 3$.</li>
+      <li>$n = 500$, $p = 3$, $K = 4$, clear evidence that class covariances differ substantially.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> LDA: small $n$, Gaussian, equal covariance likely. <strong>b.</strong> Naive Bayes: $p=500$ binary features, QDA/LDA covariance estimation infeasible. <strong>c.</strong> QDA: class covariances clearly differ.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 4: True or False</strong>
+    <ol type="a">
+      <li>QDA always outperforms LDA because it is more flexible.</li>
+      <li>Naive Bayes requires the features to be normally distributed.</li>
+      <li>LDA is a special case of QDA where $\boldsymbol\Sigma_1 = \boldsymbol\Sigma_2 = \cdots = \boldsymbol\Sigma_K$.</li>
+      <li>Naive Bayes can fail to produce valid probabilities if a feature value never occurs in a class in the training data (zero-frequency problem).</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p4')">Show Solution</button>
+  <div class="solution" id="sol-p4">
+    <p><strong>a. False</strong>: QDA has higher variance; LDA can win when true covariances are similar. <strong>b. False</strong>: NB assumes feature independence, not normality. <strong>c. True.</strong> <strong>d. True</strong>: zero training frequency collapses the posterior; Laplace smoothing is needed.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag module">Summary</span>
+  <h2>Module 09 Summary</h2>
+  <div class="two-col">
+    <div class="box def">
+      <strong>QDA Key Points</strong>
+      <ul>
+        <li>Class-specific $\boldsymbol\Sigma_k$: quadratic boundaries</li>
+        <li>$\delta_k(\mathbf{x}) = -\frac{1}{2}(\mathbf{x}-\boldsymbol\mu_k)^\top\boldsymbol\Sigma_k^{-1}(\mathbf{x}-\boldsymbol\mu_k) - \frac{1}{2}\log|\boldsymbol\Sigma_k| + \log\pi_k$</li>
+        <li>More flexible than LDA, needs more data</li>
+        <li>Up to 2 boundary points per pair of classes (in 1D)</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Naive Bayes Key Points</strong>
+      <ul>
+        <li>Conditional independence: $f_k(\mathbf{x}) = \prod_j f_{kj}(x_j)$</li>
+        <li>Works for any feature type (Gaussian, binary, count)</li>
+        <li>Only $O(Kp)$ parameters: very efficient</li>
+        <li>Often surprisingly good despite wrong assumption</li>
+        <li>Needs Laplace smoothing for zero-frequency problem</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula"><strong>Next: Module 10</strong> covers K-Nearest Neighbours: a completely non-parametric classifier with no distributional assumptions.</div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 11</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div></div>
+<script>
+const SK='aiml-m09-v1';
+let cs=1,ts=11,bsz=18;
+function showSlide(n){try{var p=document.querySelector('.slide[data-slide="'+cs+'"]');if(p)p.classList.remove('active');cs=Math.max(1,Math.min(ts,n));var nx=document.querySelector('.slide[data-slide="'+cs+'"]');if(nx)nx.classList.add('active');var s=document.getElementById('sct');if(s)s.textContent='Slide '+cs+' of '+ts;var pb=document.getElementById('pbtn'),nb=document.getElementById('nbtn');if(pb)pb.disabled=(cs===1);if(nb)nb.disabled=(cs===ts);var pf=document.getElementById('pfill');if(pf)pf.style.width=(cs/ts*100)+'%';try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}}catch(err){console.error(err);}}
+function chg(d){showSlide(cs+d);}
+function zoom(d){bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));document.documentElement.style.setProperty('--base',bsz+'px');try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}}
+function togSol(id){var s=document.getElementById(id);if(s)s.style.display=s.style.display==='block'?'none':'block';try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}});
+(function(){try{var sv=JSON.parse(localStorage.getItem(SK));if(sv&&sv.cs>1)showSlide(sv.cs);var sz=localStorage.getItem(SK+'_sz');if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}}catch(e){}})();
+</script>
+</body></html>

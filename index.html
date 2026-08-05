@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
-.hero{background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#4f46e5 100%);color:#fff;padding:2.5rem 2rem 2rem;position:relative;overflow:hidden}
+.hero{background:#1e3a5f;color:#fff;padding:2.5rem 2rem 2rem;position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;top:-60%;right:-5%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.1),transparent 70%);border-radius:50%}
 .hero-inner{position:relative;z-index:1;max-width:860px;margin:0 auto}
 .kicker{display:inline-block;background:rgba(255,255,255,.18);padding:.28rem .85rem;border-radius:999px;font-size:.75rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.85rem}
@@ -22,20 +22,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293
 .pb-label{font-size:.82rem;color:#64748b;white-space:nowrap}
 .pb-track{flex:1;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}
 .pb-fill{height:100%;background:linear-gradient(90deg,#2563eb,#4f46e5);border-radius:99px;transition:width .5s}
-.pb-pct{font-size:.82rem;font-weight:700;color:#2563eb;white-space:nowrap}
+.pb-pct{font-size:.82rem;font-weight:700;color:#334155;white-space:nowrap}
 .part-header{display:flex;align-items:center;gap:.75rem;margin:1.5rem 0 .6rem;padding-bottom:.5rem;border-bottom:2px solid #e2e8f0}
-.part-badge{background:#2563eb;color:#fff;border-radius:6px;padding:.22rem .65rem;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.part-badge{background:#1e3a5f;color:#fff;border-radius:6px;padding:.22rem .65rem;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .part-title{font-size:.95rem;font-weight:700;color:#334155}
 .mod-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.45rem;display:flex;align-items:center;gap:.9rem;transition:all .18s}
-.mod-card.available{cursor:pointer;border-left:4px solid #2563eb}
-.mod-card.available:hover{border-color:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,.12);transform:translateX(2px)}
+.mod-card.available{cursor:pointer;border-left:4px solid #1e3a5f}
+.mod-card.available:hover{border-color:#2563eb;box-shadow:0 4px 14px rgba(30,58,95,.12);transform:translateX(2px)}
 .mod-card.coming{opacity:.6;border-left:4px solid #cbd5e1;cursor:default}
-.mod-num{font-size:.72rem;font-weight:800;color:#2563eb;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;min-width:72px}
+.mod-num{font-size:.72rem;font-weight:800;color:#1e3a5f;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;min-width:72px}
 .mod-card.coming .mod-num{color:#94a3b8}
 .mod-title{flex:1;font-size:.92rem;font-weight:600;color:#1e293b;line-height:1.4}
 .mod-card.coming .mod-title{color:#64748b}
 .mod-status{font-size:.78rem;font-weight:700;white-space:nowrap;padding:.22rem .7rem;border-radius:6px}
-.mod-status.ready{background:#dbeafe;color:#1d4ed8}
+.mod-status.ready{background:#eff6ff;color:#334155}
 .mod-status.soon{background:#f1f5f9;color:#94a3b8}
 .footer{text-align:center;color:#94a3b8;font-size:.78rem;padding:1.5rem 0;border-top:1px solid #e2e8f0;margin-top:1.5rem}
 a.mod-card{text-decoration:none;color:inherit}
@@ -44,8 +44,8 @@ a.mod-card{text-decoration:none;color:inherit}
 .drive-text{flex:1}
 .drive-title{font-weight:700;color:#1e293b;font-size:1rem}
 .drive-sub{font-size:.82rem;color:#64748b;margin-top:.15rem}
-.drive-btn{background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;padding:.5rem 1.1rem;font-size:.88rem;font-weight:700;white-space:nowrap;transition:background .15s}
-.drive-btn:hover{background:#1d4ed8}
+.drive-btn{background:#1e3a5f;color:#fff;text-decoration:none;border-radius:8px;padding:.5rem 1.1rem;font-size:.88rem;font-weight:700;white-space:nowrap;transition:background .15s}
+.drive-btn:hover{background:#2563eb}
 </style>
 </head>
 <body>
@@ -57,7 +57,7 @@ a.mod-card{text-decoration:none;color:inherit}
     <div class="hero-stats">
       <div class="stat"><div class="sv">40</div><div class="sl">Modules</div></div>
       <div class="stat"><div class="sv">11</div><div class="sl">Parts</div></div>
-      <div class="stat"><div class="sv">2</div><div class="sl">Available Now</div></div>
+      <div class="stat"><div class="sv">14</div><div class="sl">Available Now</div></div>
     </div>
   </div>
 </div>
@@ -75,8 +75,8 @@ a.mod-card{text-decoration:none;color:inherit}
 
   <div class="progress-bar-wrap">
     <span class="pb-label">Modules released</span>
-    <div class="pb-track"><div class="pb-fill" style="width:7.5%"></div></div>
-    <span class="pb-pct">3 / 40</span>
+    <div class="pb-track"><div class="pb-fill" style="width:35%"></div></div>
+    <span class="pb-pct">10 / 40</span>
   </div>
 
     <div class="part-header">
@@ -102,72 +102,72 @@ a.mod-card{text-decoration:none;color:inherit}
       <div class="part-badge">Part B</div>
       <div class="part-title">Linear Models (Brief Review)</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 04 - Simple Linear Regression/index.html')">
       <div class="mod-num">Module 04</div>
       <div class="mod-title">Simple Linear Regression</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 05 - Multiple Linear Regression/index.html')">
       <div class="mod-num">Module 05</div>
       <div class="mod-title">Multiple Linear Regression</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 06 - Model Assessment R2 F-test CIs/index.html')">
       <div class="mod-num">Module 06</div>
       <div class="mod-title">Model Assessment: R², F-test, CIs</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 07 - Logistic Regression/index.html')">
       <div class="mod-num">Module 07</div>
       <div class="mod-title">Logistic Regression</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
     <div class="part-header">
       <div class="part-badge">Part C</div>
       <div class="part-title">Classification Methods</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 08 - Linear Discriminant Analysis/index.html')">
       <div class="mod-num">Module 08</div>
       <div class="mod-title">Linear Discriminant Analysis (LDA)</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 09 - QDA and Naive Bayes/index.html')">
       <div class="mod-num">Module 09</div>
       <div class="mod-title">QDA and Naive Bayes</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 10 - K-Nearest Neighbours/index.html')">
       <div class="mod-num">Module 10</div>
       <div class="mod-title">K-Nearest Neighbours</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
     <div class="part-header">
       <div class="part-badge">Part D</div>
       <div class="part-title">Performance Measures</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 11 - Regression Metrics MSE RMSE MAE R2/index.html')">
       <div class="mod-num">Module 11</div>
       <div class="mod-title">Regression Metrics: MSE, RMSE, MAE, R²</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 12 - Classification Metrics Confusion Matrix Precision Recall F1/index.html')">
       <div class="mod-num">Module 12</div>
       <div class="mod-title">Classification Metrics: Confusion Matrix, Precision, Recall, F1</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
-    <div class="mod-card coming">
+    <div class="mod-card available" onclick="openMod('Module 13 - ROC Curve AUC and Model Calibration/index.html')">
       <div class="mod-num">Module 13</div>
       <div class="mod-title">ROC Curve, AUC, and Model Calibration</div>
-      <div class="mod-status soon">Coming soon</div>
+      <div class="mod-status ready">&#9654; Open module</div>
+    </div>
+    <div class="mod-card available" onclick="openMod('Module 14 - Cross-Validation/index.html')">
+      <div class="mod-num">Module 14</div>
+      <div class="mod-title">Cross-Validation</div>
+      <div class="mod-status ready">&#9654; Open module</div>
     </div>
     <div class="part-header">
       <div class="part-badge">Part E</div>
       <div class="part-title">Resampling and Model Selection</div>
-    </div>
-    <div class="mod-card coming">
-      <div class="mod-num">Module 14</div>
-      <div class="mod-title">Cross-Validation Methods</div>
-      <div class="mod-status soon">Coming soon</div>
     </div>
     <div class="mod-card coming">
       <div class="mod-num">Module 15</div>

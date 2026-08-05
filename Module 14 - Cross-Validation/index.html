@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 14 – Cross-Validation | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 14: Cross-Validation</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 14</span>
+  <h2>Cross-Validation</h2>
+  <p>A model evaluated on its own training data is too optimistic. Cross-validation estimates generalization performance by evaluating the model on data it has not seen during training.</p>
+  <div class="box def">
+    <strong>The fundamental problem</strong>
+    Training error decreases as model complexity grows, it is a biased, optimistic estimate of test error. We need an honest estimate of how the model performs on new, unseen observations.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Distinguish training error from test error and explain why they diverge</li>
+    <li>Apply the validation set approach, LOOCV, and $k$-fold CV</li>
+    <li>Understand the bias-variance trade-off in cross-validation itself</li>
+    <li>Apply stratified $k$-fold CV for classification</li>
+    <li>Understand time-series CV for temporal data</li>
+    <li>Use cross-validation for model selection and hyperparameter tuning</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 5; Modules 11–13 (evaluation metrics used within CV)</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Motivation</span>
+  <h2>Training Error vs Test Error</h2>
+  <div class="box formula">
+    <strong>Optimism of training error</strong>
+    $$\mathrm{Err}_{\mathrm{train}} = \frac{1}{n}\sum_{i=1}^n L(y_i, \hat{f}(x_i)) \leq \mathrm{Err}_{\mathrm{test}}$$
+    where $L$ is a loss function. Equality holds only if the model did not fit the training data (zero degrees of freedom).
+  </div>
+  <p>As model complexity increases:</p>
+  <ul>
+    <li>Training error decreases monotonically</li>
+    <li>Test error follows a U-shape: first decreases (bias reduction), then increases (variance increase)</li>
+    <li>The gap between training and test error is the <strong>optimism</strong></li>
+  </ul>
+  <div class="box note">
+    <strong>Why a held-out test set is not enough</strong>
+    If we repeatedly evaluate on the same test set and tune the model accordingly, the test set becomes "used up": it leaks into model selection decisions. Cross-validation provides a fresh estimate for each model/hyperparameter combination.
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">Validation Set</span>
+  <h2>Validation Set Approach</h2>
+  <div class="box def">
+    <strong>Validation Set Approach</strong>
+    Randomly split the $n$ observations into a training set (typically 70–80%) and a validation set (20–30%). Fit the model on the training set; evaluate it on the validation set.
+  </div>
+  <div class="two-col">
+    <div class="box note">
+      <strong>Advantages</strong>
+      <ul>
+        <li>Conceptually simple</li>
+        <li>Computationally cheap (one model fit)</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <strong>Disadvantages</strong>
+      <ul>
+        <li>Validation error is highly variable (depends on the random split)</li>
+        <li>Only a fraction of data is used for training; error estimate is pessimistically biased</li>
+        <li>Small datasets: both problems are severe</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula">
+    For regression: $\mathrm{Val\ MSE} = \dfrac{1}{|V|}\sum_{i \in V}(y_i - \hat{f}(x_i))^2$
+    where $V$ is the validation set index and $\hat{f}$ is fit on the training set only.
+  </div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">LOOCV</span>
+  <h2>Leave-One-Out Cross-Validation (LOOCV)</h2>
+  <div class="box def">
+    <strong>LOOCV Algorithm</strong>
+    For $i = 1, 2, \ldots, n$: train on all observations except $i$; predict $\hat{y}_{-i}$ for observation $i$. Estimate:
+    $$\mathrm{CV}_{(n)} = \frac{1}{n}\sum_{i=1}^n L(y_i, \hat{y}_{-i})$$
+  </div>
+  <div class="box note">
+    <strong>Shortcut for OLS regression:</strong> LOOCV-MSE can be computed from a single model fit using the hat matrix $H$:
+    $$\mathrm{CV}_{(n)} = \frac{1}{n}\sum_{i=1}^n \left(\frac{y_i - \hat{y}_i}{1 - h_{ii}}\right)^2$$
+    where $h_{ii}$ is the $i$-th diagonal of $H = X(X^\top X)^{-1}X^\top$. No refitting required.
+  </div>
+  <div class="two-col">
+    <div class="box ex">
+      <strong>Advantages</strong>
+      <ul>
+        <li>Low bias: trained on $n-1$ observations (almost the full data)</li>
+        <li>Deterministic: no random split</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <strong>Disadvantages</strong>
+      <ul>
+        <li>High variance: $n$ training sets are nearly identical (correlated estimates)</li>
+        <li>Computationally expensive: $n$ model fits (except for OLS shortcut)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">k-fold CV</span>
+  <h2>$k$-Fold Cross-Validation</h2>
+  <div class="box def">
+    <strong>$k$-Fold CV Algorithm</strong>
+    Randomly partition $n$ observations into $k$ approximately equal folds $F_1, F_2, \ldots, F_k$. For each $j = 1, \ldots, k$: train on all folds except $F_j$; evaluate on $F_j$. Estimate:
+    $$\mathrm{CV}_{(k)} = \frac{1}{k}\sum_{j=1}^k \mathrm{Err}_j$$
+    where $\mathrm{Err}_j$ is the error on fold $F_j$.
+  </div>
+  <div class="box note">
+    Common choices: $k = 5$ or $k = 10$. Note that LOOCV is $k$-fold CV with $k = n$.
+  </div>
+  <table>
+    <tr><th>Method</th><th>Bias</th><th>Variance</th><th>Computation</th></tr>
+    <tr><td>Validation set</td><td>High (pessimistic)</td><td>High</td><td>1 fit</td></tr>
+    <tr><td>LOOCV</td><td>Low</td><td>High</td><td>$n$ fits</td></tr>
+    <tr><td>5-fold CV</td><td>Moderate</td><td>Low</td><td>5 fits</td></tr>
+    <tr><td>10-fold CV</td><td>Low-moderate</td><td>Low</td><td>10 fits</td></tr>
+  </table>
+  <div class="box warn">$k = 10$ is the most common practical choice: good bias-variance balance at low computational cost.</div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">Bias-Variance in CV</span>
+  <h2>Bias-Variance Trade-off in Cross-Validation</h2>
+  <p>Cross-validation itself has bias and variance as an estimator of true test error:</p>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Bias (pessimistic)</strong>
+      Each training set in $k$-fold CV has only $(k-1)/k \cdot n$ observations, so the model is trained on less data than the final model will use. This induces upward bias in the error estimate (overestimates true test error). The bias decreases as $k$ increases.
+    </div>
+    <div class="box note">
+      <strong>Variance</strong>
+      With large $k$ (including LOOCV), the $k$ training sets overlap heavily. Their error estimates are highly correlated, so the average has high variance. Variance decreases as $k$ decreases.
+    </div>
+  </div>
+  <div class="box formula">
+    <strong>Empirical finding (Kohavi, 1995)</strong>
+    $k = 10$ provides the best bias-variance balance in most practical settings. $k = 5$ is acceptable for large datasets. LOOCV is preferred only when $n$ is very small (e.g., $n < 50$) and computation is feasible.
+  </div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Stratified CV</span>
+  <h2>Stratified $k$-Fold CV</h2>
+  <div class="box def">
+    <strong>Stratified $k$-Fold CV</strong>
+    When partitioning into folds, ensure each fold contains approximately the same proportion of each class as the full dataset. This is essential for classification with imbalanced classes.
+  </div>
+  <p><strong>Why stratification matters:</strong> with 90% class 0 and 10% class 1, random splitting may produce a fold with 0% positives: the model cannot be properly evaluated on it, and error estimates become unreliable.</p>
+  <div class="box note">
+    Standard $k$-fold CV is sufficient for regression and balanced classification. Always use stratified $k$-fold for binary or multiclass classification, especially when classes are imbalanced.
+  </div>
+  <h3>Repeated $k$-fold CV</h3>
+  <p>Repeat the $k$-fold CV process $r$ times with different random splits. Final estimate is the mean over all $r \times k$ folds. Reduces variance of the CV estimate at the cost of $r$ times more computation. Common choice: $r = 5$ or $r = 10$.</p>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Time-Series CV</span>
+  <h2>Time-Series Cross-Validation</h2>
+  <div class="box warn">
+    Standard $k$-fold CV randomly shuffles observations. For time-series data, this causes data leakage: future data is used to predict the past. This violates causality and produces overly optimistic estimates.
+  </div>
+  <div class="box def">
+    <strong>Walk-Forward Validation (Expanding Window)</strong>
+    For fold $j$: train on observations $1, \ldots, t_j$; evaluate on observations $t_j+1, \ldots, t_j+h$ (horizon $h$). Increase $t_j$ at each fold. The training set grows over time.
+  </div>
+  <div class="box note">
+    <strong>Sliding Window Variation</strong>
+    Fix the training window size $w$: train on $t_j - w + 1, \ldots, t_j$; evaluate on $t_j+1, \ldots, t_j+h$. Useful when older data is less relevant.
+  </div>
+  <table>
+    <tr><th>Method</th><th>Training data</th><th>Use when</th></tr>
+    <tr><td>Expanding window</td><td>Grows with each fold</td><td>All historical data is informative</td></tr>
+    <tr><td>Sliding window</td><td>Fixed size, shifts forward</td><td>Older data may not be relevant (concept drift)</td></tr>
+  </table>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">Model Selection</span>
+  <h2>Using CV for Model Selection and Tuning</h2>
+  <div class="box def">
+    <strong>CV for Model Selection</strong>
+    Compute $\mathrm{CV}_{(k)}$ for several competing models or hyperparameter values. Select the model with the lowest CV error. Refit on the full training data.
+  </div>
+  <div class="box warn">
+    <strong>The one-standard-error rule</strong>
+    To avoid overfitting to CV noise, choose the simplest model whose CV error is within one standard error of the minimum CV error. This favors parsimony.
+    $$\text{Select smallest model with } \mathrm{CV} \leq \mathrm{CV}^* + \mathrm{SE}(\mathrm{CV}^*)$$
+  </div>
+  <h3>Nested Cross-Validation</h3>
+  <p>When CV is used for both hyperparameter tuning and performance estimation, use two nested loops:</p>
+  <ul>
+    <li><strong>Outer loop:</strong> $k$-fold CV for unbiased performance estimation</li>
+    <li><strong>Inner loop:</strong> $k'$-fold CV on each outer training set for hyperparameter selection</li>
+  </ul>
+  <div class="box note">Without nesting, the same data is used to select the model and estimate its performance: this produces overly optimistic results.</div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Example</span>
+  <h2>Worked Example: 5-Fold CV</h2>
+  <p>$n = 10$ observations. Randomly assign each to one of 5 folds (2 each):</p>
+  <table>
+    <tr><th>Fold</th><th>Validation obs.</th><th>Val. MSE</th></tr>
+    <tr><td>1</td><td>1, 2</td><td>4.2</td></tr>
+    <tr><td>2</td><td>3, 4</td><td>5.8</td></tr>
+    <tr><td>3</td><td>5, 6</td><td>3.9</td></tr>
+    <tr><td>4</td><td>7, 8</td><td>6.1</td></tr>
+    <tr><td>5</td><td>9, 10</td><td>4.4</td></tr>
+  </table>
+  <div class="box formula">
+    $$\mathrm{CV}_{(5)} = \frac{4.2 + 5.8 + 3.9 + 6.1 + 4.4}{5} = \frac{24.4}{5} = 4.88$$
+  </div>
+  <p>Standard error of the CV estimate:</p>
+  <div class="box formula">
+    $$\mathrm{SE}(\mathrm{CV}) = \sqrt{\frac{\sum_{j=1}^5 (\mathrm{Err}_j - \mathrm{CV})^2}{5(5-1)}} = \sqrt{\frac{(4.2-4.88)^2 + \cdots + (4.4-4.88)^2}{20}}$$
+    $= \sqrt{\frac{0.4624 + 0.8464 + 0.9481 + 1.4884 + 0.2304}{20}} = \sqrt{\frac{3.9757}{20}} \approx 0.446$
+  </div>
+  <div class="box note">One-SE rule: accept any model with CV error $\leq 4.88 + 0.45 = 5.33$. This selects simpler models over complex ones with marginally lower CV error.</div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>A dataset has $n = 20$ observations with one continuous response. Two competing models:</p>
+  <ul>
+    <li>Model A (linear regression, $p=2$): 5-fold CV MSE $= 8.4$ with folds $(7.2, 9.0, 8.1, 9.8, 7.9)$</li>
+    <li>Model B (quadratic regression, $p=5$): 5-fold CV MSE $= 7.9$ with folds $(6.8, 9.5, 7.3, 9.6, 6.3)$</li>
+  </ul>
+  <ol>
+    <li>Compute the SE of each model's CV estimate.</li>
+    <li>Apply the one-SE rule to choose between Model A and Model B.</li>
+    <li>How many observations are in each fold's training set? What is the approximate bias this introduces?</li>
+    <li>Would LOOCV be preferable here? Justify your answer.</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex14')">Show Solution</button>
+  <div class="solution" id="sol-ex14">
+    <p><strong>1.</strong> Model A: mean $= 8.4$. Deviations: $(-1.2, 0.6, -0.3, 1.4, -0.5)$. SS $= 1.44+0.36+0.09+1.96+0.25 = 4.10$. SE $= \sqrt{4.10/20} = \sqrt{0.205} \approx 0.453$.<br>
+    Model B: mean $= 7.9$. Deviations: $(-1.1, 1.6, -0.6, 1.7, -1.6)$. SS $= 1.21+2.56+0.36+2.89+2.56 = 9.58$. SE $= \sqrt{9.58/20} = \sqrt{0.479} \approx 0.692$.</p>
+    <p><strong>2.</strong> Minimum CV error is Model B at 7.9. One-SE threshold $= 7.9 + 0.692 = 8.59$. Model A CV $= 8.4 \leq 8.59$. By the one-SE rule, choose the simpler Model A.</p>
+    <p><strong>3.</strong> 5-fold with $n=20$: each fold has 4 validation observations, training sets have 16 observations. Training on 80% of data slightly underestimates what the final model (trained on 100%) can achieve, introducing modest upward bias in the CV error estimate.</p>
+    <p><strong>4.</strong> With $n=20$, LOOCV is computationally feasible (20 fits). It would reduce bias (train on 19 observations each time) but increase variance due to high correlation among training sets. 5-fold CV is still preferred for its lower variance. LOOCV would be better if $n$ were much smaller, e.g., $n = 10$.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Conceptual</strong>
+    <ol type="a">
+      <li>A researcher trains 10 models with different hyperparameters, evaluates each on the same held-out test set, and reports the best test error. Why is this test error not a reliable estimate of generalization performance?</li>
+      <li>What does it mean for cross-validation to be "consistent"? What property of the data is required?</li>
+      <li>Can cross-validation detect overfitting? Explain how.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> Evaluating 20 models on the same held-out test set is multiple-comparisons overfitting: the best result capitalises on random variation in that set. A separate held-out test or nested CV is required for a reliable estimate.</p><p><strong>b.</strong> CV is consistent if the CV error estimate converges to the true test error as $n\to\infty$. This requires observations to be exchangeable (iid). For time series, the iid assumption fails: future observations depend on the past.</p><p><strong>c.</strong> Yes. Compare training error to CV error: if training error is much lower, the model is overfitting. CV simulates prediction on unseen data at each fold and reveals generalisation performance.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Calculation</strong>
+    <p>$n=6$ observations. LOOCV predictions $\hat{y}_{-i}$ and true values $y_i$:</p>
+    <table>
+      <tr><th>$i$</th><th>$y_i$</th><th>$\hat{y}_{-i}$</th></tr>
+      <tr><td>1</td><td>3.0</td><td>3.4</td></tr>
+      <tr><td>2</td><td>5.0</td><td>4.6</td></tr>
+      <tr><td>3</td><td>2.5</td><td>2.9</td></tr>
+      <tr><td>4</td><td>6.0</td><td>5.7</td></tr>
+      <tr><td>5</td><td>4.0</td><td>4.5</td></tr>
+      <tr><td>6</td><td>3.5</td><td>3.1</td></tr>
+    </table>
+    <ol type="a">
+      <li>Compute the LOOCV MSE and LOOCV MAE.</li>
+      <li>If the training MSE (model fitted on all 6 points) is 0.04, what does the ratio LOOCV MSE / training MSE tell us?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> Residuals $e_i=y_i-\hat y_{-i}$: $(-0.4,\ 0.4,\ -0.4,\ 0.3,\ -0.5,\ 0.4)$. LOOCV MSE$=(0.16+0.16+0.16+0.09+0.25+0.16)/6=0.98/6\approx0.163$. LOOCV MAE$=(0.4+0.4+0.4+0.3+0.5+0.4)/6=0.400$.</p><p><strong>b.</strong> Ratio$=0.163/0.04\approx4.1$. LOOCV MSE is about $4\times$ the training MSE, indicating substantial overfitting: the model fits training data tightly but generalises poorly.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Time series</strong>
+    <p>Weekly sales data, 52 weeks. You want to forecast 4 weeks ahead using a model with features from the previous 4 weeks.</p>
+    <ol type="a">
+      <li>Why is standard 5-fold CV inappropriate here?</li>
+      <li>Describe an expanding-window CV setup with 5 folds. Specify the training and validation periods for each fold (state the weeks used).</li>
+      <li>What is the minimum number of observations in the first training set?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> Standard 5-fold randomly shuffles all 52 weeks. A model could train on week 40 and validate on week 10: training on future data to predict the past, a causal violation. Error estimates would be unrealistically optimistic for forecasting.</p><p><strong>b.</strong> First usable observation: week 5 (requires lags from weeks 1 to 4). Fold 1: train weeks 5-32, validate 33-36. Fold 2: train weeks 5-36, validate 37-40. Fold 3: train weeks 5-40, validate 41-44. Fold 4: train weeks 5-44, validate 45-48. Fold 5: train weeks 5-48, validate 49-52.</p><p><strong>c.</strong> Minimum observations in first training set: 28 (weeks 5 to 32). The 4-week lag requirement means week 5 is the earliest usable observation.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 12</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m14-v1';
+let cs=1, ts=12, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

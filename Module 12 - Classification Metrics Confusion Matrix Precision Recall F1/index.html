@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 12 – Classification Metrics | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 12: Classification Metrics: Confusion Matrix, Precision, Recall, F1</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 12</span>
+  <h2>Classification Metrics: Confusion Matrix, Precision, Recall, F1</h2>
+  <p>Accuracy alone is a misleading summary of classifier performance, especially under class imbalance. This module develops a complete toolkit for evaluating classifiers.</p>
+  <div class="box def">
+    <strong>Why accuracy fails</strong>
+    If 99% of emails are legitimate, a classifier that always predicts "not spam" achieves 99% accuracy, but catches zero spam. We need metrics that separately track each type of error.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Construct and interpret a confusion matrix</li>
+    <li>Compute accuracy, precision, recall, specificity, and F1-score</li>
+    <li>Understand the precision-recall tradeoff</li>
+    <li>Apply macro and micro averaging for multi-class problems</li>
+    <li>Recognise the impact of class imbalance on metric choice</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 4.4; Module 08 (LDA) covered sensitivity/specificity in context</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Confusion Matrix</span>
+  <h2>The Confusion Matrix</h2>
+  <p>For binary classification (Positive = class 1, Negative = class 0):</p>
+  <table>
+    <tr><th></th><th>Predicted Positive</th><th>Predicted Negative</th></tr>
+    <tr><th>Actual Positive</th><td><strong>TP</strong> (True Positive)</td><td><strong>FN</strong> (False Negative)</td></tr>
+    <tr><th>Actual Negative</th><td><strong>FP</strong> (False Positive)</td><td><strong>TN</strong> (True Negative)</td></tr>
+  </table>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Error types</strong>
+      <ul>
+        <li><strong>FP (Type I error):</strong> predicted positive, actually negative (false alarm)</li>
+        <li><strong>FN (Type II error):</strong> predicted negative, actually positive (missed detection)</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Context matters</strong>
+      <ul>
+        <li>Medical test: FN (missed disease) is costlier than FP</li>
+        <li>Spam filter: FP (blocking a real email) may be costlier than FN</li>
+        <li>The cost structure determines which error to minimise</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula">
+    Total $= \mathrm{TP} + \mathrm{TN} + \mathrm{FP} + \mathrm{FN}$
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">Accuracy</span>
+  <h2>Accuracy and Its Limitations</h2>
+  <div class="box formula">
+    <strong>Accuracy</strong>
+    $$\mathrm{Accuracy} = \frac{\mathrm{TP} + \mathrm{TN}}{\mathrm{TP}+\mathrm{TN}+\mathrm{FP}+\mathrm{FN}}$$
+    Proportion of all predictions that are correct.
+  </div>
+  <div class="box warn">
+    <strong>Accuracy is misleading under class imbalance</strong>
+    <p>Disease prevalence = 2%. A model predicting "no disease" for everyone achieves 98% accuracy, but has TP = 0, sensitivity = 0%. It is clinically useless.</p>
+  </div>
+  <div class="box def">
+    <strong>Error rate</strong>
+    $$\text{Error rate} = 1 - \text{Accuracy} = \frac{\mathrm{FP}+\mathrm{FN}}{n}$$
+  </div>
+  <p>Accuracy is appropriate only when classes are balanced and all errors have equal cost. In most real applications, at least one of these conditions fails.</p>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">Sensitivity and Specificity</span>
+  <h2>Sensitivity (Recall) and Specificity</h2>
+  <div class="two-col">
+    <div class="box formula">
+      <strong>Sensitivity (Recall, TPR)</strong>
+      $$\mathrm{Sensitivity} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$$
+      Of all true positives, how many did we catch?
+    </div>
+    <div class="box formula">
+      <strong>Specificity (TNR)</strong>
+      $$\mathrm{Specificity} = \frac{\mathrm{TN}}{\mathrm{TN}+\mathrm{FP}}$$
+      Of all true negatives, how many did we correctly identify?
+    </div>
+  </div>
+  <div class="box formula">
+    <strong>False Positive Rate (FPR)</strong>
+    $$\mathrm{FPR} = 1 - \mathrm{Specificity} = \frac{\mathrm{FP}}{\mathrm{FP}+\mathrm{TN}}$$
+  </div>
+  <div class="box note">
+    Sensitivity and specificity are complementary: lowering the classification threshold increases sensitivity (catching more positives) but decreases specificity (more false alarms). The ROC curve (Module 13) traces this tradeoff.
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Precision</span>
+  <h2>Precision (Positive Predictive Value)</h2>
+  <div class="box formula">
+    <strong>Precision</strong>
+    $$\mathrm{Precision} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}$$
+    Of all instances predicted positive, how many are truly positive?
+  </div>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Precision vs Recall (Sensitivity)</strong>
+      <ul>
+        <li><strong>Recall:</strong> "Did we find all positives?" (completeness)</li>
+        <li><strong>Precision:</strong> "Are our positive predictions trustworthy?" (exactness)</li>
+        <li>Increasing one typically decreases the other</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Examples</strong>
+      <ul>
+        <li>Cancer screening: maximise recall (missing a cancer is dangerous)</li>
+        <li>Recommendation systems: maximise precision (irrelevant suggestions annoy users)</li>
+        <li>Information retrieval: balance both</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box warn">
+    <strong>Trivial high precision:</strong> predict positive for only one observation (the most confident one). Then precision $= 1$ but recall is near 0. Precision and recall must be reported together.
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">F1-Score</span>
+  <h2>F1-Score and $F_\beta$-Score</h2>
+  <div class="box formula">
+    <strong>F1-Score (Harmonic Mean of Precision and Recall)</strong>
+    $$F_1 = 2 \cdot \frac{\mathrm{Precision} \times \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}} = \frac{2\,\mathrm{TP}}{2\,\mathrm{TP}+\mathrm{FP}+\mathrm{FN}}$$
+  </div>
+  <div class="box formula">
+    <strong>General $F_\beta$-Score</strong>
+    $$F_\beta = (1+\beta^2)\cdot\frac{\mathrm{Precision}\times\mathrm{Recall}}{\beta^2\cdot\mathrm{Precision}+\mathrm{Recall}}$$
+    $\beta > 1$: recall weighted more; $\beta < 1$: precision weighted more.
+  </div>
+  <div class="box note">
+    <strong>Why harmonic mean?</strong> The harmonic mean is dominated by the smaller of the two values. If precision $= 1$ and recall $= 0.01$, arithmetic mean $= 0.505$ (misleadingly high), but $F_1 \approx 0.02$ (correctly low). $F_1$ forces both to be high simultaneously.
+  </div>
+  <p>$F_1 \in [0, 1]$; $F_1 = 1$ requires both perfect precision and perfect recall.</p>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Metrics Summary</span>
+  <h2>All Binary Metrics at a Glance</h2>
+  <table>
+    <tr><th>Metric</th><th>Formula</th><th>Answers</th></tr>
+    <tr><td>Accuracy</td><td>$(TP+TN)/n$</td><td>Overall correct rate</td></tr>
+    <tr><td>Sensitivity (Recall, TPR)</td><td>$TP/(TP+FN)$</td><td>Did we catch the positives?</td></tr>
+    <tr><td>Specificity (TNR)</td><td>$TN/(TN+FP)$</td><td>Did we correctly reject negatives?</td></tr>
+    <tr><td>Precision (PPV)</td><td>$TP/(TP+FP)$</td><td>Are positive predictions trustworthy?</td></tr>
+    <tr><td>FPR</td><td>$FP/(FP+TN)$</td><td>False alarm rate</td></tr>
+    <tr><td>$F_1$</td><td>$2TP/(2TP+FP+FN)$</td><td>Balanced precision-recall</td></tr>
+    <tr><td>$F_\beta$</td><td>$(1+\beta^2)PR/(\beta^2 P+R)$</td><td>Weighted precision-recall</td></tr>
+  </table>
+  <div class="box def">
+    <strong>Which to report?</strong> Always report at minimum: confusion matrix, sensitivity, specificity, and $F_1$. Add precision if positive predictions have costs. Accuracy can be included but should not be the primary metric under class imbalance.
+  </div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Multi-class</span>
+  <h2>Multi-Class Metrics: Macro and Micro Averaging</h2>
+  <p>For $K > 2$ classes, compute per-class metrics then aggregate:</p>
+  <div class="box formula">
+    <strong>Macro-average</strong>
+    $$\text{Macro-}F_1 = \frac{1}{K}\sum_{k=1}^K F_{1,k}$$
+    Treats all classes equally regardless of size.
+  </div>
+  <div class="box formula">
+    <strong>Micro-average</strong>
+    $$\text{Micro-}F_1 = \frac{2\sum_k TP_k}{2\sum_k TP_k + \sum_k FP_k + \sum_k FN_k}$$
+    Aggregates counts across classes; dominated by the most frequent class.
+  </div>
+  <table>
+    <tr><th></th><th>Macro</th><th>Micro</th><th>Weighted</th></tr>
+    <tr><td>Treats rare classes</td><td>Equally</td><td>By count</td><td>By support</td></tr>
+    <tr><td>Use when</td><td>All classes matter equally</td><td>Large classes matter more</td><td>Report for overall performance</td></tr>
+  </table>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">Class Imbalance</span>
+  <h2>Class Imbalance and Strategies</h2>
+  <div class="box warn">
+    <strong>Class imbalance</strong> occurs when one class is much rarer than others (e.g., fraud: 0.1%, medical events: 2%). Standard accuracy becomes uninformative.
+  </div>
+  <h3>Strategies</h3>
+  <ul>
+    <li><strong>Metric choice:</strong> use $F_1$, precision, recall, or AUC (Module 13) instead of accuracy</li>
+    <li><strong>Threshold adjustment:</strong> lower the positive class threshold to increase sensitivity at the cost of precision</li>
+    <li><strong>Resampling:</strong>
+      <ul>
+        <li>Oversampling minority class (SMOTE: Synthetic Minority Over-sampling Technique)</li>
+        <li>Undersampling majority class (random or informed)</li>
+      </ul>
+    </li>
+    <li><strong>Cost-sensitive learning:</strong> assign higher misclassification cost to minority class</li>
+    <li><strong>Ensemble methods:</strong> balanced random forests, boosting with class weights</li>
+  </ul>
+  <div class="box note">The <strong>Matthews Correlation Coefficient (MCC)</strong> is a single balanced metric robust to imbalance:
+    $$\mathrm{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}} \in [-1,1]$$
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Example</span>
+  <h2>Worked Example: Email Spam Classifier</h2>
+  <p>A classifier is tested on 1000 emails: 100 spam (positive), 900 legitimate (negative).</p>
+  <table>
+    <tr><th></th><th>Predicted Spam</th><th>Predicted Legit</th></tr>
+    <tr><th>Actual Spam</th><td>TP = 80</td><td>FN = 20</td></tr>
+    <tr><th>Actual Legit</th><td>FP = 50</td><td>TN = 850</td></tr>
+  </table>
+  <div class="box formula">
+    $$\text{Accuracy} = \frac{80+850}{1000} = 0.930$$
+    $$\text{Sensitivity} = \frac{80}{80+20} = 0.800 \qquad \text{Specificity} = \frac{850}{850+50} = 0.944$$
+    $$\text{Precision} = \frac{80}{80+50} = 0.615 \qquad F_1 = \frac{2(0.615)(0.800)}{0.615+0.800} = 0.696$$
+  </div>
+  <div class="box note">Despite 93% accuracy, precision is only 61.5%: nearly 4 in 10 emails flagged as spam are actually legitimate. Whether this is acceptable depends on the cost of blocking a genuine email vs missing a spam message.</div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>A disease screening test on 500 patients (50 have the disease). Results:</p>
+  <table>
+    <tr><th></th><th>Test Positive</th><th>Test Negative</th></tr>
+    <tr><th>Disease</th><td>TP = 42</td><td>FN = 8</td></tr>
+    <tr><th>No Disease</th><td>FP = 30</td><td>TN = 420</td></tr>
+  </table>
+  <ol>
+    <li>Compute accuracy, sensitivity, specificity, precision, and $F_1$.</li>
+    <li>Which error (FP or FN) is more costly in this context? What does that imply about which metric to prioritise?</li>
+    <li>If the threshold is lowered so that TP increases to 48 but FP increases to 60, recompute sensitivity, specificity, and $F_1$. Did the change help?</li>
+    <li>Compute the MCC for the original confusion matrix.</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex12')">Show Solution</button>
+  <div class="solution" id="sol-ex12">
+    <p><strong>1.</strong> Accuracy $= (42+420)/500 = 0.924$. Sensitivity $= 42/50 = 0.840$. Specificity $= 420/450 = 0.933$. Precision $= 42/72 = 0.583$. $F_1 = 2(0.583)(0.840)/(0.583+0.840) = 0.980/1.423 = 0.689$.</p>
+    <p><strong>2.</strong> FN (missed disease) is far more costly: failing to diagnose a sick patient risks untreated illness. Prioritise <strong>sensitivity</strong>. Precision matters less here; some false alarms are acceptable to avoid missing true cases.</p>
+    <p><strong>3.</strong> New sensitivity $= 48/50 = 0.960$; specificity $= (450{-}60)/450 = 390/450 = 0.867$; precision $= 48/(48+60) = 0.444$; $F_1 = 2(0.444)(0.960)/(0.444+0.960) = 0.853/1.404 = 0.607$. Sensitivity improved greatly (0.84 to 0.96) but precision fell (0.583 to 0.444) and $F_1$ fell. For this application, the higher sensitivity is worth the tradeoff.</p>
+    <p><strong>4.</strong> MCC $= (42 \times 420 - 30 \times 8)/\sqrt{72 \times 50 \times 450 \times 428} = (17640-240)/\sqrt{694{,}080{,}000} = 17400/26345 \approx 0.660$.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Computing all metrics</strong>
+    <p>Credit default classifier, $n=200$: TP=18, FP=12, FN=7, TN=163.</p>
+    <ol type="a">
+      <li>Compute accuracy, sensitivity, specificity, precision, $F_1$, and FPR.</li>
+      <li>Is accuracy an appropriate primary metric? Why or why not?</li>
+      <li>Compute MCC.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> Accuracy$=(18+163)/200=90.5\%$. Sensitivity$=18/25=72.0\%$. Specificity$=163/175\approx93.1\%$. Precision$=18/30=60.0\%$. $F_1=2\times0.60\times0.72/(0.60+0.72)\approx0.655$. FPR$=12/175\approx6.9\%$.</p><p><strong>b.</strong> Accuracy is misleading: 175 of 200 are non-defaults, so predicting all non-default gives 87.5\% baseline accuracy. A 72\% sensitivity means 28\% of actual defaults are missed. Sensitivity and precision are more informative primary metrics.</p><p><strong>c.</strong> MCC$=(18\times163-12\times7)/\sqrt{30\times25\times175\times170}=2850/4724\approx0.603$.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Precision-Recall tradeoff</strong>
+    <p>Two models on the same test set (positive class prevalence = 10%):</p>
+    <table>
+      <tr><th>Model</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th></tr>
+      <tr><td>A</td><td>90</td><td>10</td><td>10</td><td>890</td></tr>
+      <tr><td>B</td><td>80</td><td>2</td><td>20</td><td>898</td></tr>
+    </table>
+    <ol type="a">
+      <li>Compute precision, recall, and $F_1$ for both.</li>
+      <li>Which model would you choose for: (i) cancer screening; (ii) fraud alerts sent to customers?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> Model A: precision$=90/100=0.900$, recall$=90/100=0.900$, $F_1=0.900$. Model B: precision$=80/82\approx0.976$, recall$=80/100=0.800$, $F_1=2\times0.976\times0.800/(0.976+0.800)\approx0.879$.</p><p><strong>b.</strong> (i) Cancer screening (minimise FN, maximise recall): Model A (recall 90\% vs 80\%). (ii) Fraud alerts (minimise false alarms, maximise precision): Model B (precision 97.6\% vs 90\%).</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: True or False</strong>
+    <ol type="a">
+      <li>Macro-averaged $F_1$ is always greater than or equal to micro-averaged $F_1$.</li>
+      <li>Under perfect class balance (50/50), accuracy equals the micro-averaged $F_1$.</li>
+      <li>A classifier with sensitivity $= 1$ necessarily has specificity $= 0$.</li>
+      <li>$F_1$ is always between precision and recall.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a. False.</strong> Macro and micro $F_1$ have no consistent ordering. Macro weights each class equally; micro weights by class size, so it is dominated by the majority class.</p><p><strong>b. True.</strong> For binary classification, micro $F_1=(\text{TP}+\text{TN})/n=$ accuracy regardless of class balance.</p><p><strong>c. False.</strong> A perfect classifier achieves sensitivity$=1$ and specificity$=1$ simultaneously. Sensitivity$=1$ (no FN) does not force specificity$=0$.</p><p><strong>d. True.</strong> $F_1$ is the harmonic mean of precision and recall, always between $\min(P,R)$ and $\max(P,R)$.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 12</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m12-v1';
+let cs=1, ts=12, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 10 – K-Nearest Neighbours | AST402</title>
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px;}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b;}
+#wrap{max-width:1100px;margin:0 auto;padding:0.6rem 1rem 2rem;}
+header{background:#1e3a5f;color:#fff;padding:0.7rem 1.2rem;border-radius:10px;margin-bottom:0.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700;}header .meta{font-size:calc(var(--base)*0.78);opacity:0.82;}
+.zoom-bar{display:flex;gap:0.35rem;align-items:center;}
+.zoom-bar button{background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.35);border-radius:6px;padding:0.18rem 0.55rem;font-size:calc(var(--base)*0.82);cursor:pointer;}
+.zoom-bar button:hover{background:rgba(255,255,255,0.32);}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto;}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem;}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width 0.3s;}
+.slide{display:none;}.slide.active{display:block;}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:0.7rem;border-bottom:2px solid #2563eb;padding-bottom:0.3rem;}
+.slide h3{font-size:calc(var(--base)*1.05);color:#1e3a5f;margin:0.9rem 0 0.4rem;}
+.slide p,.slide li{line-height:1.65;margin-bottom:0.45rem;}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:0.5rem;}
+.slide ul li,.slide ol li{margin-bottom:0.3rem;}
+.tag{display:inline-block;font-size:calc(var(--base)*0.72);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.13rem 0.55rem;border-radius:4px;margin-bottom:0.6rem;}
+.tag.module{background:#dbeafe;color:#1e40af;}.tag.topic{background:#f0fdf4;color:#166534;}
+.tag.exercise{background:#fef9c3;color:#854d0e;}.tag.practice{background:#fce7f3;color:#9d174d;}
+.box{border-radius:8px;padding:0.75rem 1rem;margin:0.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc;}
+.box.def{border-color:#2563eb;background:#eff6ff;}.box.formula{border-color:#7c3aed;background:#f5f3ff;}
+.box.note{border-color:#d97706;background:#fffbeb;}.box.warn{border-color:#dc2626;background:#fff1f2;}
+.box.ex{border-color:#059669;background:#f0fdf4;}
+.box strong{display:block;margin-bottom:0.3rem;color:#1e293b;}
+.sol-btn{margin-top:0.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:0.38rem 0.9rem;font-size:calc(var(--base)*0.83);cursor:pointer;}
+.sol-btn:hover{background:#2563eb;}
+.solution{display:none;margin-top:0.6rem;border-top:1px dashed #cbd5e1;padding-top:0.6rem;}
+table{border-collapse:collapse;width:100%;margin:0.6rem 0;font-size:calc(var(--base)*0.9);}
+th,td{border:1px solid #cbd5e1;padding:0.35rem 0.6rem;text-align:left;}
+th{background:#f1f5f9;font-weight:700;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:600px){.two-col{grid-template-columns:1fr;}}
+.slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:0.7rem;border-top:1px solid #e2e8f0;}
+.slide-nav button{background:#1e3a5f;color:#fff;border:none;border-radius:8px;padding:0.45rem 1.1rem;font-size:calc(var(--base)*0.88);cursor:pointer;}
+.slide-nav button:disabled{background:#cbd5e1;cursor:default;}
+.slide-nav button:not(:disabled):hover{background:#2563eb;}
+#sct{font-size:calc(var(--base)*0.82);color:#64748b;}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 10: K-Nearest Neighbours</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button><button onclick="zoom(0)">A</button><button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 10</span>
+  <h2>K-Nearest Neighbours (KNN)</h2>
+  <p>KNN is the simplest non-parametric classifier. It makes no assumptions about the form of the decision boundary and requires no model fitting: classification is entirely based on the training data.</p>
+  <div class="box def">
+    <strong>KNN Classifier</strong>
+    To classify a new point $\mathbf{x}_0$: find the $K$ training observations closest to $\mathbf{x}_0$ (the neighbourhood $\mathcal{N}_0$), then assign $\mathbf{x}_0$ to the most common class among its $K$ neighbours:
+    $$P(Y = j \mid \mathbf{X} = \mathbf{x}_0) = \frac{1}{K}\sum_{i \in \mathcal{N}_0} \mathbf{1}(y_i = j)$$
+    Predict class $\hat y_0 = \arg\max_j P(Y = j \mid \mathbf{X} = \mathbf{x}_0)$.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Apply the KNN decision rule</li>
+    <li>Understand the effect of $K$ on bias, variance, and the decision boundary</li>
+    <li>Recognise the curse of dimensionality</li>
+    <li>Compare KNN with parametric classifiers</li>
+    <li>Apply KNN to regression problems</li>
+  </ul>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Algorithm</span>
+  <h2>The KNN Algorithm</h2>
+  <div class="box def">
+    <strong>KNN Classification Algorithm</strong>
+    <ol>
+      <li>Choose $K$ (the number of neighbours)</li>
+      <li>For a new point $\mathbf{x}_0$, compute the distance to every training point</li>
+      <li>Identify $\mathcal{N}_0$: the $K$ training points closest to $\mathbf{x}_0$</li>
+      <li>Estimate $P(Y = j \mid \mathbf{x}_0) = \frac{|\{i \in \mathcal{N}_0 : y_i = j\}|}{K}$ for each class $j$</li>
+      <li>Assign $\mathbf{x}_0$ to the class with the highest estimated probability</li>
+    </ol>
+  </div>
+  <div class="box formula">
+    <strong>Most common distance metric: Euclidean distance</strong>
+    $$d(\mathbf{x}, \mathbf{x}') = \|\mathbf{x} - \mathbf{x}'\|_2 = \sqrt{\sum_{j=1}^p (x_j - x_j')^2}$$
+    Other metrics: Manhattan, Minkowski, Mahalanobis (accounts for feature correlations).
+  </div>
+  <div class="box warn"><strong>Scale matters!</strong> Features with large ranges dominate Euclidean distance. Always standardise features (subtract mean, divide by SD) before applying KNN.</div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">Effect of K</span>
+  <h2>The Effect of K: Bias-Variance Tradeoff</h2>
+  <div class="two-col">
+    <div class="box warn">
+      <strong>Small $K$ (e.g., $K=1$):</strong>
+      <ul>
+        <li>Very flexible decision boundary</li>
+        <li>Low bias, high variance</li>
+        <li>Overfits: sensitive to noise</li>
+        <li>$K=1$: training error = 0 (always predicts its own label)</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Large $K$ (e.g., $K=n$):</strong>
+      <ul>
+        <li>Very smooth decision boundary</li>
+        <li>High bias, low variance</li>
+        <li>Underfits: boundary approaches the majority class prediction</li>
+        <li>$K=n$: always predicts the most common class</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box def">
+    <strong>Optimal $K$:</strong> Somewhere in between. As $K$ increases, boundary becomes smoother and less wiggly. Choose $K$ by cross-validation: minimise validation error over a grid of $K$ values.
+  </div>
+  <div class="box note">The test error typically forms a U-shape as a function of $1/K$ (flexibility). The minimum gives the optimal $K$.</div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">Worked Example</span>
+  <h2>KNN Example</h2>
+  <p>Training data ($p = 2$ features, $K=3$, Euclidean distance):</p>
+  <table>
+    <tr><th>Point</th><th>$X_1$</th><th>$X_2$</th><th>Class</th></tr>
+    <tr><td>A</td><td>1</td><td>2</td><td>Red</td></tr>
+    <tr><td>B</td><td>2</td><td>1</td><td>Red</td></tr>
+    <tr><td>C</td><td>3</td><td>3</td><td>Blue</td></tr>
+    <tr><td>D</td><td>5</td><td>2</td><td>Blue</td></tr>
+    <tr><td>E</td><td>4</td><td>4</td><td>Blue</td></tr>
+  </table>
+  <p>Classify new point $\mathbf{x}_0 = (3, 2)$.</p>
+  <div class="box formula">
+    Distances: $d(A) = \sqrt{4+0} = 2$, $d(B) = \sqrt{1+1} = 1.41$, $d(C) = \sqrt{0+1} = 1$, $d(D) = \sqrt{4+0} = 2$, $d(E) = \sqrt{1+4} = 2.24$
+
+    3 nearest: C (1.0), B (1.41), A or D (both 2.0). Take A as tie-breaker.
+
+    Neighbours: C (Blue), B (Red), A (Red). Majority: Red.
+
+    $\hat y_0 = $ Red.
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">KNN Regression</span>
+  <h2>KNN for Regression</h2>
+  <p>KNN can also predict quantitative responses by averaging the $K$ nearest neighbours' values.</p>
+  <div class="box formula">
+    <strong>KNN Regression:</strong>
+    $$\hat f(\mathbf{x}_0) = \frac{1}{K} \sum_{i \in \mathcal{N}_0} y_i$$
+  </div>
+  <div class="two-col">
+    <div class="box note">
+      <strong>Advantages:</strong>
+      <ul>
+        <li>Flexible: can capture non-linear $f$</li>
+        <li>No assumptions about functional form</li>
+        <li>Simple to understand and implement</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <strong>Disadvantages:</strong>
+      <ul>
+        <li>Slow at prediction time ($O(n)$ per query)</li>
+        <li>No interpretable model equation</li>
+        <li>Struggles in high dimensions (curse of dimensionality)</li>
+        <li>Sensitive to irrelevant features</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box note">KNN regression with $K=1$ interpolates the training data exactly. As $K$ increases, the fit smooths toward the overall mean.</div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">Curse of Dimensionality</span>
+  <h2>The Curse of Dimensionality</h2>
+  <div class="box warn">
+    <strong>Problem:</strong> As the number of features $p$ increases, the $K$ nearest neighbours become increasingly far away from $\mathbf{x}_0$. The neighbourhood is no longer local, and the estimate $\hat f(\mathbf{x}_0)$ is based on points that are not actually near $\mathbf{x}_0$.
+  </div>
+  <div class="box formula">
+    <strong>Illustration:</strong> Suppose features are uniform on $[0,1]^p$. To capture a fraction $r$ of the training data, you need a hypercube of side length $r^{1/p}$.
+    <ul>
+      <li>$p=1$, $r=0.1$: side $= 0.1$ (very local)</li>
+      <li>$p=2$, $r=0.1$: side $= 0.316$</li>
+      <li>$p=10$, $r=0.1$: side $= 0.794$ (80% of each axis!)</li>
+    </ul>
+    In high dimensions, "nearest" neighbours are not close at all.
+  </div>
+  <div class="box note">This is why KNN works well with $p \leq 4$ predictors but degrades rapidly for larger $p$. In high dimensions, parametric models (which make strong assumptions to reduce variance) typically outperform KNN.</div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Comparison</span>
+  <h2>KNN vs Parametric Classifiers</h2>
+  <table>
+    <tr><th>Property</th><th>KNN</th><th>LDA/Logistic</th></tr>
+    <tr><td>Model fitting</td><td>None (lazy learner)</td><td>Explicit (MLE, moments)</td></tr>
+    <tr><td>Decision boundary</td><td>Any shape</td><td>Linear</td></tr>
+    <tr><td>Interpretability</td><td>Low</td><td>High (coefficients)</td></tr>
+    <tr><td>High-dimensional data</td><td>Poor</td><td>Better</td></tr>
+    <tr><td>Training time</td><td>$O(1)$ (just store data)</td><td>$O(np^2)$ or similar</td></tr>
+    <tr><td>Prediction time</td><td>$O(np)$ per query</td><td>$O(p)$ per query</td></tr>
+    <tr><td>Tuning parameter</td><td>$K$</td><td>None (or regularisation)</td></tr>
+  </table>
+  <div class="box note">KNN provides a useful non-parametric benchmark. If a parametric model cannot outperform KNN, it may be too restrictive for the problem at hand.</div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Choosing K</span>
+  <h2>Choosing K by Cross-Validation</h2>
+  <p>The key hyperparameter in KNN is $K$. Too small overfits; too large underfits.</p>
+  <div class="box def">
+    <strong>Procedure:</strong>
+    <ol>
+      <li>Choose a grid of $K$ values (e.g., $K = 1, 3, 5, 7, \ldots, 51$)</li>
+      <li>For each $K$, estimate test error by $k$-fold cross-validation</li>
+      <li>Select $K^*$ that minimises the CV error</li>
+      <li>Refit on the full training data with $K^*$</li>
+    </ol>
+  </div>
+  <div class="box note">It is conventional to use <em>odd</em> values of $K$ for binary classification to avoid ties. Also note: the $K$ in KNN is completely different from the $k$ in $k$-fold CV.</div>
+  <div class="box warn"><strong>Do not use training error to choose $K$:</strong> $K=1$ always gives zero training error but is the worst choice for generalisation. Always use held-out validation or cross-validation.</div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise: KNN Classification</h2>
+  <p>Six training points ($p = 2$):</p>
+  <table>
+    <tr><th>$i$</th><th>$X_1$</th><th>$X_2$</th><th>$Y$</th></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>A</td></tr>
+    <tr><td>2</td><td>1</td><td>1</td><td>A</td></tr>
+    <tr><td>3</td><td>1</td><td>0</td><td>A</td></tr>
+    <tr><td>4</td><td>3</td><td>3</td><td>B</td></tr>
+    <tr><td>5</td><td>4</td><td>2</td><td>B</td></tr>
+    <tr><td>6</td><td>3</td><td>2</td><td>B</td></tr>
+  </table>
+  <p>Classify $\mathbf{x}_0 = (2, 2)$ using $K = 1$, $K = 3$, and $K = 5$.</p>
+  <button class="sol-btn" onclick="togSol('sol-ex9')">Show Solution</button>
+  <div class="solution" id="sol-ex9">
+    <p>Distances from $(2,2)$: $d_1=\sqrt{8}\approx2.83$, $d_2=\sqrt{2}\approx1.41$, $d_3=\sqrt{5}\approx2.24$, $d_4=\sqrt{2}\approx1.41$, $d_5=\sqrt{4+0}=2$, $d_6=\sqrt{1+0}=1$</p>
+    <p>Sorted: $d_6=1$ (B), $d_2=1.41$ (A), $d_4=1.41$ (B), $d_5=2$ (B), $d_3=2.24$ (A), $d_1=2.83$ (A)</p>
+    <p><strong>$K=1$:</strong> Nearest is point 6 (B). Predict B.</p>
+    <p><strong>$K=3$:</strong> Nearest 3: pts 6 (B), 2 (A), 4 (B). 2B vs 1A. Predict B.</p>
+    <p><strong>$K=5$:</strong> Nearest 5: pts 6 (B), 2 (A), 4 (B), 5 (B), 3 (A). 3B vs 2A. Predict B.</p>
+    <p>All three give B here, though larger $K$ becomes less certain as the A neighbours get closer to equal.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: KNN Regression</strong>
+    <p>Training data: $(x_1,y_1)=(1,2)$, $(2,4)$, $(3,5)$, $(4,3)$, $(5,7)$.</p>
+    <ol type="a">
+      <li>Predict $\hat f(3.5)$ using $K=1$, $K=2$, $K=3$.</li>
+      <li>Which $K$ gives the smoothest estimate? Why?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> Distances from 3.5: $|3{-}3.5|=0.5$, $|4{-}3.5|=0.5$, $|2{-}3.5|=1.5$, $|5{-}3.5|=1.5$, $|1{-}3.5|=2.5$.</p><p>$K{=}1$: nearest point is 3 or 4 (tie; take 3, $y{=}5$) $\Rightarrow\hat f=5$. $K{=}2$: points 3,4 ($y{=}5,3$) $\Rightarrow\hat f=4$. $K{=}3$: points 3,4,2 ($y{=}5,3,4$) $\Rightarrow\hat f=4$.</p><p><strong>b.</strong> Larger $K$ smooths more; $K{=}3$ gives the smoothest estimate here.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Effect of K</strong>
+    <p>A KNN classifier gives training error 0% and test error 35% with $K=1$. With $K=15$ it gives training error 12% and test error 18%.</p>
+    <ol type="a">
+      <li>Which value of $K$ shows overfitting? Explain.</li>
+      <li>Which value is likely better for a new dataset? Why?</li>
+      <li>What would you expect if $K = n$ (all training points)?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> $K{=}1$: zero training error is a hallmark of overfitting; test error 35% is very high.</p><p><strong>b.</strong> $K{=}15$: lower test error (18%) indicates better generalisation; preferred.</p><p><strong>c.</strong> $K{=}n$: the model predicts the same value (mean/majority class) for every point, equivalent to the null model. High bias, zero variance.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Curse of Dimensionality</strong>
+    <p>Features are uniform on $[0,1]^p$. We want the nearest 10% of training data to be "close" to a query point (within a hypercube of side $l$).</p>
+    <ol type="a">
+      <li>Find the required side length $l$ for $p = 1$, $p = 5$, and $p = 20$.</li>
+      <li>Interpret what this means for KNN in high dimensions.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> $l=0.1^{1/p}$. $p{=}1$: $l=0.10$. $p{=}5$: $l=0.1^{0.2}\approx0.631$. $p{=}20$: $l=0.1^{0.05}\approx0.891$.</p><p><strong>b.</strong> In 20 dimensions we must span 89\% of each axis to capture only 10\% of the data. Neighbours are no longer "near": the curse of dimensionality makes KNN unreliable in high dimensions unless $n$ is very large.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 4: True or False</strong>
+    <ol type="a">
+      <li>KNN with $K=1$ always achieves zero training error.</li>
+      <li>Standardising features before KNN is optional.</li>
+      <li>Larger $K$ always leads to better test performance.</li>
+      <li>KNN can only be used for classification, not regression.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p4')">Show Solution</button>
+  <div class="solution" id="sol-p4">
+    <p><strong>a. True</strong>: with $K{=}1$, each training point is its own nearest neighbour.</p><p><strong>b. False</strong>: KNN is distance-based; unscaled features dominate, so standardisation is essential.</p><p><strong>c. False</strong>: larger $K$ increases bias; the optimal $K$ is selected by cross-validation.</p><p><strong>d. False</strong>: KNN regression (averaging neighbour responses) is widely used.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag module">Summary</span>
+  <h2>Module 10 Summary and Part C Close</h2>
+  <div class="two-col">
+    <div class="box def">
+      <strong>KNN Key Formulas</strong>
+      <ul>
+        <li>Classification: $\hat y_0 = \arg\max_j \frac{1}{K}\sum_{i\in\mathcal{N}_0}\mathbf{1}(y_i=j)$</li>
+        <li>Regression: $\hat f(\mathbf{x}_0) = \frac{1}{K}\sum_{i\in\mathcal{N}_0} y_i$</li>
+        <li>Distance: $d = \|\mathbf{x}-\mathbf{x}'\|_2$</li>
+        <li>Cube side for $r$ fraction: $l = r^{1/p}$</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Part C Summary: Classification</strong>
+      <ul>
+        <li>M08 LDA: Bayes + Gaussian, shared $\boldsymbol\Sigma$, linear boundary</li>
+        <li>M09 QDA: class-specific $\boldsymbol\Sigma_k$, quadratic boundary</li>
+        <li>M09 Naive Bayes: conditional independence, any features</li>
+        <li>M10 KNN: non-parametric, no assumptions, local averaging</li>
+        <li>Always use cross-validation to choose between methods</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula"><strong>Next: Part D (Module 11)</strong> covers performance measures for regression and classification in depth: MSE, RMSE, MAE, ROC/AUC, precision-recall, and F1 score.</div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 11</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div></div>
+<script>
+const SK='aiml-m10-v1';
+let cs=1,ts=11,bsz=18;
+function showSlide(n){try{var p=document.querySelector('.slide[data-slide="'+cs+'"]');if(p)p.classList.remove('active');cs=Math.max(1,Math.min(ts,n));var nx=document.querySelector('.slide[data-slide="'+cs+'"]');if(nx)nx.classList.add('active');var s=document.getElementById('sct');if(s)s.textContent='Slide '+cs+' of '+ts;var pb=document.getElementById('pbtn'),nb=document.getElementById('nbtn');if(pb)pb.disabled=(cs===1);if(nb)nb.disabled=(cs===ts);var pf=document.getElementById('pfill');if(pf)pf.style.width=(cs/ts*100)+'%';try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}}catch(err){console.error(err);}}
+function chg(d){showSlide(cs+d);}
+function zoom(d){bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));document.documentElement.style.setProperty('--base',bsz+'px');try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}}
+function togSol(id){var s=document.getElementById(id);if(s)s.style.display=s.style.display==='block'?'none':'block';try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}});
+(function(){try{var sv=JSON.parse(localStorage.getItem(SK));if(sv&&sv.cs>1)showSlide(sv.cs);var sz=localStorage.getItem(SK+'_sz');if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}}catch(e){}})();
+</script>
+</body></html>

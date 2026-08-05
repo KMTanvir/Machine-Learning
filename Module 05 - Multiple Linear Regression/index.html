@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 05 – Multiple Linear Regression | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; }
+.slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 05: Multiple Linear Regression</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<!-- SLIDE 1 -->
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 05</span>
+  <h2>Multiple Linear Regression</h2>
+  <p>Simple regression uses one predictor. In practice, many variables influence the response simultaneously. <strong>Multiple linear regression</strong> extends the model to $p$ predictors.</p>
+  <div class="box def">
+    <strong>Multiple Linear Regression Model</strong>
+    $$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p + \varepsilon$$
+    Each $\beta_j$ is the effect of $X_j$ on $Y$, <em>holding all other predictors fixed</em>.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Write the multiple regression model in matrix form</li>
+    <li>Interpret coefficients correctly in the presence of other predictors</li>
+    <li>Understand multicollinearity and its consequences</li>
+    <li>Perform and interpret the overall $F$-test</li>
+    <li>Approach variable selection</li>
+  </ul>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" data-slide="2">
+  <span class="tag topic">Motivation</span>
+  <h2>Why Multiple Predictors?</h2>
+  <p>Consider the Advertising data with three media: TV, Radio, Newspaper.</p>
+  <div class="box warn">
+    <strong>Problem with separate simple regressions:</strong>
+    Running three separate regressions ignores correlations among predictors and gives misleading estimates. For example, Newspaper may appear significant because it is correlated with Radio, which is the truly effective medium.
+  </div>
+  <div class="box def">
+    <strong>Multiple regression solution:</strong>
+    Fit all predictors together. Each coefficient measures the effect of that predictor, controlling for the others:
+    $$\widehat{\text{Sales}} = \beta_0 + \beta_1\,\text{TV} + \beta_2\,\text{Radio} + \beta_3\,\text{Newspaper}$$
+  </div>
+  <div class="box note">In multiple regression, the coefficient on Newspaper becomes near zero and insignificant once Radio is included, revealing that Newspaper has little independent effect.</div>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" data-slide="3">
+  <span class="tag topic">Matrix Form</span>
+  <h2>Matrix Formulation</h2>
+  <p>With $n$ observations and $p$ predictors, stack the data into matrices:</p>
+  <div class="box formula">
+    $$\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}$$
+    where:
+    $$\mathbf{y} = \begin{pmatrix}y_1\\\vdots\\y_n\end{pmatrix},\quad
+    \mathbf{X} = \begin{pmatrix}1 & x_{11} & \cdots & x_{1p}\\\vdots & \vdots & & \vdots\\1 & x_{n1} & \cdots & x_{np}\end{pmatrix},\quad
+    \boldsymbol{\beta} = \begin{pmatrix}\beta_0\\\beta_1\\\vdots\\\beta_p\end{pmatrix}$$
+    $\mathbf{X}$ is $n \times (p+1)$; the first column of ones handles the intercept.
+  </div>
+  <div class="box note">The matrix form is compact and enables powerful linear algebra. All theoretical results in regression derive from this formulation.</div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide" data-slide="4">
+  <span class="tag topic">Estimation</span>
+  <h2>OLS Estimation in Matrix Form</h2>
+  <p>Minimise $\mathrm{RSS} = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 = (\mathbf{y}-\mathbf{X}\boldsymbol{\beta})^\top(\mathbf{y}-\mathbf{X}\boldsymbol{\beta})$.</p>
+  <div class="box formula">
+    <strong>OLS estimator (normal equations):</strong>
+    $$\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$$
+    provided $\mathbf{X}^\top\mathbf{X}$ is invertible (i.e., no perfect multicollinearity).
+  </div>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Fitted values:</strong>
+      $$\hat{\mathbf{y}} = \mathbf{X}\hat{\boldsymbol{\beta}} = \mathbf{H}\mathbf{y}$$
+      where $\mathbf{H} = \mathbf{X}(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top$ is the hat matrix.
+    </div>
+    <div class="box def">
+      <strong>Residuals:</strong>
+      $$\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}} = (\mathbf{I}-\mathbf{H})\mathbf{y}$$
+    </div>
+  </div>
+  <div class="box note">The hat matrix $\mathbf{H}$ projects $\mathbf{y}$ onto the column space of $\mathbf{X}$. The diagonal entries $h_{ii}$ are the leverage values.</div>
+</div>
+
+<!-- SLIDE 5 -->
+<div class="slide" data-slide="5">
+  <span class="tag topic">Interpretation</span>
+  <h2>Interpreting Coefficients</h2>
+  <div class="box def">
+    <strong>Coefficient $\hat\beta_j$:</strong> The estimated average change in $Y$ associated with a one-unit increase in $X_j$, <em>holding all other predictors constant</em>.
+  </div>
+  <h3>Advertising Example</h3>
+  <table>
+    <tr><th>Predictor</th><th>$\hat\beta$</th><th>SE</th><th>$t$</th><th>$p$-value</th></tr>
+    <tr><td>Intercept</td><td>2.939</td><td>0.312</td><td>9.42</td><td>&lt;0.001</td></tr>
+    <tr><td>TV</td><td>0.046</td><td>0.001</td><td>32.81</td><td>&lt;0.001</td></tr>
+    <tr><td>Radio</td><td>0.189</td><td>0.009</td><td>21.89</td><td>&lt;0.001</td></tr>
+    <tr><td>Newspaper</td><td>-0.001</td><td>0.006</td><td>-0.18</td><td>0.860</td></tr>
+  </table>
+  <div class="box warn"><strong>Newspaper:</strong> Significant in simple regression (due to correlation with Radio), but insignificant once Radio is included. Multiple regression reveals the true picture.</div>
+  <div class="box note">Coefficient signs and magnitudes can change substantially when other predictors are added. Always fit all predictors together rather than separately.</div>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide" data-slide="6">
+  <span class="tag topic">Inference</span>
+  <h2>The Overall F-Test</h2>
+  <p>Are <em>any</em> of the predictors useful?</p>
+  <div class="box def">
+    <strong>Hypotheses:</strong>
+    $H_0: \beta_1 = \beta_2 = \cdots = \beta_p = 0$ vs $H_a:$ at least one $\beta_j \neq 0$
+  </div>
+  <div class="box formula">
+    <strong>F-statistic:</strong>
+    $$F = \frac{(\mathrm{TSS} - \mathrm{RSS})/p}{\mathrm{RSS}/(n-p-1)} = \frac{\mathrm{ESS}/p}{\mathrm{RSS}/(n-p-1)}$$
+    Under $H_0$: $F \sim F_{p,\,n-p-1}$
+  </div>
+  <ul>
+    <li>A large $F$ (and small $p$-value) gives evidence that at least one predictor is useful</li>
+    <li>If $n$ is large, even small $F$ can have low $p$-value: use judgment</li>
+    <li>Individual $t$-tests check each $\beta_j$ given the others are in the model</li>
+  </ul>
+  <div class="box warn"><strong>Do not skip the $F$-test:</strong> With many predictors, individual $t$-tests can be significant by chance alone (multiple testing problem). The $F$-test provides an overall guard.</div>
+</div>
+
+<!-- SLIDE 7 -->
+<div class="slide" data-slide="7">
+  <span class="tag topic">Collinearity</span>
+  <h2>Multicollinearity</h2>
+  <div class="box def">
+    <strong>Multicollinearity:</strong> Two or more predictors are highly correlated with each other. This makes it difficult to estimate individual coefficients precisely.
+  </div>
+  <h3>Consequences</h3>
+  <ul>
+    <li>Standard errors of affected coefficients become very large</li>
+    <li>$t$-statistics become small, even when the group of correlated predictors is collectively important</li>
+    <li>Estimates become unstable: small changes in data lead to large changes in $\hat\beta$</li>
+    <li>Interpretation of individual coefficients becomes ambiguous</li>
+  </ul>
+  <div class="box formula">
+    <strong>Variance Inflation Factor (VIF):</strong>
+    $$\mathrm{VIF}(\hat\beta_j) = \frac{1}{1 - R^2_{X_j|X_{-j}}}$$
+    where $R^2_{X_j|X_{-j}}$ is the $R^2$ from regressing $X_j$ on all other predictors.
+    Rule of thumb: VIF $> 5$ or $10$ indicates problematic collinearity.
+  </div>
+  <div class="box note"><strong>Remedies:</strong> Drop one of the collinear variables, combine them (e.g., average), or use regularisation (Ridge regression, covered later).</div>
+</div>
+
+<!-- SLIDE 8 -->
+<div class="slide" data-slide="8">
+  <span class="tag topic">Variable Selection</span>
+  <h2>Which Predictors to Include?</h2>
+  <p>With $p$ predictors, there are $2^p$ possible subsets. We need principled selection strategies.</p>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Forward Selection:</strong>
+      Start with the null model. Repeatedly add the predictor that most improves fit (lowest $p$-value or largest reduction in RSS/AIC), until a stopping criterion is met.
+    </div>
+    <div class="box def">
+      <strong>Backward Elimination:</strong>
+      Start with all $p$ predictors. Repeatedly remove the least significant predictor (largest $p$-value), until all remaining predictors are significant.
+    </div>
+  </div>
+  <div class="box def">
+    <strong>Stepwise Selection:</strong>
+    Combines forward and backward: at each step, a variable may be added or removed.
+  </div>
+  <div class="box warn"><strong>Caution:</strong> These greedy procedures do not guarantee finding the globally best model. They can overfit if stopping criteria are based on $p$-values alone. Information criteria (AIC, BIC) or cross-validation are preferred for model selection.</div>
+</div>
+
+<!-- SLIDE 9 -->
+<div class="slide" data-slide="9">
+  <span class="tag topic">Model Selection</span>
+  <h2>Information Criteria for Model Selection</h2>
+  <p>Adding predictors always reduces RSS, so we need criteria that penalise complexity.</p>
+  <div class="box formula">
+    <strong>AIC (Akaike Information Criterion):</strong>
+    $$\mathrm{AIC} = n\log\!\left(\frac{\mathrm{RSS}}{n}\right) + 2(p+1)$$
+    <strong>BIC (Bayesian Information Criterion):</strong>
+    $$\mathrm{BIC} = n\log\!\left(\frac{\mathrm{RSS}}{n}\right) + (p+1)\log n$$
+    <strong>Adjusted $R^2$:</strong>
+    $$\bar R^2 = 1 - \frac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$$
+  </div>
+  <ul>
+    <li><strong>Lower AIC/BIC is better.</strong> BIC penalises complexity more heavily than AIC for $n > 7$.</li>
+    <li>Adjusted $R^2$ penalises adding useless predictors; higher is better.</li>
+    <li>Cross-validation directly estimates test error (most principled, covered in Module 10).</li>
+  </ul>
+</div>
+
+<!-- SLIDE 10 -->
+<div class="slide" data-slide="10">
+  <span class="tag topic">Extensions</span>
+  <h2>Qualitative Predictors and Interactions</h2>
+  <div class="two-col">
+    <div>
+      <div class="box def">
+        <strong>Dummy (indicator) variables:</strong>
+        For a qualitative predictor with $k$ levels, create $k-1$ dummy variables. Example: gender (Male/Female) becomes one dummy $D = 1$ if Female, $0$ if Male.
+        $$\hat y = \hat\beta_0 + \hat\beta_1 D + \hat\beta_2 X$$
+      </div>
+    </div>
+    <div>
+      <div class="box def">
+        <strong>Interaction terms:</strong>
+        When the effect of $X_1$ on $Y$ depends on the value of $X_2$, include the product $X_1 \cdot X_2$:
+        $$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_1 X_2 + \varepsilon$$
+        The slope of $X_1$ is now $\beta_1 + \beta_3 X_2$.
+      </div>
+    </div>
+  </div>
+  <div class="box note"><strong>Hierarchical principle:</strong> If an interaction term $X_1 X_2$ is included, always include the main effects $X_1$ and $X_2$ too, even if they are individually insignificant.</div>
+</div>
+
+<!-- SLIDE 11: In-Class Exercise -->
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise: Multiple Regression Output</h2>
+  <p>A regression of salary (in thousands of dollars) on years of experience ($X_1$) and education level (dummy: $X_2 = 1$ if postgraduate, 0 otherwise) gives:</p>
+  <table>
+    <tr><th>Predictor</th><th>$\hat\beta$</th><th>SE</th><th>$t$</th><th>$p$-value</th></tr>
+    <tr><td>Intercept</td><td>35.0</td><td>3.2</td><td>10.94</td><td>&lt;0.001</td></tr>
+    <tr><td>Experience ($X_1$)</td><td>4.5</td><td>0.6</td><td>7.50</td><td>&lt;0.001</td></tr>
+    <tr><td>Postgrad ($X_2$)</td><td>12.0</td><td>2.1</td><td>5.71</td><td>&lt;0.001</td></tr>
+  </table>
+  <p>$n = 120$, $R^2 = 0.72$, $F = 150.3$ ($p < 0.001$), RSE $= 8.4$.</p>
+  <ol>
+    <li>Interpret $\hat\beta_1$ and $\hat\beta_2$ in context.</li>
+    <li>Predict salary for an employee with 10 years of experience and a postgraduate degree.</li>
+    <li>What does the $F$-statistic test? What do you conclude?</li>
+    <li>Is there evidence of a multicollinearity problem? What additional information would you need?</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex11')">Show Solution</button>
+  <div class="solution" id="sol-ex11">
+    <p><strong>1.</strong> $\hat\beta_1 = 4.5$: each additional year of experience is associated with an average salary increase of &#36;4,500, holding education level constant. $\hat\beta_2 = 12.0$: postgraduate employees earn, on average, &#36;12,000 more than non-postgraduate employees with the same experience.</p>
+    <p><strong>2.</strong> $\hat y = 35.0 + 4.5(10) + 12.0(1) = 35 + 45 + 12 = \$92{,}000$</p>
+    <p><strong>3.</strong> The $F$-test tests $H_0: \beta_1 = \beta_2 = 0$. $F = 150.3$ with $p < 0.001$: strong evidence that at least one of experience or education level is a useful predictor of salary.</p>
+    <p><strong>4.</strong> We cannot judge multicollinearity from this table alone. We would need the VIF values (or the correlation between $X_1$ and $X_2$). The SEs look reasonable, so severe multicollinearity is unlikely here.</p>
+  </div>
+</div>
+
+<!-- SLIDE 12: Practice Problems -->
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Interpretation and Prediction</strong>
+    <p>A real estate model: $\widehat{\mathrm{Price}} = 50 + 0.15\,\mathrm{Area} + 8\,\mathrm{Rooms} - 3\,\mathrm{Age}$, where Price is in thousands of dollars, Area in sq. ft., Rooms is number of bedrooms, Age in years.</p>
+    <ol type="a">
+      <li>Interpret the coefficient on Age.</li>
+      <li>Predict the price of a 1500 sq. ft., 3-bedroom house that is 10 years old.</li>
+      <li>Which predictor has the largest individual effect? Is this comparison meaningful?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> Holding area and rooms fixed, each additional year of age is associated with a 3,000 dollar decrease in price.</p><p><strong>b.</strong> $\hat y=50+0.15(1500)+8(3)-3(10)=50+225+24-30=269$, i.e., 269 thousand dollars.</p><p><strong>c.</strong> No: raw coefficient magnitudes depend on each predictor's scale. Standardised coefficients allow fair comparison of effect sizes.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: F-test</strong>
+    <p>A regression with $p=4$ predictors, $n=100$ observations gives $\mathrm{TSS} = 5000$, $\mathrm{RSS} = 2000$.</p>
+    <ol type="a">
+      <li>Compute the $F$-statistic for the overall test.</li>
+      <li>State the null hypothesis and interpret the result.</li>
+      <li>Compute adjusted $R^2$.</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> $F=\frac{(5000-2000)/4}{2000/(100-4-1)}=\frac{750}{21.05}\approx35.6$.</p><p><strong>b.</strong> $H_0:\beta_1=\cdots=\beta_4=0$ (no predictors are useful). $F\approx35.6$ with $df=(4,95)$: very strong evidence against $H_0$; at least one predictor is useful.</p><p><strong>c.</strong> $\bar R^2=1-(2000/95)/(5000/99)=1-0.417=0.583$.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Multicollinearity</strong>
+    <p>A researcher fits a model with $X_1$ (income) and $X_2$ (wealth) to predict spending. She gets $\hat\beta_1 = 0.3$ ($p = 0.42$) and $\hat\beta_2 = 0.2$ ($p = 0.51$), but $F = 45$ ($p < 0.001$) and $R^2 = 0.80$.</p>
+    <ol type="a">
+      <li>Is this pattern surprising? Explain what might be causing it.</li>
+      <li>How would you diagnose this more formally?</li>
+      <li>What is one possible remedy?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> Likely multicollinearity: income and wealth are highly correlated, inflating standard errors so neither $t$-test is individually significant despite the model having strong joint predictive power.</p><p><strong>b.</strong> Compute the Variance Inflation Factor (VIF) for each predictor; VIF $&gt;10$ signals severe multicollinearity.</p><p><strong>c.</strong> Possible remedies: remove one predictor, form a composite, or use ridge regression.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 4: Interaction Terms</strong>
+    <p>A fitted model is: $\hat Y = 10 + 3X_1 + 5X_2 - 2X_1X_2$, where $X_2 \in \{0,1\}$ is a group indicator.</p>
+    <ol type="a">
+      <li>What is the slope of $X_1$ for group $X_2 = 0$? For group $X_2 = 1$?</li>
+      <li>In which group does $X_1$ have a larger effect on $Y$?</li>
+      <li>At what value of $X_2$ would the two groups have the same predicted $Y$ when $X_1 = 4$?</li>
+    </ol>
+    
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p4')">Show Solution</button>
+  <div class="solution" id="sol-p4">
+    <p><strong>a.</strong> $X_2=0$: slope of $X_1$ is $3-2(0)=3$. $X_2=1$: slope is $3-2(1)=1$.</p><p><strong>b.</strong> Group $X_2=0$ has a larger $X_1$ effect (slope 3 vs 1).</p><p><strong>c.</strong> Set $10+3X_1=15+X_1\Rightarrow 2X_1=5\Rightarrow X_1=2.5$. The two groups predict the same $Y$ when $X_1=2.5$.</p>
+  </div>
+</div>
+
+<!-- SLIDE 13: Summary -->
+<div class="slide" data-slide="13">
+  <span class="tag module">Summary</span>
+  <h2>Module 05 Summary</h2>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Key Formulas</strong>
+      <ul>
+        <li>Model: $Y = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}$</li>
+        <li>OLS: $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$</li>
+        <li>$F = \frac{\mathrm{ESS}/p}{\mathrm{RSS}/(n-p-1)}$</li>
+        <li>$\bar R^2 = 1 - \frac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$</li>
+        <li>$\mathrm{VIF}_j = 1/(1-R^2_{X_j|X_{-j}})$</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Key Ideas</strong>
+      <ul>
+        <li>Coefficients are partial effects (all others held fixed)</li>
+        <li>$F$-test: is any predictor useful?</li>
+        <li>Multicollinearity inflates SEs, check VIF</li>
+        <li>Use AIC/BIC/adj. $R^2$ for model selection</li>
+        <li>Include main effects when using interactions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box formula">
+    <strong>Next: Module 06</strong> covers model assessment in depth: comparing models with adjusted $R^2$, AIC, BIC, $F$-tests for nested models, and confidence vs. prediction intervals.
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 13</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m05-v1';
+let cs=1, ts=13, bsz=18;
+function showSlide(n) {
+  try {
+    var prev = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs = Math.max(1, Math.min(ts, n));
+    var next = document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct = document.getElementById('sct');
+    if(sct) sct.textContent = 'Slide '+cs+' of '+ts;
+    var pbtn = document.getElementById('pbtn');
+    var nbtn = document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled = (cs===1);
+    if(nbtn) nbtn.disabled = (cs===ts);
+    var pfill = document.getElementById('pfill');
+    if(pfill) pfill.style.width = (cs/ts*100)+'%';
+    try { localStorage.setItem(SK, JSON.stringify({cs:cs})); } catch(e) {}
+    try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+  } catch(err) { console.error('Nav error:', err); }
+}
+function chg(d) { showSlide(cs+d); }
+function zoom(d) {
+  bsz = d===0 ? 18 : Math.min(28, Math.max(14, bsz+d*2));
+  document.documentElement.style.setProperty('--base', bsz+'px');
+  try { localStorage.setItem(SK+'_sz', bsz); } catch(e) {}
+}
+function togSol(id) {
+  var s = document.getElementById(id);
+  if(s) s.style.display = s.style.display==='block' ? 'none' : 'block';
+  try { if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); } catch(e) {}
+}
+document.addEventListener('keydown', function(e) {
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); chg(1); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); chg(-1); }
+});
+(function(){
+  try {
+    var sv = JSON.parse(localStorage.getItem(SK));
+    if(sv && sv.cs>1) showSlide(sv.cs);
+    var sz = localStorage.getItem(SK+'_sz');
+    if(sz){ bsz=parseInt(sz,10); document.documentElement.style.setProperty('--base',bsz+'px'); }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
