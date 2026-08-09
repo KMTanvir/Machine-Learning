@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 16 – Subset Selection | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 16: Subset Selection</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 16</span>
+  <h2>Subset Selection: Best, Forward, Backward</h2>
+  <p>When $p$ predictors are available, which ones should enter the model? Subset selection methods search the space of possible models to find the subset of predictors that best explains the response, while penalising complexity to avoid overfitting.</p>
+  <div class="box def">
+    <strong>The model selection problem</strong>
+    With $p$ predictors there are $2^p$ possible linear regression models (each predictor included or not). For $p = 40$ that is over a trillion models. We need principled strategies to search this space and criteria to compare models of different sizes.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Implement best subset, forward stepwise, and backward stepwise selection</li>
+    <li>Understand the bias in training $R^2$, RSS, and MSE as model selection criteria</li>
+    <li>Apply Mallows' $C_p$, AIC, BIC, and adjusted $R^2$ for model comparison</li>
+    <li>Use cross-validation to select the optimal model size</li>
+    <li>Compare the computational and statistical properties of each method</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 6.1; Module 06 (adjusted R², F-test, AIC)</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Best Subset</span>
+  <h2>Best Subset Selection</h2>
+  <div class="box def">
+    <strong>Best Subset Selection Algorithm</strong>
+    <ol>
+      <li>Let $\mathcal{M}_0$ be the null model (intercept only).</li>
+      <li>For $k = 1, 2, \ldots, p$: fit all $\binom{p}{k}$ models with exactly $k$ predictors. Let $\mathcal{M}_k$ be the best (lowest RSS) among them.</li>
+      <li>Select the single best model from $\mathcal{M}_0, \mathcal{M}_1, \ldots, \mathcal{M}_p$ using a model selection criterion (not training RSS).</li>
+    </ol>
+  </div>
+  <table>
+    <tr><th>$p$</th><th>Total models</th><th>Feasible?</th></tr>
+    <tr><td>10</td><td>1,024</td><td>Yes</td></tr>
+    <tr><td>20</td><td>1,048,576</td><td>Marginal</td></tr>
+    <tr><td>40</td><td>$\approx 10^{12}$</td><td>No</td></tr>
+  </table>
+  <div class="box warn">
+    <strong>Why not choose the model with highest training $R^2$?</strong>
+    Training $R^2$ increases monotonically with $k$: the model with all $p$ predictors always wins. We must penalise for model size to estimate test performance.
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">Forward Stepwise</span>
+  <h2>Forward Stepwise Selection</h2>
+  <div class="box def">
+    <strong>Forward Stepwise Algorithm</strong>
+    <ol>
+      <li>Start with $\mathcal{M}_0$ (intercept only).</li>
+      <li>For $k = 0, 1, \ldots, p-1$: consider all $p-k$ models formed by adding one predictor to $\mathcal{M}_k$. Let $\mathcal{M}_{k+1}$ be the best (lowest RSS or highest $R^2$) among them.</li>
+      <li>Select the best model from $\mathcal{M}_0, \mathcal{M}_1, \ldots, \mathcal{M}_p$ using a selection criterion.</li>
+    </ol>
+  </div>
+  <div class="box note">
+    <strong>Computational cost:</strong> fits $1 + p + (p-1) + \cdots + 1 = 1 + p(p+1)/2$ models. For $p=40$: 821 models vs. $10^{12}$ for best subset.
+  </div>
+  <div class="box warn">
+    <strong>Limitation:</strong> forward stepwise is greedy: once a predictor is added it cannot be removed. It is not guaranteed to find the best subset of any given size. For example, the best 2-predictor model may not contain the predictor in the best 1-predictor model.
+  </div>
+  <div class="box ex">
+    <strong>When to use</strong>
+    Forward stepwise is the method of choice when $p$ is large ($p > 40$), when $n < p$ (where best subset is infeasible), or in any setting requiring a fast approximation to best subset selection.
+  </div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">Backward Stepwise</span>
+  <h2>Backward Stepwise Selection</h2>
+  <div class="box def">
+    <strong>Backward Stepwise Algorithm</strong>
+    <ol>
+      <li>Start with $\mathcal{M}_p$ (all $p$ predictors).</li>
+      <li>For $k = p, p-1, \ldots, 1$: consider all $k$ models formed by removing one predictor from $\mathcal{M}_k$. Let $\mathcal{M}_{k-1}$ be the best (lowest RSS) among them.</li>
+      <li>Select the best model from $\mathcal{M}_0, \mathcal{M}_1, \ldots, \mathcal{M}_p$ using a selection criterion.</li>
+    </ol>
+  </div>
+  <div class="two-col">
+    <div class="box note">
+      <strong>Requirement</strong>
+      Backward stepwise requires $n > p$: the full model must be estimable. It cannot be used when $p \geq n$.
+    </div>
+    <div class="box warn">
+      <strong>Greedy limitation</strong>
+      Like forward stepwise, backward selection is greedy: once a predictor is removed it cannot return. The models $\mathcal{M}_{k-1}$ through $\mathcal{M}_0$ need not contain the globally best subsets of those sizes.
+    </div>
+  </div>
+  <h3>Hybrid Approaches</h3>
+  <p>Hybrid (bidirectional) stepwise combines forward and backward steps: at each stage add the best available predictor, then consider dropping any existing predictor that no longer improves the criterion. More thorough than either pure method but still not guaranteed to find the global optimum.</p>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Selection Criteria</span>
+  <h2>Choosing Among Models of Different Sizes</h2>
+  <p>After obtaining $\mathcal{M}_0, \ldots, \mathcal{M}_p$, we need a criterion to pick the best model that is not simply training RSS.</p>
+  <div class="box formula">
+    <strong>Mallows' $C_p$</strong>
+    $$C_p = \frac{1}{n}\bigl(\mathrm{RSS} + 2k\hat\sigma^2\bigr)$$
+    where $k$ is the number of predictors in the model and $\hat\sigma^2$ is estimated from the full $p$-predictor model. Selects the model with minimum $C_p$.
+  </div>
+  <div class="box formula">
+    <strong>AIC (Akaike Information Criterion)</strong>
+    $$\mathrm{AIC} = -2\log L + 2k$$
+    For OLS regression with normal errors, $\mathrm{AIC} \propto C_p$. Selects minimum AIC.
+  </div>
+  <div class="box formula">
+    <strong>BIC (Bayesian Information Criterion)</strong>
+    $$\mathrm{BIC} = -2\log L + k\log n = \frac{1}{n}(\mathrm{RSS} + k\hat\sigma^2\log n)$$
+    BIC penalises model size more heavily than AIC for $n > e^2 \approx 7.4$. BIC is more consistent: it selects the true model as $n\to\infty$; AIC tends to overfit asymptotically.
+  </div>
+  <div class="box formula">
+    <strong>Adjusted $R^2$</strong>
+    $$\bar{R}^2 = 1 - \frac{\mathrm{RSS}/(n-k-1)}{\mathrm{TSS}/(n-1)}$$
+    Maximise adjusted $R^2$. Adding a useless predictor decreases $\bar R^2$.
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">Comparison</span>
+  <h2>Comparing Selection Criteria</h2>
+  <table>
+    <tr><th>Criterion</th><th>Penalty per predictor</th><th>Consistent?</th><th>Tendency</th></tr>
+    <tr><td>$C_p$ / AIC</td><td>$2\hat\sigma^2$ / 2</td><td>No</td><td>Slightly overfit in large $n$</td></tr>
+    <tr><td>BIC</td><td>$\hat\sigma^2\log n$ / $\log n$</td><td>Yes</td><td>Parsimonious</td></tr>
+    <tr><td>Adjusted $R^2$</td><td>Scaled by $1/(n-k-1)$</td><td>No</td><td>Moderate</td></tr>
+    <tr><td>CV error</td><td>None (estimated directly)</td><td>Yes (approx.)</td><td>Depends on $k$ in CV</td></tr>
+  </table>
+  <div class="box note">
+    <strong>AIC vs BIC in practice</strong>
+    Use AIC when prediction is the primary goal (accepts a richer model with lower bias). Use BIC when identifying the true data-generating model matters (imposes stronger parsimony). Cross-validation is preferred when the goal is prediction and $n$ is moderate.
+  </div>
+  <div class="box warn">
+    <strong>One-standard-error rule for CV</strong>
+    After computing CV error across model sizes, choose the smallest model whose CV error is within one SE of the minimum. This guards against selecting an unnecessarily complex model.
+  </div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">CV for Model Selection</span>
+  <h2>Cross-Validation for Subset Selection</h2>
+  <div class="box def">
+    <strong>Correct procedure</strong>
+    The entire subset selection procedure must be performed within each fold. That is:
+    <ol>
+      <li>Split data into $k$ folds.</li>
+      <li>For each fold $j$: run the full subset/stepwise selection on the other $k-1$ folds; evaluate the resulting models on fold $j$.</li>
+      <li>Aggregate: for each model size, average the CV errors across all $k$ folds.</li>
+      <li>Select the model size with lowest (or one-SE) CV error; refit that size on all data.</li>
+    </ol>
+  </div>
+  <div class="box warn">
+    <strong>Common mistake: selection before CV</strong>
+    Running subset selection on the full dataset first, then using CV only to evaluate the pre-selected model, leads to optimistic bias. Predictor selection on the full data has already peeked at the test folds.
+  </div>
+  <div class="box note">
+    This correct procedure is expensive: $k$ subset-selection runs instead of one. For large $p$, best subset selection within each fold may be infeasible. Forward stepwise within each fold is the practical compromise.
+  </div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Worked Example</span>
+  <h2>Worked Example: Selecting Among Five Models</h2>
+  <p>$n = 50$, $\hat\sigma^2 = 4.0$ (from full 5-predictor model). Best subset results:</p>
+  <table>
+    <tr><th>$k$</th><th>RSS</th><th>$C_p$</th><th>BIC</th><th>Adj. $R^2$</th></tr>
+    <tr><td>0</td><td>312.0</td><td>6.46</td><td>6.12</td><td>0.000</td></tr>
+    <tr><td>1</td><td>186.0</td><td>4.00</td><td>3.94</td><td>0.406</td></tr>
+    <tr><td>2</td><td>138.5</td><td>3.07</td><td>3.28</td><td>0.548</td></tr>
+    <tr><td>3</td><td>124.0</td><td>3.07</td><td>3.54</td><td>0.578</td></tr>
+    <tr><td>4</td><td>122.0</td><td>3.29</td><td>3.94</td><td>0.574</td></tr>
+    <tr><td>5</td><td>120.5</td><td>3.55</td><td>4.38</td><td>0.566</td></tr>
+  </table>
+  <div class="box formula">
+    <strong>$C_p$ calculation for $k=2$:</strong>
+    $$C_p = \frac{1}{50}(138.5 + 2 \times 2 \times 4.0) = \frac{138.5+16}{50} = \frac{154.5}{50} = 3.09 \approx 3.07$$
+  </div>
+  <div class="box ex">
+    <strong>Selection:</strong> $C_p$ is minimised at $k=2$ (or $k=3$ tied). BIC is minimised at $k=2$. Adjusted $R^2$ is maximised at $k=3$. All three methods point to models with 2 or 3 predictors. BIC selects the simpler $k=2$ model; adjusted $R^2$ and $C_p$ suggest $k=3$ is also defensible.
+  </div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">High-dimensional Issues</span>
+  <h2>When $p$ is Large: Challenges and Alternatives</h2>
+  <div class="box warn">
+    <strong>Multiple-testing inflation</strong>
+    Best subset with $p = 20$ predictors tests over 1 million models. Even with a stringent selection criterion, the selected model is likely to contain spurious predictors. The effective number of tests inflates the false discovery rate.
+  </div>
+  <div class="box note">
+    <strong>$p \geq n$ regime</strong>
+    When $p \geq n$, OLS is not unique (infinitely many solutions), so best subset and backward stepwise are infeasible. Forward stepwise stops when $k = n$ (saturated model). Regularisation methods (Module 17) are the appropriate tool for this regime.
+  </div>
+  <div class="box def">
+    <strong>Practical guidance</strong>
+    <ul>
+      <li>$p \leq 30$, prediction focus: best subset with CV</li>
+      <li>$p \leq 100$: forward or backward stepwise with BIC</li>
+      <li>$p > 100$ or $p \geq n$: ridge regression or lasso (Module 17)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>A housing price dataset has $n = 100$ observations and $p = 4$ candidate predictors: area ($X_1$), bedrooms ($X_2$), distance to city ($X_3$), age ($X_4$). Forward stepwise produces the following sequence:</p>
+  <ul>
+    <li>Step 1: Add $X_1$ (RSS drops from 8500 to 4200)</li>
+    <li>Step 2: Add $X_3$ (RSS drops to 3100)</li>
+    <li>Step 3: Add $X_4$ (RSS drops to 3010)</li>
+    <li>Step 4: Add $X_2$ (RSS drops to 2990)</li>
+  </ul>
+  <p>$\hat\sigma^2 = 31.0$ from the full 4-predictor model.</p>
+  <ol>
+    <li>Compute $C_p$ for each model size $k = 0, 1, 2, 3, 4$. Use TSS $= 8500$ for the null model.</li>
+    <li>Which model does $C_p$ select?</li>
+    <li>Would backward stepwise have been feasible here? Would it guarantee the same result as forward stepwise?</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex16')">Show Solution</button>
+  <div class="solution" id="sol-ex16">
+    <p><strong>1.</strong> $C_p = \frac{1}{n}(\mathrm{RSS} + 2k\hat\sigma^2)$ with $n=100$, $\hat\sigma^2=31.0$:<br>
+    $k=0$: $(8500 + 0)/100 = 85.0$<br>
+    $k=1$: $(4200 + 62)/100 = 42.62$<br>
+    $k=2$: $(3100 + 124)/100 = 32.24$<br>
+    $k=3$: $(3010 + 186)/100 = 31.96$<br>
+    $k=4$: $(2990 + 248)/100 = 32.38$</p>
+    <p><strong>2.</strong> $C_p$ is minimised at $k=3$ (value 31.96). Select the model with $X_1, X_3, X_4$.</p>
+    <p><strong>3.</strong> Backward stepwise requires $n > p$: here $n=100 > p=4$, so yes, it is feasible. However, backward stepwise is not guaranteed to produce the same sequence as forward stepwise. In this small-$p$ case, running best subset selection (only $2^4 = 16$ models) would be computationally trivial and would guarantee finding the true best subset of each size.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Conceptual</strong>
+    <ol type="a">
+      <li>Explain why training RSS always decreases (never increases) as more predictors are added in best subset selection.</li>
+      <li>A researcher reports: "I ran forward stepwise and found a 3-predictor model with the lowest BIC. I then confirmed this was the best 3-predictor model." Is the second claim necessarily true? Explain.</li>
+      <li>True or False: BIC always selects a model with fewer predictors than AIC on the same data.</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> OLS minimises RSS over the coefficient vector. When a predictor is added, the model has strictly more parameters, so the minimiser of RSS over the expanded set can always achieve at least as low a value as before (it can always set the new coefficient to zero). Hence RSS is non-increasing, and for continuous predictors not perfectly collinear with the response, it strictly decreases.</p>
+    <p><strong>b.</strong> No. Forward stepwise does not search all $\binom{4}{3}$ possible 3-predictor subsets (in this case 4 subsets). It is greedy: the three predictors in the forward stepwise 3-predictor model are determined by the sequence of previous additions, not by comparing all 3-predictor models. The best 3-predictor model (in terms of RSS) may use a different set of predictors.</p>
+    <p><strong>c.</strong> False. BIC penalties are heavier than AIC for $n > e^2 \approx 7$, so BIC tends to select smaller models. But this is a tendency, not a guarantee: it is possible for BIC and AIC to select the same model, and on a particular dataset BIC could select a model of the same or (extremely rarely) larger size than AIC.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Calculation</strong>
+    <p>$n = 40$, $p = 3$. Best subset selection gives the following models:</p>
+    <table>
+      <tr><th>$k$</th><th>Predictors</th><th>RSS</th></tr>
+      <tr><td>0</td><td>(none)</td><td>560</td></tr>
+      <tr><td>1</td><td>$X_2$</td><td>320</td></tr>
+      <tr><td>2</td><td>$X_1, X_2$</td><td>260</td></tr>
+      <tr><td>3</td><td>$X_1, X_2, X_3$</td><td>248</td></tr>
+    </table>
+    <p>The full 3-predictor model has $\hat\sigma^2 = 248/(40-4) = 6.889$.</p>
+    <ol type="a">
+      <li>Compute $C_p$ for $k = 0, 1, 2, 3$.</li>
+      <li>Compute BIC for $k = 0, 1, 2, 3$ using $\mathrm{BIC} = \frac{1}{n}(\mathrm{RSS} + k\hat\sigma^2\log n)$.</li>
+      <li>Which model does each criterion select?</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> $C_p = \frac{1}{40}(\mathrm{RSS} + 2k \times 6.889)$, penalty per predictor $= 2 \times 6.889 = 13.778$:<br>
+    $k=0$: $(560+0)/40 = 14.00$<br>
+    $k=1$: $(320+13.78)/40 = 333.78/40 = 8.34$<br>
+    $k=2$: $(260+27.56)/40 = 287.56/40 = 7.19$<br>
+    $k=3$: $(248+41.33)/40 = 289.33/40 = 7.23$</p>
+    <p><strong>b.</strong> $\log(40) \approx 3.689$, BIC penalty per predictor $= 6.889 \times 3.689 = 25.42$:<br>
+    $k=0$: $(560+0)/40 = 14.00$<br>
+    $k=1$: $(320+25.42)/40 = 8.64$<br>
+    $k=2$: $(260+50.83)/40 = 7.77$<br>
+    $k=3$: $(248+76.25)/40 = 8.11$</p>
+    <p><strong>c.</strong> $C_p$ selects $k=2$ (value 7.19). BIC also selects $k=2$ (value 7.77). Both agree: the 2-predictor model $\{X_1, X_2\}$ is optimal. Adding $X_3$ does not reduce RSS enough to justify the extra penalty.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Conceptual</strong>
+    <ol type="a">
+      <li>Why must the subset selection procedure be repeated within each cross-validation fold, rather than selecting predictors on the full data and then applying CV?</li>
+      <li>A dataset has $n = 30$ observations and $p = 35$ predictors. Which subset selection method(s) can be applied? Justify.</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> If selection is done on the full data first, the chosen predictors have already been informed by the validation observations in each fold. The CV error estimate will be optimistically biased because the model has implicitly "seen" the validation data during predictor selection. To get an honest estimate, selection must happen independently within each fold's training set.</p>
+    <p><strong>b.</strong> Best subset is infeasible: $2^{35} \approx 3.4 \times 10^{10}$ models. Backward stepwise requires $n > p$: here $n=30 < p=35$, so the full model is not estimable; backward stepwise cannot start. Forward stepwise can be applied: start with the null model and add predictors one at a time (stopping before the model becomes saturated at $k=n=30$). However, regularisation methods (ridge, lasso) are more appropriate when $p > n$.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 11</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m16-v1';
+let cs=1, ts=11, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

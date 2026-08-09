@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 17 – Ridge Regression and Lasso | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 17: Ridge Regression and Lasso</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 17</span>
+  <h2>Ridge Regression and Lasso</h2>
+  <p>Regularisation (shrinkage) methods constrain or shrink coefficient estimates toward zero. This introduces bias but can substantially reduce variance, leading to lower test error. Unlike subset selection, regularisation methods fit the model to all predictors simultaneously and apply a smooth penalty.</p>
+  <div class="box def">
+    <strong>Why regularise?</strong>
+    OLS minimises RSS without any constraint on the size of coefficients. When predictors are correlated or $p$ is large relative to $n$, OLS coefficients are unstable (high variance). Regularisation shrinks coefficients, trading a small increase in bias for a large decrease in variance.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Derive ridge regression as a penalised least squares problem</li>
+    <li>Understand the ridge shrinkage factor and its effect on correlated predictors</li>
+    <li>Derive the lasso and explain its sparsity-inducing property</li>
+    <li>Compare ridge and lasso through penalty structure, multicollinearity behaviour, and the bias-variance lens</li>
+    <li>Define the elastic net and describe when it is preferred</li>
+    <li>Select the regularisation parameter $\lambda$ using cross-validation</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 6.2; Tibshirani (1996) JRSS-B for lasso; Modules 03, 05, 16</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">Ridge Regression</span>
+  <h2>Ridge Regression</h2>
+  <div class="box formula">
+    <strong>Ridge objective</strong>
+    $$\hat{\boldsymbol\beta}^{\mathrm{ridge}} = \underset{\boldsymbol\beta}{\arg\min}\left\{\sum_{i=1}^n(y_i - \beta_0 - \sum_{j=1}^p \beta_j x_{ij})^2 + \lambda\sum_{j=1}^p \beta_j^2\right\} = \underset{\boldsymbol\beta}{\arg\min}\bigl\{\|\mathbf{y} - \mathbf{X}\boldsymbol\beta\|^2 + \lambda\|\boldsymbol\beta\|_2^2\bigr\}$$
+    where $\lambda \geq 0$ is the regularisation parameter (tuning parameter). The intercept $\beta_0$ is not penalised.
+  </div>
+  <div class="box note">
+    <strong>Standardisation is essential.</strong>
+    The ridge penalty treats all coefficients symmetrically. If predictors are on different scales, a large-scale predictor will have a small coefficient and a small-scale one a large coefficient, distorting the penalty. Always standardise predictors (subtract mean, divide by SD) before ridge regression.
+  </div>
+  <div class="box def">
+    <strong>Closed-form solution</strong>
+    $$\hat{\boldsymbol\beta}^{\mathrm{ridge}} = (\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$$
+    The matrix $\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I}$ is always invertible for $\lambda > 0$, even when $\mathbf{X}^\top\mathbf{X}$ is singular (i.e., even when $p \geq n$).
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">Ridge Properties</span>
+  <h2>Properties of Ridge Regression</h2>
+  <h3>Shrinkage factor</h3>
+  <p>For orthogonal predictors ($\mathbf{X}^\top\mathbf{X} = \mathbf{I}$), the ridge estimate simplifies to:</p>
+  <div class="box formula">
+    $$\hat\beta_j^{\mathrm{ridge}} = \frac{\hat\beta_j^{\mathrm{OLS}}}{1 + \lambda}$$
+    Each OLS coefficient is shrunk toward zero by the same factor $1/(1+\lambda)$.
+  </div>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Bias</strong>
+      Ridge introduces bias: $E[\hat\beta_j^{\mathrm{ridge}}] \neq \beta_j$ for $\lambda > 0$. The bias increases with $\lambda$.
+    </div>
+    <div class="box note">
+      <strong>Variance</strong>
+      Ridge reduces variance: $\mathrm{Var}(\hat\beta_j^{\mathrm{ridge}}) < \mathrm{Var}(\hat\beta_j^{\mathrm{OLS}})$ for $\lambda > 0$. The variance decreases as $\lambda$ increases.
+    </div>
+  </div>
+  <div class="box warn">
+    <strong>Ridge does not produce sparse solutions.</strong>
+    Ridge shrinks all coefficients toward zero but never exactly to zero. All $p$ predictors remain in the model for any finite $\lambda$. Ridge is not useful for variable selection.
+  </div>
+  <div class="box ex">
+    <strong>Correlated predictors</strong>
+    Ridge handles multicollinearity well: the $\lambda\mathbf{I}$ term stabilises $(\mathbf{X}^\top\mathbf{X})^{-1}$, which explodes when columns of $\mathbf{X}$ are nearly collinear. Ridge distributes the coefficient weight more evenly among correlated predictors.
+  </div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">The Lasso</span>
+  <h2>The Lasso (Least Absolute Shrinkage and Selection Operator)</h2>
+  <div class="box formula">
+    <strong>Lasso objective</strong>
+    $$\hat{\boldsymbol\beta}^{\mathrm{lasso}} = \underset{\boldsymbol\beta}{\arg\min}\left\{\|\mathbf{y} - \mathbf{X}\boldsymbol\beta\|^2 + \lambda\sum_{j=1}^p|\beta_j|\right\} = \underset{\boldsymbol\beta}{\arg\min}\bigl\{\|\mathbf{y} - \mathbf{X}\boldsymbol\beta\|^2 + \lambda\|\boldsymbol\beta\|_1\bigr\}$$
+    The lasso uses an $\ell_1$ penalty on the coefficients.
+  </div>
+  <div class="box def">
+    <strong>Sparsity: the key property of lasso</strong>
+    For sufficiently large $\lambda$, some lasso coefficients are set exactly to zero. The lasso simultaneously shrinks and selects predictors: the solution is sparse. This makes lasso interpretable and suitable for high-dimensional data.
+  </div>
+  <div class="box note">
+    <strong>No closed form</strong>
+    Unlike ridge, the lasso has no closed-form solution in general (the $\ell_1$ penalty is not differentiable at zero). It is solved by coordinate descent or the LARS algorithm.
+  </div>
+  <p>For orthogonal predictors, the lasso solution is soft-thresholding:</p>
+  <div class="box formula">
+    $$\hat\beta_j^{\mathrm{lasso}} = \mathrm{sign}(\hat\beta_j^{\mathrm{OLS}})\cdot\max\bigl(|\hat\beta_j^{\mathrm{OLS}}| - \lambda/2,\; 0\bigr)$$
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Penalty Landscape</span>
+  <h2>Effect of &lambda;: Fitted Lines and Objective Function</h2>
+  <p>As $\lambda$ increases, the fitted slope shrinks (lines flatten) but training RSS increases. The penalty landscapes show <b>why</b> the optimal slope shifts. Click a $\lambda$ to highlight it across both panels.</p>
+  <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin:0.5rem 0 0.4rem;">
+    <button onclick="setPenLam(0)"  style="background:#3b82f6;color:#fff;border:none;border-radius:5px;padding:0.25rem 0.8rem;cursor:pointer;font-weight:700;">&lambda;=0 (OLS)</button>
+    <button onclick="setPenLam(10)" style="background:#f97316;color:#fff;border:none;border-radius:5px;padding:0.25rem 0.8rem;cursor:pointer;font-weight:700;">&lambda;=10</button>
+    <button onclick="setPenLam(20)" style="background:#22c55e;color:#fff;border:none;border-radius:5px;padding:0.25rem 0.8rem;cursor:pointer;font-weight:700;">&lambda;=20</button>
+    <button onclick="setPenLam(40)" style="background:#c026d3;color:#fff;border:none;border-radius:5px;padding:0.25rem 0.8rem;cursor:pointer;font-weight:700;">&lambda;=40</button>
+    <button onclick="setPenLam('all')" style="background:#1e3a5f;color:#fff;border:none;border-radius:5px;padding:0.25rem 0.8rem;cursor:pointer;font-weight:700;">Show all</button>
+  </div>
+  <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin:0.4rem 0;">
+    <!-- Left: scatter plot -->
+    <div style="flex:1.1;min-width:260px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;padding:0.6rem;">
+      <div style="font-weight:700;font-size:0.85em;color:#1e3a5f;margin-bottom:0.2rem;">Fitted regression lines (Height vs Weight)</div>
+      <canvas id="cv-scatter" width="340" height="230" style="width:100%;height:auto;display:block;"></canvas>
+      <div id="rss-table" style="font-size:0.78em;margin-top:0.3rem;"></div>
+    </div>
+    <!-- Right: penalty landscapes stacked -->
+    <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:0.5rem;">
+      <div style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;padding:0.5rem;">
+        <div style="font-weight:700;font-size:0.82em;color:#1e3a5f;margin-bottom:0.2rem;">Ridge objective: RSS + &lambda;&beta;&sup2;</div>
+        <canvas id="cv-ridge" width="300" height="170" style="width:100%;height:auto;display:block;"></canvas>
+        <p style="font-size:0.76em;color:#475569;margin-top:0.2rem;">Parabola shifts left: minimum slides toward 0, <b>never reaches it</b>.</p>
+      </div>
+      <div style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;padding:0.5rem;">
+        <div style="font-weight:700;font-size:0.82em;color:#1e3a5f;margin-bottom:0.2rem;">Lasso objective: RSS + &lambda;|&beta;|</div>
+        <canvas id="cv-lasso" width="300" height="170" style="width:100%;height:auto;display:block;"></canvas>
+        <p style="font-size:0.76em;color:#475569;margin-top:0.2rem;">Kink at &beta;=0 traps the minimum: <b>snaps to exactly 0</b> for large &lambda;.</p>
+      </div>
+    </div>
+  </div>
+  <div class="box note" style="margin-top:0.3rem;font-size:0.9em;">
+    <strong>Why RSS increases with &lambda;</strong>
+    OLS finds the slope that <em>minimises</em> RSS with no constraints. Any other slope (including the shrunken ridge/lasso slopes) produces higher training RSS. The penalty forces a worse fit on training data in exchange for lower variance and better test performance.
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">The Kink</span>
+  <h2>Why the Kink at Zero Matters</h2>
+  <p>Each penalty is added on top of the RSS parabola (dashed blue). The <b>shape</b> of the penalty determines whether the combined minimum can land at $\beta=0$.</p>
+  <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin:0.5rem 0;">
+    <div style="flex:1;min-width:240px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;padding:0.6rem;">
+      <div style="font-weight:700;font-size:0.85em;color:#1e40af;margin-bottom:0.25rem;">Ridge penalty: $\lambda\beta^2$ (smooth bowl)</div>
+      <canvas id="cv-decomp-ridge" width="320" height="200" style="width:100%;height:auto;display:block;"></canvas>
+      <p style="font-size:0.8em;color:#334155;margin-top:0.3rem;">$\lambda\beta^2$ is a smooth parabola with its minimum at $\beta=0$. Adding it to RSS produces a new smooth parabola. The combined minimum <b>slides</b> toward 0 as $\lambda$ grows but is never exactly there.</p>
+    </div>
+    <div style="flex:1;min-width:240px;background:#fdf4ff;border-radius:8px;border:1px solid #e9d5ff;padding:0.6rem;">
+      <div style="font-weight:700;font-size:0.85em;color:#7e22ce;margin-bottom:0.25rem;">Lasso penalty: $\lambda|\beta|$ (V-shape, kink at 0)</div>
+      <canvas id="cv-decomp-lasso" width="320" height="200" style="width:100%;height:auto;display:block;"></canvas>
+      <p style="font-size:0.8em;color:#334155;margin-top:0.3rem;">$\lambda|\beta|$ is a V-shape with a sharp corner at $\beta=0$. Adding it to RSS creates a kink. Once $\lambda$ is large enough, this kink <b>becomes the global minimum</b>, setting $\hat\beta=0$ exactly.</p>
+    </div>
+  </div>
+  <div class="box note" style="margin-top:0.2rem;font-size:0.9em;">
+    <strong>The core difference</strong>
+    $\beta^2$ is differentiable everywhere: its gradient at $\beta=0$ is 0, so it adds no force pulling the solution to exactly 0. $|\beta|$ is not differentiable at $\beta=0$: its subgradient includes 0, which means $\beta=0$ satisfies the optimality condition whenever the RSS gradient is smaller than $\lambda$. This is why lasso produces exact zeros and ridge does not.
+  </div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Multicollinearity</span>
+  <h2>Multicollinearity: Ridge Distributes, Lasso Picks Arbitrarily</h2>
+  <p><b>Multicollinearity</b> means two or more predictors are highly correlated. OLS breaks down: $\mathbf{X}^\top\mathbf{X}$ becomes nearly singular and coefficient estimates explode with opposite signs, even when the true $\beta_1 \approx \beta_2$.</p>
+  <div class="box warn">
+    <strong>Numerical example: why OLS fails</strong>
+    Suppose $n=10$, $r_{12}=0.95$, so $\mathbf{X}^\top\mathbf{X} \approx \begin{pmatrix}10&9.5\\9.5&10\end{pmatrix}$ (det $= 9.75$, nearly singular). If $\mathbf{X}^\top\mathbf{y} = \begin{pmatrix}21\\19\end{pmatrix}$ (tiny noise asymmetry), OLS gives $\hat\beta_1 \approx 3.03$, $\hat\beta_2 \approx -0.97$, wildly different from the true $\beta_1=\beta_2=1$. A small change in one observation flips the signs entirely.
+  </div>
+  <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin:0.6rem 0;">
+    <div style="flex:1;min-width:240px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;padding:0.6rem;">
+      <div style="font-weight:700;font-size:0.85em;color:#1e40af;margin-bottom:0.25rem;">Ridge: stable, shared coefficients</div>
+      <canvas id="cv-mc-ridge" width="310" height="190" style="width:100%;height:auto;display:block;"></canvas>
+      <p style="font-size:0.79em;color:#334155;margin-top:0.3rem;">Adding $\lambda\mathbf{I}$ to $\mathbf{X}^\top\mathbf{X}$ reduces the condition number. Both $\hat\beta_1$ and $\hat\beta_2$ converge toward equal, stable values as $\lambda$ grows: the effect of $X_1$ and $X_2$ is shared proportionally.</p>
+    </div>
+    <div style="flex:1;min-width:240px;background:#fdf4ff;border-radius:8px;border:1px solid #e9d5ff;padding:0.6rem;">
+      <div style="font-weight:700;font-size:0.85em;color:#7e22ce;margin-bottom:0.25rem;">Lasso: arbitrary, unstable selection</div>
+      <canvas id="cv-mc-lasso" width="310" height="190" style="width:100%;height:auto;display:block;"></canvas>
+      <p style="font-size:0.79em;color:#334155;margin-top:0.3rem;">With correlated predictors, many $(\beta_1,\beta_2)$ pairs give nearly identical RSS. Lasso picks the corner of the $\ell_1$ ball: one coefficient is zeroed out. <b>Which predictor survives is arbitrary:</b> it depends on tiny noise, not on which predictor is more informative.</p>
+    </div>
+  </div>
+  <div class="box note" style="font-size:0.9em;">
+    <strong>Why ridge shares and lasso picks</strong>
+    Ridge minimises a smooth objective: $(\mathbf{X}^\top\mathbf{X}+\lambda\mathbf{I})^{-1}$ always gives a unique, symmetric solution. When $X_1=X_2$ exactly, symmetry forces $\hat\beta_1^{\text{ridge}}=\hat\beta_2^{\text{ridge}}$. Lasso's $\ell_1$ ball has corners on the axes: identical predictors create a flat ridge in the RSS surface, and the $\ell_1$ penalty pushes the solution to any corner, picking one predictor and zeroing the other. The elastic net ($\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2$) solves this by combining both penalties.
+  </div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Ridge vs Lasso</span>
+  <h2>Ridge vs Lasso: When to Use Each</h2>
+  <table>
+    <tr><th>Property</th><th>Ridge</th><th>Lasso</th></tr>
+    <tr><td>Penalty</td><td>$\ell_2$: $\lambda\sum\beta_j^2$</td><td>$\ell_1$: $\lambda\sum|\beta_j|$</td></tr>
+    <tr><td>Variable selection</td><td>No (no exact zeros)</td><td>Yes (sparse solutions)</td></tr>
+    <tr><td>Correlated predictors</td><td>Distributes weight evenly</td><td>Selects one, ignores others</td></tr>
+    <tr><td>Solution</td><td>Closed form</td><td>Iterative (coordinate descent)</td></tr>
+    <tr><td>Works when $p \geq n$</td><td>Yes</td><td>Selects at most $n$ predictors</td></tr>
+    <tr><td>Best when</td><td>Most predictors relevant, multicollinearity present</td><td>Few predictors truly relevant (sparse truth)</td></tr>
+  </table>
+  <div class="box warn">
+    <strong>Lasso and groups of correlated predictors</strong>
+    When predictors are highly correlated, lasso tends to arbitrarily select one from each group and discard the rest. This can be unstable: small data perturbations change which predictor is selected. Ridge is more stable in this setting.
+  </div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">Elastic Net</span>
+  <h2>Elastic Net</h2>
+  <div class="box formula">
+    <strong>Elastic Net objective</strong>
+    $$\hat{\boldsymbol\beta}^{\mathrm{EN}} = \underset{\boldsymbol\beta}{\arg\min}\left\{\|\mathbf{y}-\mathbf{X}\boldsymbol\beta\|^2 + \lambda\left(\alpha\sum_j|\beta_j| + \frac{1-\alpha}{2}\sum_j\beta_j^2\right)\right\}$$
+    where $\alpha \in [0,1]$ controls the mix: $\alpha=1$ gives lasso, $\alpha=0$ gives ridge.
+  </div>
+  <div class="two-col">
+    <div class="box ex">
+      <strong>Advantages over lasso</strong>
+      <ul>
+        <li>Groups correlated predictors together (ridge component)</li>
+        <li>Can select more than $n$ predictors</li>
+        <li>More stable than lasso under multicollinearity</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Tuning</strong>
+      Two hyperparameters: $\lambda$ (overall regularisation) and $\alpha$ (ridge/lasso mix). Typically fix $\alpha \in \{0.1, 0.5, 0.9\}$ via CV, then cross-validate over $\lambda$ on a grid.
+    </div>
+  </div>
+  <div class="box def">
+    <strong>Grouping effect (Zou and Hastie, 2005)</strong>
+    The elastic net has the grouping property: when predictors are nearly identical, their elastic net coefficients are nearly equal. This is desirable when predictors represent different measures of the same underlying construct.
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Selecting Lambda</span>
+  <h2>Selecting the Regularisation Parameter</h2>
+  <div class="box def">
+    <strong>Cross-validation for $\lambda$</strong>
+    <ol>
+      <li>Choose a grid of $\lambda$ values: e.g., $\lambda \in \{0.001, 0.01, 0.1, 1, 10, 100\}$ (log scale).</li>
+      <li>For each $\lambda$: compute $k$-fold CV error.</li>
+      <li>Select $\lambda^*$ that minimises CV error (or apply the one-SE rule for a sparser model).</li>
+      <li>Refit the penalised model with $\lambda^*$ on the full training data.</li>
+    </ol>
+  </div>
+  <div class="box note">
+    <strong>Warm-start path</strong>
+    Most software (R's <code>glmnet</code>, Python's <code>sklearn</code>) computes the full regularisation path from large to small $\lambda$ efficiently using warm starts: the solution at one $\lambda$ initialises the solver at the next. This is much faster than fitting each $\lambda$ independently.
+  </div>
+  <div class="box warn">
+    <strong>Scale of $\lambda$</strong>
+    The value of $\lambda$ depends on the scale of $y$ and $X$. Always standardise predictors before fitting. After fitting, predictions and confidence intervals should be based on the unstandardised coefficients (transform back).
+  </div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag topic">Worked Example</span>
+  <h2>Worked Example: Ridge vs OLS</h2>
+  <p>Simple case: $p = 1$, $n = 4$ observations. After standardising $X$: $X^\top X = 3.6$, $X^\top y = 7.2$. OLS: $\hat\beta_1^{\mathrm{OLS}} = 7.2/3.6 = 2.0$.</p>
+  <div class="box formula">
+    <strong>Ridge for $\lambda = 1.8$:</strong>
+    $$\hat\beta_1^{\mathrm{ridge}} = \frac{X^\top y}{X^\top X + \lambda} = \frac{7.2}{3.6 + 1.8} = \frac{7.2}{5.4} = \frac{4}{3} \approx 1.333$$
+    Shrinkage factor $= 1/(1 + \lambda/X^\top X) = 1/(1 + 0.5) = 2/3$. Ridge coefficient is $2/3$ of OLS coefficient.
+  </div>
+  <div class="box formula">
+    <strong>Lasso soft-thresholding for $\lambda = 0.8$:</strong>
+    $$\hat\beta_1^{\mathrm{lasso}} = \mathrm{sign}(2.0)\cdot\max(|2.0| - 0.8/2, 0) = 1 \times \max(1.6, 0) = 1.6$$
+  </div>
+  <div class="box ex">
+    <strong>Summary:</strong> OLS $= 2.0$, Ridge $\approx 1.33$, Lasso $= 1.6$ (for these specific $\lambda$ values). Ridge shrinks more aggressively here because the ridge penalty acts on $\beta^2$; lasso subtracts a fixed threshold from $|\beta|$.
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>A standardised dataset has $n = 50$, $p = 2$ predictors with $\mathbf{X}^\top\mathbf{X} = \begin{pmatrix}10 & 6\\6 & 10\end{pmatrix}$ and $\mathbf{X}^\top\mathbf{y} = \begin{pmatrix}8\\4\end{pmatrix}$.</p>
+  <ol>
+    <li>Compute the OLS estimate $\hat{\boldsymbol\beta}^{\mathrm{OLS}}$.</li>
+    <li>Compute the ridge estimate for $\lambda = 4$.</li>
+    <li>How much does $\hat\beta_1^{\mathrm{ridge}}$ differ from $\hat\beta_1^{\mathrm{OLS}}$? Explain the direction of the change.</li>
+    <li>If the true data-generating process uses only $X_1$ (i.e., $\beta_2 = 0$), would lasso or ridge be preferable? Explain using the kink argument from Slide 6.</li>
+    <li>In the Slide 5 visualisation, training RSS is always highest for $\lambda = 40$. Yet $\lambda = 40$ might give lower test MSE. Why does shrinking the slope below the OLS value hurt training RSS but can help test error?</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex17')">Show Solution</button>
+  <div class="solution" id="sol-ex17">
+    <p><strong>1.</strong> $\det = 100-36=64$. $(\mathbf{X}^\top\mathbf{X})^{-1} = \frac{1}{64}\begin{pmatrix}10&-6\\-6&10\end{pmatrix}$. $\hat{\boldsymbol\beta}^{\mathrm{OLS}} = \frac{1}{64}\begin{pmatrix}56\\-8\end{pmatrix} = \begin{pmatrix}0.875\\-0.125\end{pmatrix}$.</p>
+    <p><strong>2.</strong> $\mathbf{X}^\top\mathbf{X}+4\mathbf{I} = \begin{pmatrix}14&6\\6&14\end{pmatrix}$, $\det=160$. $\hat{\boldsymbol\beta}^{\mathrm{ridge}} = \frac{1}{160}\begin{pmatrix}14&-6\\-6&14\end{pmatrix}\begin{pmatrix}8\\4\end{pmatrix} = \frac{1}{160}\begin{pmatrix}88\\8\end{pmatrix} = \begin{pmatrix}0.550\\0.050\end{pmatrix}$.</p>
+    <p><strong>3.</strong> $\hat\beta_1$ fell from $0.875$ to $0.550$: a shrinkage of $0.325$ toward zero. Ridge always shrinks coefficients toward zero by adding $\lambda\mathbf{I}$ to the denominator matrix. The correlation ($r=0.6$) means the two coefficients adjust jointly, which is why $\hat\beta_2$ actually moved away from $-0.125$ toward $+0.050$.</p>
+    <p><strong>4.</strong> Lasso is preferable. The lasso penalty $\lambda|\beta|$ has a kink at $\beta=0$ (Slide 6). When $\lambda$ is large enough, this kink becomes the global minimum of the combined objective, setting $\hat\beta_2=0$ exactly. Ridge uses $\lambda\beta^2$, which is smooth at 0 and never forces an exact zero, so ridge keeps a nonzero $\hat\beta_2$ even when $\beta_2$ is truly 0.</p>
+    <p><strong>5.</strong> OLS minimises training RSS with no constraint: any other slope, including the shrunken ridge slope, produces strictly higher training RSS. However, OLS often overfits by chasing noise in the training data. The shrunken slope has more bias but much lower variance. When the variance reduction exceeds the bias increase, test MSE falls. This is the bias-variance tradeoff: ridge accepts worse training fit in exchange for a model that generalises better.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="13">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Conceptual</strong>
+    <ol type="a">
+      <li>As $\lambda \to \infty$ in ridge regression, what happens to all coefficients? What model does this correspond to?</li>
+      <li>As $\lambda \to 0$ in lasso, what model does the lasso approach?</li>
+      <li>Increasing $\lambda$ always increases training RSS. Explain why, and explain under what condition this leads to lower test MSE.</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> As $\lambda \to \infty$, all ridge coefficients $\hat\beta_j^{\mathrm{ridge}} \to 0$. The model approaches the null model (intercept only), predicting $\bar y$ for all observations. The model has maximum bias and zero variance (from regularisation).</p>
+    <p><strong>b.</strong> As $\lambda \to 0$, the lasso penalty vanishes and the lasso solution approaches the OLS solution. When $\lambda = 0$, lasso is identical to OLS (with no constraint on the $\ell_1$ norm).</p>
+    <p><strong>c.</strong> Training RSS always increases with $\lambda$ because OLS is the unique minimiser of RSS with no penalty: any constrained or penalised solution moves away from the RSS minimum. Test MSE decreases when the variance reduction from shrinkage exceeds the bias introduced. This occurs when OLS coefficients are noisy (small $n$, correlated predictors, or large $p$). When the true coefficients are large and well-estimated by OLS, shrinkage may not help.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Calculation</strong>
+    <p>Orthogonal predictors. OLS estimates: $\hat\beta_1 = 3.0$, $\hat\beta_2 = 0.4$, $\hat\beta_3 = -1.8$.</p>
+    <ol type="a">
+      <li>Compute ridge estimates for $\lambda = 2$ (with $X^\top X = nI$, $n=20$, so $X^\top X_{jj} = 20$).</li>
+      <li>Compute lasso soft-threshold estimates for $\lambda = 1.5$. Show which coefficients are set to zero.</li>
+      <li>Which estimator produces a sparser model? Does sparsity here correspond to the true model?</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> Ridge shrinkage factor $= n/(n+\lambda) = 20/22 \approx 0.909$. Estimates: $\hat\beta_1^R = 3.0 \times 0.909 \approx 2.727$, $\hat\beta_2^R = 0.4 \times 0.909 \approx 0.364$, $\hat\beta_3^R = -1.8 \times 0.909 \approx -1.636$. No coefficient is zero.</p>
+    <p><strong>b.</strong> Soft threshold $= \lambda/2 = 0.75$. Apply: $\hat\beta_j^L = \mathrm{sign}(\hat\beta_j)\max(|\hat\beta_j|-0.75,\,0)$. $\hat\beta_1^L = \max(3.0-0.75,0) = 2.25$. $\hat\beta_2^L = \max(0.4-0.75,0) = 0$ (set to zero, since $0.4 < 0.75$). $\hat\beta_3^L = -\max(1.8-0.75,0) = -1.05$.</p>
+    <p><strong>c.</strong> Lasso produces a sparser model: $\hat\beta_2 = 0$ is set to exactly zero, leaving a 2-predictor model. Ridge retains all 3. If $\beta_2 = 0$ in truth, then lasso has recovered the true sparse model and will have lower MSE than ridge (which keeps a spurious predictor). If $\beta_2 \neq 0$, lasso has introduced additional bias.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Conceptual</strong>
+    <ol type="a">
+      <li>A dataset has $n = 50$ and $p = 200$. OLS cannot be applied. Why? Which regularised method(s) can handle this setting?</li>
+      <li>Two predictors $X_1$ and $X_2$ are perfectly correlated ($r = 1$). What does ridge do with their coefficients? What does lasso do?</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> When $p > n$, $\mathbf{X}^\top\mathbf{X}$ is rank-deficient (singular): its inverse does not exist and OLS has no unique solution. Ridge regression adds $\lambda\mathbf{I}$ to make the matrix invertible, so ridge works for any $\lambda > 0$. Lasso can also be applied (solved via coordinate descent) but selects at most $\min(n, p) = n = 50$ nonzero predictors. The elastic net combines both benefits and is often preferred when $p \gg n$.</p>
+    <p><strong>b.</strong> Ridge: with $r=1$, $X_1$ and $X_2$ are interchangeable. Ridge distributes the coefficient weight equally between them: $\hat\beta_1^R = \hat\beta_2^R$ (by symmetry). Both stay nonzero and share the fitted effect. Lasso: arbitrary selection. Since both predictors are identical, lasso can achieve the minimum loss by putting all weight on either one (or any convex combination). In practice it will set one to zero and the other to a single value, but which one depends on the algorithm's initialisation. This instability is a known weakness of lasso under perfect multicollinearity.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 13</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m17-v1';
+let cs=1, ts=13, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+// ---- Slide 5 + 6 visualisations ----
+var penLam = 'all';
+var LAMBDAS = [0, 10, 20, 40];
+var COLORS  = ['#3b82f6','#f97316','#22c55e','#c026d3'];
+
+// ---- Scatter plot (slide 5 left) ----
+// Data: 4 (weight, height) observations, centred coords
+// mean_x=2.5, mean_y=2.25, Sxx=5, Sxy=3.7
+// beta1(lam) = 3.7/(5+lam), beta0(lam) = 2.25 - beta1*2.5
+var scData = [[1,1.2],[2,1.9],[3,2.4],[4,3.5]];
+var Sxx=5, Sxy=3.7, mx=2.5, my=2.25;
+function slope(lam){ return Sxy/(Sxx+lam); }
+function intercept(lam){ return my - slope(lam)*mx; }
+function rssAt(lam){
+  var b1=slope(lam), b0=intercept(lam);
+  var s=0; scData.forEach(function(d){ var e=d[1]-b0-b1*d[0]; s+=e*e; }); return s;
+}
+
+function drawScatter(){
+  var cv=document.getElementById('cv-scatter'); if(!cv) return;
+  var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:42,r:20,t:12,b:38};
+  var pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  var xMin=0.4,xMax=4.6,yMin=0.4,yMax=4.2;
+  function px(x){return pad.l+(x-xMin)/(xMax-xMin)*pw;}
+  function py(y){return pad.t+(1-(y-yMin)/(yMax-yMin))*ph;}
+
+  // axes
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [1,2,3,4].forEach(function(v){ctx.beginPath();ctx.moveTo(px(v),pad.t+ph);ctx.lineTo(px(v),pad.t+ph+4);ctx.stroke();ctx.fillText(v,px(v),pad.t+ph+14);});
+  ctx.textAlign='right';
+  [1,2,3,4].forEach(function(v){ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l-4,py(v));ctx.stroke();ctx.fillText(v,pad.l-6,py(v)+3);});
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Weight',pad.l+pw/2,H-4);
+  ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Height',0,0);ctx.restore();
+
+  // draw regression lines
+  var lamsToDraw = (penLam==='all') ? LAMBDAS : [Number(penLam)];
+  lamsToDraw.forEach(function(lam){
+    var col=COLORS[LAMBDAS.indexOf(lam)];
+    var b0=intercept(lam), b1=slope(lam);
+    ctx.strokeStyle=col; ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.moveTo(px(xMin), py(b0+b1*xMin));
+    ctx.lineTo(px(xMax), py(b0+b1*xMax));
+    ctx.stroke();
+  });
+
+  // data points (green circles, drawn on top)
+  scData.forEach(function(d){
+    ctx.fillStyle='#16a34a';
+    ctx.beginPath();ctx.arc(px(d[0]),py(d[1]),7,0,2*Math.PI);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  // RSS legend
+  var html='<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">';
+  var lamList=(penLam==='all')?LAMBDAS:[Number(penLam)];
+  lamList.forEach(function(lam,i){
+    var col=COLORS[LAMBDAS.indexOf(lam)];
+    var r=rssAt(lam);
+    html+='<span style="color:'+col+';font-weight:700;">&lambda;='+lam+': RSS='+r.toFixed(2)+'</span>';
+  });
+  html+='</div>';
+  var el=document.getElementById('rss-table');if(el)el.innerHTML=html;
+}
+
+function setPenLam(v){ penLam = v; drawPenalty(); drawScatter(); }
+
+function drawPenalty(){
+  drawPen('cv-ridge', false);
+  drawPen('cv-lasso', true);
+}
+
+function drawPen(id, isLasso){
+  var cv = document.getElementById(id);
+  if(!cv) return;
+  var ctx = cv.getContext('2d');
+  var W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H);
+
+  // coordinate mapping: beta in [-0.35, 1.1], objective in [0, 23]
+  var bMin=-0.35, bMax=1.1, yMin=0, yMax=23;
+  var pad={l:38,r:12,t:12,b:36};
+  var pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+  function bx(b){ return pad.l + (b-bMin)/(bMax-bMin)*pw; }
+  function by(v){ return pad.t + (1-(v-yMin)/(yMax-yMin))*ph; }
+
+  // Axes
+  ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+
+  // x-axis ticks
+  ctx.fillStyle='#64748b'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+  [-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0].forEach(function(b){
+    var x=bx(b), y=pad.t+ph;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+4); ctx.stroke();
+    ctx.fillText(b.toFixed(1), x, y+14);
+  });
+
+  // y-axis ticks
+  ctx.textAlign='right';
+  [0,5,10,15,20].forEach(function(v){
+    var x=pad.l, y=by(v);
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-4,y); ctx.stroke();
+    ctx.fillText(v, x-6, y+3);
+  });
+
+  // axis labels
+  ctx.fillStyle='#334155'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Slope Values', pad.l+pw/2, H-4);
+  ctx.save(); ctx.translate(11, pad.t+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Objective', 0, 0); ctx.restore();
+
+  // zero line
+  ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=0.8; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(bx(0),pad.t); ctx.lineTo(bx(0),pad.t+ph); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // OLS minimum (approximate): RSS has min at beta_ols ~ 0.85
+  var b_ols = 0.85;
+  var rss_min = 1.2;
+  // RSS(b) = rss_min + 8*(b - b_ols)^2
+  function rss(b){ return rss_min + 8*Math.pow(b - b_ols, 2); }
+  function penalty_ridge(b, lam){ return rss(b) + lam * b*b; }
+  function penalty_lasso(b, lam){ return rss(b) + lam * Math.abs(b); }
+  function objFn(b, lam){ return isLasso ? penalty_lasso(b,lam) : penalty_ridge(b,lam); }
+
+  // Analytical minimum
+  function ridgeMin(lam){ return b_ols*8/(8+lam); }  // for this specific RSS
+  function lassoMin(lam){
+    // derivative of rss: 16*(b - b_ols); lasso penalty: lam*sign(b)
+    // at b>0: 16*(b-b_ols)+lam=0 => b=b_ols-lam/16
+    var b = b_ols - lam/16;
+    if(b <= 0) return 0;
+    return b;
+  }
+  function getMin(lam){ return isLasso ? lassoMin(lam) : ridgeMin(lam); }
+
+  var lamsToDraw = (penLam === 'all') ? LAMBDAS : [0, penLam];
+
+  lamsToDraw.forEach(function(lam, idx){
+    var col = COLORS[LAMBDAS.indexOf(lam)];
+    ctx.strokeStyle = col; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    var first = true;
+    for(var bi=0; bi<=400; bi++){
+      var b = bMin + (bMax-bMin)*bi/400;
+      var v = objFn(b, lam);
+      if(v > yMax+2) { first=true; continue; }
+      var x=bx(b), y=by(Math.min(v,yMax+1));
+      if(first){ ctx.moveTo(x,y); first=false; } else { ctx.lineTo(x,y); }
+    }
+    ctx.stroke();
+
+    // draw minimum dot
+    var bStar = getMin(lam);
+    var vStar = objFn(bStar, lam);
+    if(vStar <= yMax){
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(bx(bStar), by(vStar), 5, 0, 2*Math.PI); ctx.fill();
+    }
+
+    // label
+    ctx.fillStyle = col; ctx.font='bold 11px sans-serif'; ctx.textAlign='left';
+    // place label near right end of each curve
+    var bLabel = Math.min(bMax-0.02, bStar + 0.55);
+    var vLabel = objFn(bLabel, lam);
+    if(vLabel < yMax-1){
+      ctx.fillText('λ='+lam, bx(bLabel)-2, by(vLabel)-5);
+    }
+  });
+}
+
+// ---- Decomposition canvases (slide 6) ----
+function drawDecomp(id, isLasso){
+  var cv=document.getElementById(id);if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:36,r:16,t:14,b:36};
+  var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  var bMin=-1.2,bMax=1.6,yMin=-0.5,yMax=9;
+  function bx(b){return pad.l+(b-bMin)/(bMax-bMin)*pw;}
+  function by(v){return pad.t+(1-(v-yMin)/(yMax-yMin))*ph;}
+
+  // axis labels
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [-1,0,0.5,1,1.5].forEach(function(b){
+    ctx.beginPath();ctx.moveTo(bx(b),pad.t+ph);ctx.lineTo(bx(b),pad.t+ph+4);ctx.stroke();
+    ctx.fillText(b,bx(b),pad.t+ph+14);
+  });
+
+  // zero dashed line
+  ctx.strokeStyle='#cbd5e1';ctx.lineWidth=0.8;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(bx(0),pad.t);ctx.lineTo(bx(0),pad.t+ph);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // RSS: min at b_ols=0.8, min value = 0.5, curvature 4
+  var b_ols=0.8,lam=18;
+  function rss2(b){return 0.5+4*Math.pow(b-b_ols,2);}
+  function pen(b){return isLasso?lam*Math.abs(b):lam*b*b;}
+  function obj(b){return rss2(b)+pen(b);}
+
+  // draw RSS (dashed blue)
+  function drawCurve(fn,col,lwidth,dash){
+    ctx.strokeStyle=col;ctx.lineWidth=lwidth;ctx.setLineDash(dash||[]);
+    ctx.beginPath();var first=true;
+    for(var i=0;i<=400;i++){
+      var b=bMin+(bMax-bMin)*i/400;
+      var v=fn(b);if(v>yMax+1){first=true;continue;}
+      var x=bx(b),y=by(Math.min(v,yMax+0.5));
+      if(first){ctx.moveTo(x,y);first=false;}else{ctx.lineTo(x,y);}
+    }
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  drawCurve(rss2,'#3b82f6',1.8,[5,4]);       // RSS dashed blue
+  drawCurve(pen,isLasso?'#a855f7':'#f97316',1.8,[4,3]); // penalty dashed
+  drawCurve(obj,isLasso?'#7e22ce':'#b45309',2.8,[]);    // combined solid
+
+  // mark minimum of combined
+  var bestB=bMin,bestV=obj(bMin);
+  for(var i=1;i<=800;i++){var b=bMin+(bMax-bMin)*i/800;var v=obj(b);if(v<bestV){bestV=v;bestB=b;}}
+  if(isLasso&&Math.abs(bestB)<0.05)bestB=0;
+  var dotX=bx(bestB),dotY=by(Math.min(bestV,yMax));
+  ctx.fillStyle=isLasso?'#7e22ce':'#b45309';
+  ctx.beginPath();ctx.arc(dotX,dotY,6,0,2*Math.PI);ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+
+  // label minimum
+  ctx.fillStyle=isLasso?'#7e22ce':'#b45309';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText(isLasso?'min at β=0':'min ≠ 0',dotX,dotY-10);
+
+  // legend
+  ctx.font='10px sans-serif';ctx.textAlign='left';
+  function leg(col,dash,label,y){
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash(dash);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+22,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#334155';ctx.fillText(label,pad.l+26,y+3);
+  }
+  leg('#3b82f6',[5,4],'RSS',pad.t+6);
+  leg(isLasso?'#a855f7':'#f97316',[4,3],isLasso?'λ|β|':'λβ²',pad.t+18);
+  leg(isLasso?'#7e22ce':'#b45309',[],'Combined',pad.t+30);
+}
+
+// ---- Multicollinearity canvases (slide 7) ----
+// Setup: n=10, r=0.95, XtX≈[[10,9.5],[9.5,10]], Xty=[21,19]
+// Ridge: beta(lam) = (XtX+lamI)^{-1} Xty
+// Lasso path: one coef stays high, other shrinks to 0 first (simulated path)
+function ridgeCoefs(lam){
+  var a=10+lam, b=9.5;
+  var det=a*a-b*b;
+  var b1=(a*21-b*19)/det;
+  var b2=(-b*21+a*19)/det;
+  return [b1,b2];
+}
+function drawMcRidge(){
+  var cv=document.getElementById('cv-mc-ridge');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:46,r:20,t:16,b:36};
+  var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  // x axis: lambda 0..30, y axis: coef -1..4
+  var lMin=0,lMax=30,yMin=-1,yMax=4;
+  function px(l){return pad.l+(l-lMin)/(lMax-lMin)*pw;}
+  function py(v){return pad.t+(1-(v-yMin)/(yMax-yMin))*ph;}
+
+  // axes
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  // zero line
+  ctx.strokeStyle='#e2e8f0';ctx.lineWidth=0.8;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pad.l,py(0));ctx.lineTo(pad.l+pw,py(0));ctx.stroke();
+  ctx.setLineDash([]);
+  // true beta line
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=0.8;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(pad.l,py(1));ctx.lineTo(pad.l+pw,py(1));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('true β=1',pad.l+pw-46,py(1)-4);
+
+  // x ticks
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [0,5,10,15,20,25,30].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(px(v),pad.t+ph);ctx.lineTo(px(v),pad.t+ph+4);ctx.stroke();
+    ctx.fillText(v,px(v),pad.t+ph+14);
+  });
+  ctx.textAlign='right';
+  [-1,0,1,2,3].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l-4,py(v));ctx.stroke();
+    ctx.fillText(v,pad.l-6,py(v)+3);
+  });
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('λ',pad.l+pw/2,H-3);
+  ctx.save();ctx.translate(13,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Coefficient',0,0);ctx.restore();
+
+  // draw ridge paths for beta1 and beta2
+  var cols=['#2563eb','#dc2626'];
+  var labels=['β̂₁','β̂₂'];
+  [0,1].forEach(function(j){
+    ctx.strokeStyle=cols[j];ctx.lineWidth=2.2;
+    ctx.beginPath();var first=true;
+    for(var i=0;i<=300;i++){
+      var lam=lMin+(lMax-lMin)*i/300;
+      var bc=ridgeCoefs(lam);
+      var v=bc[j];
+      if(v<yMin-0.5||v>yMax+0.5){first=true;continue;}
+      var x=px(lam),y=py(Math.max(yMin,Math.min(yMax,v)));
+      if(first){ctx.moveTo(x,y);first=false;}else{ctx.lineTo(x,y);}
+    }
+    ctx.stroke();
+    // label at end
+    var bc0=ridgeCoefs(lMax);
+    ctx.fillStyle=cols[j];ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+    ctx.fillText(labels[j],px(lMax)+2,py(bc0[j])+4);
+  });
+
+  // annotation: OLS value
+  var olsB=ridgeCoefs(0);
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('OLS: '+olsB[0].toFixed(1)+', '+olsB[1].toFixed(1),px(0)+4,py(olsB[0])-6);
+}
+
+function drawMcLasso(){
+  var cv=document.getElementById('cv-mc-lasso');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:46,r:20,t:16,b:36};
+  var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  var lMin=0,lMax=30,yMin=-0.3,yMax=3.5;
+  function px(l){return pad.l+(l-lMin)/(lMax-lMin)*pw;}
+  function py(v){return pad.t+(1-(v-yMin)/(yMax-yMin))*ph;}
+
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  ctx.strokeStyle='#e2e8f0';ctx.lineWidth=0.8;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pad.l,py(0));ctx.lineTo(pad.l+pw,py(0));ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [0,5,10,15,20,25,30].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(px(v),pad.t+ph);ctx.lineTo(px(v),pad.t+ph+4);ctx.stroke();
+    ctx.fillText(v,px(v),pad.t+ph+14);
+  });
+  ctx.textAlign='right';
+  [0,1,2,3].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l-4,py(v));ctx.stroke();
+    ctx.fillText(v,pad.l-6,py(v)+3);
+  });
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('λ',pad.l+pw/2,H-3);
+  ctx.save();ctx.translate(13,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Coefficient',0,0);ctx.restore();
+
+  // Simulate lasso path: with r=0.95, X'X≈[[10,9.5],[9.5,10]], X'y=[21,19]
+  // Lasso path: beta1 shrinks slower (larger X'y entry), beta2 hits 0 first
+  // Approximate LARS path: both start at ~[3.03,-0.97] (OLS, but lasso starts from 0 side)
+  // For lasso starting at lam=large→small: at high lam both=0, then b1 enters first
+  // Simulate: b1(lam)=max(0, (21-lam/2)/10.95), b2(lam)=max(0,(19-lam/2)/10.95)
+  // (rough approximation showing b1 enters first, b2 enters later at smaller lam)
+  function lassoB1(lam){ return Math.max(0, (21-lam*0.6)/13); }
+  function lassoB2(lam){ return Math.max(0, (19-lam*0.6)/13 - 0.15); }
+
+  // Outcome A: β1 survives (β2 goes to 0 first)
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=2.2;
+  ctx.beginPath();var first=true;
+  for(var i=300;i>=0;i--){
+    var lam=(lMax-lMin)*i/300;
+    var v=lassoB1(lam);
+    var x=px(lam),y=py(Math.max(0,Math.min(yMax,v)));
+    if(first){ctx.moveTo(x,y);first=false;}else{ctx.lineTo(x,y);}
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle='#dc2626';ctx.lineWidth=2.2;
+  ctx.beginPath();first=true;
+  for(var i=300;i>=0;i--){
+    var lam=(lMax-lMin)*i/300;
+    var v=lassoB2(lam);
+    var x=px(lam),y=py(Math.max(0,Math.min(yMax,v)));
+    if(first){ctx.moveTo(x,y);first=false;}else{ctx.lineTo(x,y);}
+  }
+  ctx.stroke();
+
+  // labels — placed mid-chart to avoid axis collision
+  ctx.fillStyle='#2563eb';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('β̂₁ survives',px(14)+4,py(lassoB1(14))-7);
+  ctx.fillStyle='#dc2626';ctx.textAlign='left';
+  ctx.fillText('β̂₂ → 0',px(10)+4,py(lassoB2(10))+14);
+
+  // annotation: arbitrary
+  ctx.fillStyle='#7e22ce';ctx.font='italic 10px sans-serif';ctx.textAlign='center';
+  ctx.fillText('(could be reversed with different noise)',pad.l+pw/2,py(-0.2));
+}
+
+// Draw after slide transition
+var _origShowSlide = showSlide;
+showSlide = function(n){
+  _origShowSlide(n);
+  if(n===5) setTimeout(function(){ drawPenalty(); drawScatter(); }, 80);
+  if(n===6) setTimeout(function(){ drawDecomp('cv-decomp-ridge',false); drawDecomp('cv-decomp-lasso',true); }, 80);
+  if(n===7) setTimeout(function(){ drawMcRidge(); drawMcLasso(); }, 80);
+};
+window.addEventListener('load', function(){
+  if(cs===5){ drawPenalty(); drawScatter(); }
+  if(cs===6){ drawDecomp('cv-decomp-ridge',false); drawDecomp('cv-decomp-lasso',true); }
+  if(cs===7){ drawMcRidge(); drawMcLasso(); }
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

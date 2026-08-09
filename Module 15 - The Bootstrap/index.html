@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 15 – The Bootstrap | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root { --base: 18px; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: var(--base); background: #f0f4f8; color: #1e293b; }
+#wrap { max-width: 1100px; margin: 0 auto; padding: 0.6rem 1rem 2rem; }
+header { background: #1e3a5f; color: #fff; padding: 0.7rem 1.2rem; border-radius: 10px; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+header h1 { font-size: calc(var(--base)*1.05); font-weight: 700; }
+header .meta { font-size: calc(var(--base)*0.78); opacity: 0.82; }
+.zoom-bar { display: flex; gap: 0.35rem; align-items: center; }
+.zoom-bar button { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; padding: 0.18rem 0.55rem; font-size: calc(var(--base)*0.82); cursor: pointer; }
+.zoom-bar button:hover { background: rgba(255,255,255,0.32); }
+#slides { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); padding: 1.2rem 1.5rem; max-width: 980px; margin: 0 auto; }
+.pbar-wrap { height: 5px; background: #e2e8f0; border-radius: 3px; margin-bottom: 1rem; }
+.pbar-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+.slide { display: none; } .slide.active { display: block; }
+.slide h2 { font-size: calc(var(--base)*1.22); color: #1e3a5f; margin-bottom: 0.7rem; border-bottom: 2px solid #2563eb; padding-bottom: 0.3rem; }
+.slide h3 { font-size: calc(var(--base)*1.05); color: #1e3a5f; margin: 0.9rem 0 0.4rem; }
+.slide p, .slide li { line-height: 1.65; margin-bottom: 0.45rem; }
+.slide ul, .slide ol { padding-left: 1.4rem; margin-bottom: 0.5rem; }
+.slide ul li, .slide ol li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; font-size: calc(var(--base)*0.72); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.13rem 0.55rem; border-radius: 4px; margin-bottom: 0.6rem; }
+.tag.module { background: #dbeafe; color: #1e40af; }
+.tag.topic { background: #f0fdf4; color: #166534; }
+.tag.exercise { background: #fef9c3; color: #854d0e; }
+.tag.practice { background: #fce7f3; color: #9d174d; }
+.box { border-radius: 8px; padding: 0.75rem 1rem; margin: 0.6rem 0; border-left: 4px solid #94a3b8; background: #f8fafc; }
+.box.def { border-color: #2563eb; background: #eff6ff; }
+.box.formula { border-color: #7c3aed; background: #f5f3ff; }
+.box.note { border-color: #d97706; background: #fffbeb; }
+.box.warn { border-color: #dc2626; background: #fff1f2; }
+.box.ex { border-color: #059669; background: #f0fdf4; }
+.box strong { display: block; margin-bottom: 0.3rem; color: #1e293b; }
+.sol-btn { margin-top: 0.5rem; background: #1e3a5f; color: #fff; border: none; border-radius: 6px; padding: 0.38rem 0.9rem; font-size: calc(var(--base)*0.83); cursor: pointer; }
+.sol-btn:hover { background: #2563eb; }
+.solution { display: none; margin-top: 0.6rem; border-top: 1px dashed #cbd5e1; padding-top: 0.6rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: calc(var(--base)*0.9); }
+th, td { border: 1px solid #cbd5e1; padding: 0.35rem 0.6rem; text-align: left; }
+th { background: #f1f5f9; font-weight: 700; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+.slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #e2e8f0; }
+.slide-nav button { background: #1e3a5f; color: #fff; border: none; border-radius: 8px; padding: 0.45rem 1.1rem; font-size: calc(var(--base)*0.88); cursor: pointer; }
+.slide-nav button:disabled { background: #cbd5e1; cursor: default; }
+.slide-nav button:not(:disabled):hover { background: #2563eb; }
+#sct { font-size: calc(var(--base)*0.82); color: #64748b; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <div class="meta">AST402 – Statistics for AI and Machine Learning | IASDS, University of Dhaka</div>
+    <h1>Module 15: The Bootstrap</h1>
+  </div>
+  <div class="zoom-bar">
+    <button onclick="zoom(-1)">A-</button>
+    <button onclick="zoom(0)">A</button>
+    <button onclick="zoom(1)">A+</button>
+  </div>
+</header>
+<div id="slides">
+<div class="pbar-wrap"><div class="pbar-fill" id="pfill" style="width:0%"></div></div>
+
+<div class="slide active" data-slide="1">
+  <span class="tag module">Module 15</span>
+  <h2>The Bootstrap</h2>
+  <p>The bootstrap is a powerful resampling technique for quantifying uncertainty about an estimate. By repeatedly sampling with replacement from the observed data, it simulates the sampling distribution of any statistic without requiring distributional assumptions.</p>
+  <div class="box def">
+    <strong>Core idea</strong>
+    We treat the observed data as a proxy for the population. Each bootstrap sample mimics drawing a new dataset from that population. The variability across bootstrap samples approximates the variability of the statistic across repeated real samples.
+  </div>
+  <h3>Learning Objectives</h3>
+  <ul>
+    <li>Understand the bootstrap principle: sampling with replacement from observed data</li>
+    <li>Compute bootstrap standard errors for any statistic</li>
+    <li>Construct bootstrap confidence intervals: percentile, basic, and BCa</li>
+    <li>Apply the bootstrap in regression, model selection, and risk estimation</li>
+    <li>Recognise when bootstrap assumptions may fail</li>
+  </ul>
+  <div class="box note"><strong>Reference:</strong> ISLR Chapter 5.2; Efron &amp; Hastie, Computer Age Statistical Inference (2016), Ch. 10</div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="tag topic">The Bootstrap Idea</span>
+  <h2>Motivation: Quantifying Uncertainty</h2>
+  <p>Suppose we estimate a parameter $\theta$ using a statistic $\hat\theta = s(\mathbf{X})$. We want $\mathrm{SE}(\hat\theta)$, but we only have one dataset. How do we simulate repeated sampling?</p>
+  <div class="two-col">
+    <div class="box warn">
+      <strong>Classical approach</strong>
+      Derive $\mathrm{Var}(\hat\theta)$ analytically. This requires distributional assumptions and closed-form expressions. Not always possible for complex statistics (e.g., ratios, quantiles, prediction errors).
+    </div>
+    <div class="box def">
+      <strong>Bootstrap approach</strong>
+      Draw $B$ samples of size $n$ <b>with replacement</b> from the original data. Compute $\hat\theta^{*b}$ on each. Estimate $\mathrm{SE}(\hat\theta)$ from the spread of $\hat\theta^{*1}, \ldots, \hat\theta^{*B}$.
+    </div>
+  </div>
+  <div class="box formula">
+    <strong>Bootstrap standard error</strong>
+    $$\widehat{\mathrm{SE}}_B(\hat\theta) = \sqrt{\frac{1}{B-1}\sum_{b=1}^B \bigl(\hat\theta^{*b} - \bar{\theta}^*\bigr)^2}, \qquad \bar\theta^* = \frac{1}{B}\sum_{b=1}^B \hat\theta^{*b}$$
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="tag topic">Bootstrap Algorithm</span>
+  <h2>The Bootstrap Algorithm</h2>
+  <div class="box def">
+    <strong>Nonparametric Bootstrap</strong>
+    Given observed data $\mathbf{x} = (x_1, \ldots, x_n)$ and statistic $\hat\theta = s(\mathbf{x})$:
+    <ol>
+      <li>For $b = 1$ to $B$: draw a bootstrap sample $\mathbf{x}^{*b} = (x^*_1, \ldots, x^*_n)$ by sampling $n$ observations with replacement from $\mathbf{x}$.</li>
+      <li>Compute $\hat\theta^{*b} = s(\mathbf{x}^{*b})$.</li>
+      <li>Estimate $\mathrm{SE}(\hat\theta)$, bias, or a confidence interval from $\{\hat\theta^{*b}\}_{b=1}^B$.</li>
+    </ol>
+  </div>
+  <div class="box note">
+    <strong>Properties of a bootstrap sample</strong>
+    Each $\mathbf{x}^{*b}$ has $n$ observations drawn with replacement: on average, $1 - (1 - 1/n)^n \approx 1 - e^{-1} \approx 63.2\%$ of original observations appear at least once. The remaining $\approx 36.8\%$ are not included (these are the "out-of-bag" observations).
+  </div>
+  <div class="box ex">
+    <strong>Example ($n=5$)</strong>
+    Data: $\{2, 5, 8, 1, 6\}$. One bootstrap sample: $\{5, 2, 2, 8, 5\}$ (2 and 5 repeated, 1 and 6 absent). Another: $\{1, 8, 6, 6, 2\}$. Each is a valid size-$n$ resample.
+  </div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="tag topic">Bootstrap Bias</span>
+  <h2>Bias Estimation and Correction</h2>
+  <div class="box def">
+    <strong>Bootstrap bias estimate</strong>
+    $$\widehat{\mathrm{Bias}}_B = \bar\theta^* - \hat\theta$$
+    where $\bar\theta^* = \frac{1}{B}\sum_b \hat\theta^{*b}$ and $\hat\theta$ is the estimate on the original data. The bootstrap bias-corrected estimator is:
+    $$\hat\theta_{\mathrm{bc}} = \hat\theta - \widehat{\mathrm{Bias}}_B = 2\hat\theta - \bar\theta^*$$
+  </div>
+  <p>Bias correction matters when the statistic is biased in small samples (e.g., maximum likelihood estimators for variance, correlation in small $n$).</p>
+  <div class="box note">
+    <strong>When is bootstrap bias reliable?</strong>
+    The bootstrap bias estimate is itself variable. Correcting for small estimated biases may increase variance more than it reduces bias. Rule of thumb: correct only when $|\widehat{\mathrm{Bias}}| > \tfrac{1}{4}\widehat{\mathrm{SE}}$.
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+  <span class="tag topic">Confidence Intervals</span>
+  <h2>Bootstrap Confidence Intervals</h2>
+  <h3>Percentile Interval</h3>
+  <div class="box def">
+    <strong>Percentile CI</strong>
+    Let $\hat\theta^{*(\alpha/2)}$ and $\hat\theta^{*(1-\alpha/2)}$ denote the $\alpha/2$ and $(1-\alpha/2)$ quantiles of the bootstrap distribution. The $(1-\alpha)$ percentile CI is:
+    $$\bigl[\hat\theta^{*(\alpha/2)},\; \hat\theta^{*(1-\alpha/2)}\bigr]$$
+  </div>
+  <h3>Basic (Reflected) Interval</h3>
+  <div class="box formula">
+    $$\bigl[2\hat\theta - \hat\theta^{*(1-\alpha/2)},\; 2\hat\theta - \hat\theta^{*(\alpha/2)}\bigr]$$
+    Reflects the bootstrap distribution around $\hat\theta$. More robust when the distribution is skewed.
+  </div>
+  <h3>Normal Approximation</h3>
+  <div class="box formula">
+    $$\hat\theta \;\pm\; z_{\alpha/2}\,\widehat{\mathrm{SE}}_B(\hat\theta)$$
+    Appropriate only when the bootstrap distribution of $\hat\theta$ is approximately symmetric and normal.
+  </div>
+</div>
+
+<div class="slide" data-slide="6">
+  <span class="tag topic">BCa Interval</span>
+  <h2>Bias-Corrected and Accelerated (BCa) Interval</h2>
+  <p>The BCa interval is the gold-standard bootstrap CI: it corrects for both bias and skewness of the bootstrap distribution.</p>
+  <div class="box formula">
+    <strong>BCa interval</strong>
+    Let $\Phi$ denote the standard normal CDF. Define:
+    $$\hat{z}_0 = \Phi^{-1}\!\left(\frac{\#\{\hat\theta^{*b} < \hat\theta\}}{B}\right), \qquad \hat{a} = \frac{\sum_i (\bar\theta_{\cdot} - \hat\theta_{-i})^3}{6\bigl[\sum_i(\bar\theta_{\cdot} - \hat\theta_{-i})^2\bigr]^{3/2}}$$
+    where $\hat\theta_{-i}$ is the jackknife estimate leaving out observation $i$. The adjusted quantiles are:
+    $$\alpha_1 = \Phi\!\left(\hat{z}_0 + \frac{\hat{z}_0 + z_{\alpha/2}}{1 - \hat{a}(\hat{z}_0 + z_{\alpha/2})}\right), \quad \alpha_2 = \Phi\!\left(\hat{z}_0 + \frac{\hat{z}_0 + z_{1-\alpha/2}}{1 - \hat{a}(\hat{z}_0 + z_{1-\alpha/2})}\right)$$
+    The BCa interval is $[\hat\theta^{*(\alpha_1)}, \hat\theta^{*(\alpha_2)}]$.
+  </div>
+  <div class="box note">
+    <strong>In practice</strong>
+    $\hat{z}_0 = 0$ and $\hat{a} = 0$ recover the percentile interval. BCa is the default choice in most software (R's <code>boot</code> package, Python's <code>scipy.stats.bootstrap</code>).
+  </div>
+</div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Bootstrap in Regression</span>
+  <h2>Bootstrapping Regression Coefficients</h2>
+  <div class="two-col">
+    <div class="box def">
+      <strong>Case resampling (pairs bootstrap)</strong>
+      Resample entire observation pairs $(x_i, y_i)$ with replacement. Refit the model on each bootstrap sample. Yields bootstrap distributions for $\hat\beta_j$. Valid under heteroscedasticity; no model assumptions beyond what is needed for estimation.
+    </div>
+    <div class="box note">
+      <strong>Residual resampling</strong>
+      Fix $X$; resample residuals $\hat{e}_i$ with replacement; form $y_i^* = \hat{y}_i + e^*_i$; refit. Assumes homoscedastic errors and a correctly specified mean function. More powerful under correct model but fragile to misspecification.
+    </div>
+  </div>
+  <div class="box ex">
+    <strong>Comparison with OLS standard errors</strong>
+    OLS $\mathrm{SE}(\hat\beta_j) = \hat\sigma\sqrt{(X^\top X)^{-1}_{jj}}$ assumes homoscedastic normal errors. Bootstrap SEs make no such assumptions and are more reliable when errors are non-normal, heteroscedastic, or correlated.
+  </div>
+  <div class="box warn">
+    <strong>Time-series data</strong>
+    i.i.d. resampling breaks temporal dependence. Use block bootstrap (resample contiguous blocks) or stationary bootstrap instead.
+  </div>
+</div>
+
+<div class="slide" data-slide="8">
+  <span class="tag topic">Out-of-Bag Error</span>
+  <h2>Out-of-Bag (OOB) Error Estimation</h2>
+  <div class="box def">
+    <strong>Out-of-Bag observations</strong>
+    In bootstrap sample $b$, approximately 36.8% of original observations are not selected. These are the out-of-bag observations for sample $b$. We can use them to evaluate predictions without additional held-out data.
+  </div>
+  <div class="box formula">
+    <strong>OOB error</strong>
+    For each observation $i$, let $B_i = \{b : i \notin \mathbf{x}^{*b}\}$ be the set of bootstrap samples not containing $i$. The OOB prediction for $i$ is the average prediction from all models trained without $i$:
+    $$\hat{y}_i^{\mathrm{OOB}} = \frac{1}{|B_i|}\sum_{b \in B_i} \hat{y}_i^{*b}$$
+    The OOB error is computed from $\{(y_i, \hat{y}_i^{\mathrm{OOB}})\}_{i=1}^n$.
+  </div>
+  <div class="box note">
+    OOB error is used directly in random forests as a built-in cross-validation estimate, providing an unbiased estimate of test error without any explicit held-out set. We will revisit this in Part G (Tree-Based Methods).
+  </div>
+</div>
+
+<div class="slide" data-slide="9">
+  <span class="tag topic">Parametric Bootstrap</span>
+  <h2>Parametric Bootstrap</h2>
+  <div class="box def">
+    <strong>Parametric Bootstrap</strong>
+    Instead of resampling from the observed data, sample from a fitted parametric model $\hat{F}_\theta$:
+    <ol>
+      <li>Fit a parametric model to obtain $\hat\theta$ (e.g., fit a normal distribution, estimate $\hat\mu, \hat\sigma$).</li>
+      <li>For $b = 1$ to $B$: generate $\mathbf{x}^{*b} \sim \hat{F}_\theta$ (simulate from the fitted model).</li>
+      <li>Re-estimate $\hat\theta^{*b}$ on each simulated sample.</li>
+    </ol>
+  </div>
+  <div class="two-col">
+    <div class="box ex">
+      <strong>Advantage</strong>
+      More efficient when the model is correctly specified: less variance in the bootstrap distribution.
+    </div>
+    <div class="box warn">
+      <strong>Disadvantage</strong>
+      If the parametric model is misspecified, the bootstrap distribution may be badly wrong. The nonparametric bootstrap is more robust.
+    </div>
+  </div>
+  <div class="box note">
+    <strong>When to use parametric bootstrap</strong>
+    Useful for models where the likelihood is known (GLMs, survival models, time series). For general prediction problems, prefer the nonparametric bootstrap.
+  </div>
+</div>
+
+<div class="slide" data-slide="10">
+  <span class="tag topic">Worked Example</span>
+  <h2>Worked Example: Bootstrap SE of a Correlation</h2>
+  <p>Data: $(x, y)$ pairs with sample correlation $\hat\rho = 0.68$, $n = 20$. We run $B = 2000$ bootstrap samples and obtain bootstrap correlations $\hat\rho^{*b}$. Suppose $\bar\rho^* = 0.661$ and $\widehat{\mathrm{SE}}_B = 0.112$.</p>
+  <div class="box formula">
+    <strong>Bootstrap bias estimate:</strong>
+    $$\widehat{\mathrm{Bias}} = \bar\rho^* - \hat\rho = 0.661 - 0.680 = -0.019$$
+    Since $|-0.019| < \tfrac{1}{4}(0.112) = 0.028$, bias correction is marginal; omit.
+  </div>
+  <div class="box formula">
+    <strong>95% Normal CI:</strong>
+    $$0.68 \pm 1.96 \times 0.112 = (0.461, 0.899)$$
+    <strong>95% Percentile CI</strong> (from 2.5th and 97.5th percentiles of bootstrap distribution):
+    Suppose $\hat\rho^{*(0.025)} = 0.438$, $\hat\rho^{*(0.975)} = 0.880$. CI: $(0.438, 0.880)$.
+  </div>
+  <div class="box note">The two intervals differ because the bootstrap distribution of $\hat\rho$ is left-skewed (bounded above by 1): the percentile interval is more reliable.</div>
+</div>
+
+<div class="slide" data-slide="11">
+  <span class="tag exercise">In-Class Exercise</span>
+  <h2>In-Class Exercise</h2>
+  <p>A dataset has $n = 8$ observations of a single variable: $\{4, 7, 2, 9, 3, 6, 5, 8\}$. We are interested in the population median.</p>
+  <ol>
+    <li>Compute the sample median $\hat\theta$.</li>
+    <li>Generate two bootstrap samples by hand (use the sequence of draws: sample 1: indices 3,1,7,2,5,3,8,4; sample 2: indices 6,6,2,1,4,7,3,5). Compute $\hat\theta^{*1}$ and $\hat\theta^{*2}$.</li>
+    <li>If $B = 1000$ bootstrap medians have $\bar\theta^* = 5.72$ and $\widehat{\mathrm{SE}}_B = 0.94$, compute a 95% normal-approximation CI.</li>
+    <li>Explain why the bootstrap SE for the median is larger than the bootstrap SE for the mean on the same data.</li>
+  </ol>
+  <button class="sol-btn" onclick="togSol('sol-ex15')">Show Solution</button>
+  <div class="solution" id="sol-ex15">
+    <p><strong>1.</strong> Sorted data: 2, 3, 4, 5, 6, 7, 8, 9. With $n=8$ (even), median $= (5+6)/2 = 5.5$.</p>
+    <p><strong>2.</strong> Sample 1 draws (1-indexed into sorted order... but the data is given in original order $\{4,7,2,9,3,6,5,8\}$): indices 3,1,7,2,5,3,8,4 give values $\{2,4,5,7,3,2,8,9\}$. Sorted: 2,2,3,4,5,7,8,9. Median $= (4+5)/2 = 4.5$. Sample 2: indices 6,6,2,1,4,7,3,5 give $\{6,6,7,4,9,5,2,3\}$. Sorted: 2,3,4,5,6,6,7,9. Median $= (5+6)/2 = 5.5$.</p>
+    <p><strong>3.</strong> 95% CI: $5.72 \pm 1.96 \times 0.94 = 5.72 \pm 1.84 = (3.88, 7.56)$.</p>
+    <p><strong>4.</strong> The median depends only on the central order statistics and is insensitive to most of the data. Small changes in resampling can shift which value sits in the middle, producing larger variation. The mean uses all values linearly; its bootstrap distribution is more stable by the central limit theorem.</p>
+  </div>
+</div>
+
+<div class="slide" data-slide="12">
+  <span class="tag practice">Practice Problems</span>
+  <h2>Practice Problems</h2>
+  <div class="box ex">
+    <strong>Problem 1: Conceptual</strong>
+    <ol type="a">
+      <li>Why does the nonparametric bootstrap treat the empirical distribution function as the population distribution? What assumption does this require?</li>
+      <li>A researcher uses bootstrap with $B = 50$ and reports narrow confidence intervals. What is the risk, and what value of $B$ is more appropriate?</li>
+      <li>True or False: The bootstrap can be applied to any statistic, including non-smooth statistics such as sample quantiles, without additional corrections.</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p1')">Show Solution</button>
+  <div class="solution" id="sol-p1">
+    <p><strong>a.</strong> The bootstrap uses the empirical CDF $\hat F_n$ as a proxy for the unknown population CDF $F$. This requires that the data are i.i.d. (or exchangeable) so that $\hat F_n$ is a consistent estimator of $F$. Without i.i.d., e.g. time series, the empirical distribution ignores dependence structure and the bootstrap is invalid.</p>
+    <p><strong>b.</strong> With $B=50$ the Monte Carlo error in the SE estimate is large: $\mathrm{SE}(\widehat{\mathrm{SE}}) \approx \widehat{\mathrm{SE}}/\sqrt{2(B-1)} \approx \widehat{\mathrm{SE}}/10$, giving about 10% relative error. More importantly, quantile estimates for CI construction are unreliable with so few samples. Use $B \geq 1000$ for SEs, $B \geq 2000$ for 95% CIs, $B \geq 10000$ for 99% CIs.</p>
+    <p><strong>c.</strong> False. The bootstrap is not automatically valid for non-smooth statistics such as the sample maximum or extreme quantiles. For the median, convergence is slower and the percentile interval may undercover at small $n$. BCa or studentized intervals are preferred.</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 2: Calculation</strong>
+    <p>A study of $n = 6$ patients measures the ratio $\hat\theta = \bar{X}/\bar{Y}$ of two biomarkers. From $B = 5$ bootstrap samples (for illustration), the bootstrap estimates are: $\hat\theta^{*1} = 1.45$, $\hat\theta^{*2} = 1.21$, $\hat\theta^{*3} = 1.38$, $\hat\theta^{*4} = 1.52$, $\hat\theta^{*5} = 1.29$. The original estimate is $\hat\theta = 1.35$.</p>
+    <ol type="a">
+      <li>Compute $\widehat{\mathrm{SE}}_B(\hat\theta)$.</li>
+      <li>Compute $\widehat{\mathrm{Bias}}_B$. Should bias correction be applied? Use the rule $|\widehat{\mathrm{Bias}}| > \frac{1}{4}\widehat{\mathrm{SE}}$.</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p2')">Show Solution</button>
+  <div class="solution" id="sol-p2">
+    <p><strong>a.</strong> $\bar\theta^* = (1.45+1.21+1.38+1.52+1.29)/5 = 6.85/5 = 1.370$. Deviations: $(0.08, -0.16, 0.01, 0.15, -0.08)$. Squared: $(0.0064, 0.0256, 0.0001, 0.0225, 0.0064)$. Sum $= 0.0610$. $\widehat{\mathrm{SE}}_B = \sqrt{0.0610/4} = \sqrt{0.01525} \approx 0.1235$.</p>
+    <p><strong>b.</strong> $\widehat{\mathrm{Bias}} = 1.370 - 1.350 = 0.020$. Threshold: $\frac{1}{4}(0.1235) = 0.031$. Since $0.020 < 0.031$, bias is small relative to SE: <b>do not apply bias correction</b>. (With $B=5$ the bias estimate itself has high uncertainty.)</p>
+  </div>
+  <div class="box ex">
+    <strong>Problem 3: Bootstrap in regression</strong>
+    <p>A simple linear regression $Y = \beta_0 + \beta_1 X + \varepsilon$ is fit to $n = 30$ observations. OLS gives $\hat\beta_1 = 2.4$ with $\mathrm{SE}_{\mathrm{OLS}} = 0.35$. From 2000 case-resampling bootstrap samples, the bootstrap distribution of $\hat\beta_1^*$ has $\widehat{\mathrm{SE}}_B = 0.51$ and is right-skewed, with 2.5th and 97.5th percentiles at 1.51 and 3.55.</p>
+    <ol type="a">
+      <li>Why is $\widehat{\mathrm{SE}}_B = 0.51$ larger than $\mathrm{SE}_{\mathrm{OLS}} = 0.35$? What does this suggest about the data?</li>
+      <li>Construct a 95% percentile CI and a 95% normal CI for $\beta_1$. Which is more appropriate and why?</li>
+    </ol>
+  </div>
+  <button class="sol-btn" onclick="togSol('sol-p3')">Show Solution</button>
+  <div class="solution" id="sol-p3">
+    <p><strong>a.</strong> OLS SE assumes homoscedastic, normally distributed errors. The bootstrap SE is larger, suggesting the errors are likely heteroscedastic (variance depends on $X$) or the error distribution has heavier tails than normal. The bootstrap captures this variability that OLS ignores.</p>
+    <p><strong>b.</strong> Percentile CI: $(1.51, 3.55)$. Normal CI: $2.4 \pm 1.96 \times 0.51 = 2.4 \pm 1.00 = (1.40, 3.40)$. The percentile CI is more appropriate here because the bootstrap distribution is right-skewed, violating the symmetry assumption needed for the normal CI. The normal CI would be misleadingly symmetric around $\hat\beta_1$.</p>
+  </div>
+</div>
+
+<div class="slide-nav">
+  <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
+  <span id="sct">Slide 1 of 12</span>
+  <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
+</div>
+</div>
+</div>
+<script>
+const SK='aiml-m15-v1';
+let cs=1, ts=12, bsz=18;
+function showSlide(n) {
+  try {
+    var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(prev) prev.classList.remove('active');
+    cs=Math.max(1,Math.min(ts,n));
+    var next=document.querySelector('.slide[data-slide="'+cs+'"]');
+    if(next) next.classList.add('active');
+    var sct=document.getElementById('sct');
+    if(sct) sct.textContent='Slide '+cs+' of '+ts;
+    var pbtn=document.getElementById('pbtn');
+    var nbtn=document.getElementById('nbtn');
+    if(pbtn) pbtn.disabled=(cs===1);
+    if(nbtn) nbtn.disabled=(cs===ts);
+    var pfill=document.getElementById('pfill');
+    if(pfill) pfill.style.width=(cs/ts*100)+'%';
+    try{localStorage.setItem(SK,JSON.stringify({cs:cs}));}catch(e){}
+    try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+  } catch(err){console.error('Nav error:',err);}
+}
+function chg(d){showSlide(cs+d);}
+function zoom(d){
+  bsz=d===0?18:Math.min(28,Math.max(14,bsz+d*2));
+  document.documentElement.style.setProperty('--base',bsz+'px');
+  try{localStorage.setItem(SK+'_sz',bsz);}catch(e){}
+}
+function togSol(id){
+  var s=document.getElementById(id);
+  if(s) s.style.display=s.style.display==='block'?'none':'block';
+  try{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise();}catch(e){}
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chg(1);}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chg(-1);}
+});
+(function(){
+  try{
+    var sv=JSON.parse(localStorage.getItem(SK));
+    if(sv&&sv.cs>1)showSlide(sv.cs);
+    var sz=localStorage.getItem(SK+'_sz');
+    if(sz){bsz=parseInt(sz,10);document.documentElement.style.setProperty('--base',bsz+'px');}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
