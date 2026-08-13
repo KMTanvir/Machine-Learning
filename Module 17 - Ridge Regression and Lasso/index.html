@@ -344,6 +344,133 @@ th { background: #f1f5f9; font-weight: 700; }
   </div>
 </div>
 <div class="slide" data-slide="12">
+  <span class="tag topic">Adaptive Lasso</span>
+  <h2>Adaptive Lasso: Weighted Penalties and Oracle Selection</h2>
+  <div class="box warn">
+    <strong>The limitation of standard lasso</strong>
+    Standard lasso assigns the same penalty weight $\lambda$ to every coefficient. Under mild conditions, lasso may include spurious predictors or miss true ones even as $n$ grows: it does not achieve <em>model selection consistency</em>. The probability of selecting exactly the correct set of predictors does not converge to 1.
+  </div>
+  <div class="box formula">
+    <strong>Adaptive Lasso objective</strong>
+    $$\hat{\boldsymbol{\beta}}^{\mathrm{AL}} = \arg\min_{\boldsymbol{\beta}}\left\{\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2 + \lambda\sum_{j=1}^p \hat{w}_j|\beta_j|\right\}, \qquad \hat{w}_j = \frac{1}{|\hat{\beta}_j^{\mathrm{init}}|^\gamma}$$
+    The weight $\hat{w}_j$ is inversely proportional to an initial estimate (OLS for $p &lt; n$; ridge for $p \geq n$). A predictor with a large initial coefficient gets a small penalty weight and is easily kept; a predictor with a small initial coefficient gets a large weight and is pushed more strongly to zero.
+  </div>
+  <div class="box def">
+    <strong>The oracle property</strong>
+    A procedure has the <em>oracle property</em> if, as $n \to \infty$: (i) it selects exactly the true nonzero predictors with probability 1; and (ii) it estimates the nonzero coefficients as accurately as if the correct model had been known in advance. Adaptive lasso achieves this. Standard lasso does not.
+  </div>
+  <div class="box note" style="font-size:0.92em;">
+    <strong>In practice</strong>
+    Two steps: (1) fit OLS or ridge to obtain the weights; (2) run weighted lasso. Cross-validate $\lambda$ and $\gamma$ (commonly $\gamma = 1$ or $\gamma = 2$). In R, supply the weight vector via the <code>penalty.factor</code> argument in <code>glmnet</code>.
+  </div>
+</div>
+
+<div class="slide" data-slide="13">
+  <span class="tag topic">Group Lasso</span>
+  <h2>Group Lasso: Selecting or Discarding Entire Groups</h2>
+  <div class="box warn">
+    <strong>The problem with individual penalty terms</strong>
+    Standard lasso treats every predictor independently. If $X_1$ is a categorical variable with 4 levels encoded as 3 dummy variables $D_1, D_2, D_3$, lasso may zero out $D_1$ while keeping $D_2$ and $D_3$. This is statistically incoherent: either the categorical variable matters or it does not. Partially zeroing one dummy but not others leaves a model with no clean interpretation.
+  </div>
+  <div class="box formula">
+    <strong>Group Lasso objective</strong>
+    Partition the $p$ predictors into $G$ groups $\mathcal{G}_1, \ldots, \mathcal{G}_G$ with sizes $p_1, \ldots, p_G$. Let $\boldsymbol{\beta}_g$ denote the coefficient subvector for group $g$:
+    $$\hat{\boldsymbol{\beta}}^{\mathrm{GL}} = \arg\min_{\boldsymbol{\beta}}\left\{\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2 + \lambda\sum_{g=1}^G \sqrt{p_g}\,\|\boldsymbol{\beta}_g\|_2\right\}$$
+    The $\ell_2$ norm ensures all coefficients in group $g$ are either all zero or all nonzero. The $\sqrt{p_g}$ factor corrects for group size.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.5rem;">
+    <div class="box def"><strong>Categorical variables</strong><br>All dummy indicators for one factor form one group. The factor enters or leaves the model as a unit, preserving interpretability.</div>
+    <div class="box def"><strong>Spline bases</strong><br>All basis functions for one covariate form one group. The entire nonlinear term is selected or discarded together.</div>
+    <div class="box def"><strong>Interaction sets</strong><br>All interactions involving one predictor form a group, enforcing hierarchical model structure automatically.</div>
+  </div>
+</div>
+
+<div class="slide" data-slide="14">
+  <span class="tag topic">Adaptive Elastic Net</span>
+  <h2>Adaptive Elastic Net: Oracle Property with Stability</h2>
+  <div class="box warn">
+    <strong>The gap between adaptive lasso and elastic net</strong>
+    Adaptive lasso achieves the oracle property but inherits lasso's instability with highly correlated predictors: when two predictors are nearly collinear, it picks one arbitrarily. Elastic net handles correlated predictors well (grouping property) but lacks the oracle property. The adaptive elastic net is designed to have both.
+  </div>
+  <div class="box formula">
+    <strong>Adaptive Elastic Net objective</strong>
+    $$\hat{\boldsymbol{\beta}}^{\mathrm{AEN}} = \arg\min_{\boldsymbol{\beta}}\left\{\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2 + \lambda_1\sum_{j=1}^p \hat{w}_j|\beta_j| + \lambda_2\|\boldsymbol{\beta}\|_2^2\right\}$$
+    where $\hat{w}_j = (|\hat{\beta}_j^{\mathrm{EN}}| + 1/n)^{-\gamma}$ and $\hat{\boldsymbol{\beta}}^{\mathrm{EN}}$ is an initial elastic net estimate. The $\ell_2$ term provides stability; the weighted $\ell_1$ term enforces oracle selection.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.5rem;">
+    <div class="box def">
+      <strong>Inherited from adaptive lasso</strong>
+      Oracle property: as $n \to \infty$, selects the true nonzero predictors with probability 1 and estimates them with optimal precision.
+    </div>
+    <div class="box note">
+      <strong>Inherited from elastic net</strong>
+      Grouping effect: highly correlated predictors receive similar coefficient estimates and tend to enter or leave the model together.
+    </div>
+  </div>
+  <div class="box ex" style="font-size:0.92em;margin-top:0.4rem;">
+    <strong>When to use</strong>
+    High dimensional settings ($p \gg n$) with correlated predictors, where both sparsity and selection consistency matter; for example, genomics with correlated gene expression profiles, or text data with clustered features.
+  </div>
+</div>
+
+<div class="slide" data-slide="15">
+  <span class="tag topic">Bridge Regression</span>
+  <h2>Bridge Regression: Unifying Ridge and Lasso by the Exponent $q$</h2>
+  <div class="box formula">
+    <strong>Bridge penalty</strong>
+    $$\hat{\boldsymbol{\beta}}^{\mathrm{bridge}} = \arg\min_{\boldsymbol{\beta}}\left\{\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2 + \lambda\sum_{j=1}^p|\beta_j|^q\right\}, \qquad 0 &lt; q \leq 2$$
+    Changing $q$ changes the shape of the penalty and the nature of the solution. Ridge ($q=2$) and lasso ($q=1$) are the two most important special cases.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin:0.5rem 0;">
+    <div class="box def">
+      <strong>$q = 2$: Ridge</strong>
+      Smooth parabolic penalty. No exact zeros. Unique, closed form solution. Best for stable shrinkage when all predictors contribute.
+    </div>
+    <div class="box note">
+      <strong>$q = 1$: Lasso</strong>
+      Kink at zero. Exact zeros possible. Convex; efficient coordinate descent exists. Best for sparse models.
+    </div>
+    <div class="box warn">
+      <strong>$0 &lt; q &lt; 1$: Sparser than lasso</strong>
+      Concave near zero; pushes small coefficients to exactly zero more aggressively than lasso. Solutions are sparser, but the problem is nonconvex: no unique global minimum is guaranteed and optimisation requires specialised algorithms.
+    </div>
+  </div>
+  <p style="font-size:0.92em;">As $q$ decreases from 2 toward 0, the constraint region shifts from a smooth sphere ($q=2$) to a diamond ($q=1$) to star shapes with sharp corners on the coordinate axes ($q &lt; 1$). This unifies all $\ell_q$ methods through a single geometric picture.</p>
+  <div class="box ex" style="font-size:0.9em;">
+    <strong>Practical guidance</strong>
+    Bridge with $q &lt; 1$ requires specialised algorithms (local quadratic approximation or DC programming). For applied work, lasso ($q=1$) provides sufficient sparsity with a convex, tractable problem. Bridge is most valuable as a theoretical lens for studying regularisation geometry.
+  </div>
+</div>
+
+<div class="slide" data-slide="16">
+  <span class="tag topic">Total Variation</span>
+  <h2>Total Variation Regularisation: Piecewise Constant Coefficient Profiles</h2>
+  <div class="box warn">
+    <strong>When the ordering of predictors matters</strong>
+    Standard lasso selects predictors independently with no notion of proximity. Many applications have <em>ordered</em> predictors where neighbouring coefficients should be similar: gene expression ordered along a chromosome, time points in a longitudinal study, or pixel intensities in an image. Total variation (TV) regularisation exploits this ordered structure explicitly.
+  </div>
+  <div class="box formula">
+    <strong>Fused Lasso (TV + $\ell_1$)</strong>
+    $$\hat{\boldsymbol{\beta}}^{\mathrm{TV}} = \arg\min_{\boldsymbol{\beta}}\left\{\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2 + \lambda_1\sum_{j=1}^p|\beta_j| + \lambda_2\underbrace{\sum_{j=1}^{p-1}|\beta_{j+1}-\beta_j|}_{\text{total variation}}\right\}$$
+    Total variation is small when adjacent coefficients are similar and large when they change abruptly. Minimising it encourages a piecewise constant coefficient profile with only a few sharp change-points.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.4rem;">
+    <div class="box def">
+      <strong>Application: genomics</strong>
+      Copy number variants affect contiguous chromosomal segments. TV regularisation identifies these as flat regions with abrupt shifts at segment boundaries, matching the true biological structure.
+    </div>
+    <div class="box note">
+      <strong>Application: image denoising</strong>
+      Pixels in a region are similar; edges are abrupt intensity changes. TV denoising removes Gaussian noise while preserving sharp edges, unlike ridge or smoothing splines which blur edges along with noise.
+    </div>
+  </div>
+  <div class="box ex" style="font-size:0.9em;margin-top:0.3rem;">
+    <strong>Software</strong>
+    In R, the <code>genlasso</code> package implements TV and fused lasso penalties for general design matrices.
+  </div>
+</div>
+
+<div class="slide" data-slide="17">
   <span class="tag topic">Selecting Lambda</span>
   <h2>Selecting the Regularisation Parameter</h2>
   <div class="box def">
@@ -365,7 +492,7 @@ th { background: #f1f5f9; font-weight: 700; }
   </div>
 </div>
 
-<div class="slide" data-slide="13">
+<div class="slide" data-slide="18">
   <span class="tag topic">Worked Example</span>
   <h2>Worked Example: Ridge vs OLS</h2>
   <p>Simple case: $p = 1$, $n = 4$ observations. After standardising $X$: $X^\top X = 3.6$, $X^\top y = 7.2$. OLS: $\hat\beta_1^{\mathrm{OLS}} = 7.2/3.6 = 2.0$.</p>
@@ -383,7 +510,7 @@ th { background: #f1f5f9; font-weight: 700; }
   </div>
 </div>
 
-<div class="slide" data-slide="14">
+<div class="slide" data-slide="19">
   <span class="tag exercise">In-Class Exercise</span>
   <h2>In-Class Exercise</h2>
   <p>A standardised dataset has $n = 50$, $p = 2$ predictors with $\mathbf{X}^\top\mathbf{X} = \begin{pmatrix}10 & 6\\6 & 10\end{pmatrix}$ and $\mathbf{X}^\top\mathbf{y} = \begin{pmatrix}8\\4\end{pmatrix}$.</p>
@@ -404,7 +531,7 @@ th { background: #f1f5f9; font-weight: 700; }
   </div>
 </div>
 
-<div class="slide" data-slide="15">
+<div class="slide" data-slide="20">
   <span class="tag practice">Practice Problems</span>
   <h2>Practice Problems</h2>
   <div class="box ex">
@@ -452,14 +579,14 @@ th { background: #f1f5f9; font-weight: 700; }
 
 <div class="slide-nav">
   <button id="pbtn" onclick="chg(-1)" disabled>&#8592; Prev</button>
-  <span id="sct">Slide 1 of 15</span>
+  <span id="sct">Slide 1 of 16</span>
   <button id="nbtn" onclick="chg(1)">Next &#8594;</button>
 </div>
 </div>
 </div>
 <script>
 const SK='aiml-m17-v1';
-let cs=1, ts=15, bsz=18;
+let cs=1, ts=20, bsz=18;
 function showSlide(n) {
   try {
     var prev=document.querySelector('.slide[data-slide="'+cs+'"]');
