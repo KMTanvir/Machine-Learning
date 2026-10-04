@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 18 – Introduction to Decision Trees: CART | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b}
+#wrap{max-width:1100px;margin:0 auto;padding:.6rem 1rem 2rem}
+header{background:#1e3a5f;color:#fff;padding:.7rem 1.2rem;border-radius:10px;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700}
+header .meta{font-size:calc(var(--base)*.78);opacity:.82}
+.zoom-bar{display:flex;gap:.35rem;align-items:center}
+.zoom-bar button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:.18rem .55rem;font-size:calc(var(--base)*.82);cursor:pointer}
+.zoom-bar button:hover{background:rgba(255,255,255,.32)}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width .3s}
+.slide{display:none}.slide.active{display:block}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:.7rem;border-bottom:2px solid #2563eb;padding-bottom:.3rem}
+.slide h3{font-size:calc(var(--base)*1.05);color:#1e3a5f;margin:.9rem 0 .4rem}
+.slide p,.slide li{line-height:1.65;margin-bottom:.45rem}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:.5rem}
+.slide ul li,.slide ol li{margin-bottom:.3rem}
+.tag{display:inline-block;font-size:calc(var(--base)*.72);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.13rem .55rem;border-radius:4px;margin-bottom:.6rem}
+.tag.module{background:#dbeafe;color:#1e40af}
+.tag.topic{background:#f0fdf4;color:#166534}
+.tag.exercise{background:#fef9c3;color:#854d0e}
+.tag.practice{background:#fce7f3;color:#9d174d}
+.box{border-radius:8px;padding:.75rem 1rem;margin:.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc}
+.box.def{border-color:#2563eb;background:#eff6ff}
+.box.formula{border-color:#7c3aed;background:#f5f3ff}
+.box.note{border-color:#d97706;background:#fffbeb}
+.box.warn{border-color:#dc2626;background:#fff1f2}
+.box.ex{border-color:#059669;background:#f0fdf4}
+.box strong{display:block;margin-bottom:.3rem;color:#1e293b}
+.sol-btn{margin-top:.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:.38rem .9rem;font-size:calc(var(--base)*.83);cursor:pointer}
+.sol-btn:hover{background:#2563eb}
+.solution{display:none;margin-top:.6rem;border-top:1px dashed #cbd5e1;padding-top:.6rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:calc(var(--base)*.9)}
+th,td{border:1px solid #cbd5e1;padding:.35rem .6rem;text-align:left}
+th{background:#f1f5f9;font-weight:600}
+canvas{display:block;border-radius:8px;background:#f8fafc}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid #e2e8f0}
+.nav-row button{background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;font-size:calc(var(--base)*.88);cursor:pointer}
+.nav-row button:hover{background:#2563eb}
+.nav-row button:disabled{background:#94a3b8;cursor:default}
+.slide-num{font-size:calc(var(--base)*.82);color:#64748b}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <h1>Module 18: Introduction to Decision Trees: CART</h1>
+    <div class="meta">AST402 Statistics for AI and Machine Learning &nbsp;|&nbsp; Part F: Tree-Based Methods &nbsp;|&nbsp; IASDS, University of Dhaka</div>
+  </div>
+  <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
+</header>
+<div id="slides">
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:10%"></div></div>
+
+  <!-- Slide 1 -->
+  <div class="slide active" data-slide="1">
+    <span class="tag module">Module 18</span>
+    <h2>Decision Trees: CART</h2>
+    <p>Decision trees partition the feature space into rectangular regions and fit a simple model (constant) in each region. They are highly interpretable, handle mixed data types naturally, and require no feature scaling.</p>
+    <div class="box def">
+      <strong>Learning Objectives</strong>
+      <ul>
+        <li>Understand recursive binary splitting and the CART algorithm</li>
+        <li>Apply the RSS splitting criterion for regression trees, and locate the optimal split by exhaustive search</li>
+        <li>Interpret a fitted tree: splitting rules, leaf predictions, and feature importance</li>
+        <li>Recognise overfitting in deep trees and the need for pruning (Module 19)</li>
+        <li>Identify the strengths and limitations of single decision trees</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>CART</strong>
+      Classification and Regression Trees (Breiman et al., 1984) is the foundational algorithm. It builds binary trees using greedy recursive splitting and applies cost-complexity pruning to control depth. Bagging, random forests and boosting, covered in the supplementary material, are all ensemble methods built on CART trees.
+    </div>
+  </div>
+
+  <!-- Slide 2: Tree structure canvas -->
+  <div class="slide" data-slide="2">
+    <span class="tag topic">Tree Structure</span>
+    <h2>Anatomy of a Decision Tree</h2>
+    <canvas id="cv-tree" width="700" height="300" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <div class="two-col" style="margin-top:.6rem;">
+      <div class="box def">
+        <strong>Terminology</strong>
+        <ul>
+          <li><b>Root node:</b> the first split, applied to all training data</li>
+          <li><b>Internal node:</b> a subsequent split on a subset of data</li>
+          <li><b>Leaf (terminal node):</b> no further splitting; prediction made here</li>
+          <li><b>Depth:</b> number of splits from root to the deepest leaf</li>
+          <li><b>Branch:</b> a path from root to a leaf</li>
+        </ul>
+      </div>
+      <div class="box note">
+        <strong>Prediction</strong>
+        <ul>
+          <li><b>Regression:</b> mean of training $y$ in the leaf</li>
+          <li><b>Classification:</b> majority class in the leaf (or class probabilities $\hat{p}_{mk}$)</li>
+          <li>To predict for a new observation: traverse the tree from root, following splits, until a leaf is reached</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Recursive binary splitting (the idea) -->
+  <div class="slide" data-slide="3">
+    <span class="tag topic">Tree Building</span>
+    <h2>Recursive Binary Splitting</h2>
+    <p>The tree on the previous slide is not specified by hand. It is grown from the data by one procedure, applied over and over.</p>
+    <div class="box def">
+      <strong>The algorithm</strong>
+      <ol>
+        <li>Place all training observations in the <b>root node</b>.</li>
+        <li>For every predictor $X_j$ and every candidate cutpoint $s$, consider the split $X_j &lt; s$ versus $X_j \geq s$, and measure how well it separates the responses.</li>
+        <li>Choose the single best pair $(j, s)$ and divide the node into <b>two children</b>.</li>
+        <li>Apply steps 2 and 3 again to each child, using only the observations that reached it.</li>
+        <li>Stop when a stopping rule is met (Slide 9). Each remaining node is a <b>leaf</b>.</li>
+      </ol>
+    </div>
+    <div class="two-col" style="margin-top:.6rem;">
+      <div class="box note">
+        <strong>Reading the name</strong>
+        <ul>
+          <li><b>Binary:</b> every split produces exactly two children.</li>
+          <li><b>Recursive:</b> each child is treated as a new, smaller problem and split by the same rule.</li>
+          <li><b>Splitting:</b> each step divides the predictor space into rectangular regions.</li>
+        </ul>
+      </div>
+      <div class="box note">
+        <strong>What "best" means</strong>
+        For a regression tree, the best split minimises the residual sum of squares (next slide). For a classification tree, it minimises an impurity measure, the Gini index or entropy, developed in Module 19.
+      </div>
+    </div>
+    <div class="box warn">
+      <strong>Greedy, not global</strong>
+      Each split is the best available at that moment. The algorithm never backtracks to reconsider an earlier split, because searching over all possible trees is intractable.
+    </div>
+  </div>
+
+  <!-- Slide 4: Splitting criterion for regression -->
+  <div class="slide" data-slide="4">
+  <span class="tag topic">Regression Trees</span>
+  <h2>The Splitting Criterion for Regression</h2>
+  <div class="box def">
+    <strong>What the tree is minimising</strong>
+    A regression tree partitions the predictor space into $J$ non overlapping boxes $R_1, \ldots, R_J$ and predicts the mean response within each box. The goal is to choose the boxes that minimise
+    $$\sum_{j=1}^{J}\sum_{i \in R_j}\left(y_i - \hat y_{R_j}\right)^2, \qquad \hat y_{R_j} = \frac{1}{|R_j|}\sum_{i \in R_j} y_i$$
+  </div>
+  <p>Searching over every possible partition is computationally infeasible, so CART proceeds greedily. At each step it considers every predictor $X_k$ and every candidate cutpoint $s$, defining</p>
+  $$R_1(k,s) = \{X \mid X_k &lt; s\}, \qquad R_2(k,s) = \{X \mid X_k \geq s\}$$
+  <p>and chooses the pair $(k,s)$ minimising</p>
+  $$\text{RSS}(k,s) = \sum_{i \in R_1(k,s)}(y_i - \hat y_{R_1})^2 + \sum_{i \in R_2(k,s)}(y_i - \hat y_{R_2})^2$$
+  <div class="box note">
+    <strong>Why only $n-1$ cutpoints matter per predictor</strong>
+    The RSS changes only when a cutpoint moves past an observation, so for a predictor with $n$ distinct values there are at most $n-1$ distinct splits worth testing, conventionally placed at the midpoints between consecutive sorted values.  </div>
+  <div class="box warn">
+    <strong>Greedy is not optimal</strong>
+    The split chosen first is the one that helps most <em>immediately</em>. It may not belong to the best tree of a given size, exactly as forward stepwise selection can miss the best subset. Trees accept this because the exhaustive search is intractable, and pruning later repairs some of the damage.
+  </div>
+</div>
+
+<div class="slide" data-slide="5">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Growing a Depth 1 Regression Tree</h2>
+    <p>Five observations are available: $(X,Y) = (1,2),\,(2,4),\,(3,3),\,(6,8),\,(8,7)$. Build a depth 1 regression tree, that is a single split on $X$.</p>
+    <div class="box def">
+      <strong>Step 1: list the candidate splits</strong>
+      The sorted distinct values of $X$ are $1, 2, 3, 6, 8$, so the candidate cutpoints are the four midpoints between consecutive values:
+      $$s \in \{1.5,\; 2.5,\; 4.5,\; 7.0\}$$
+      With $n = 5$ there are at most $n-1 = 4$ splits worth testing.
+    </div>
+    <div class="box formula">
+      <strong>Step 2: evaluate every candidate</strong>
+      For each split, take the mean of $Y$ in each child and sum the squared deviations about those means.
+      <table>
+        <tr><th>Split</th><th>Left $Y$</th><th>$\bar y_L$</th><th>RSS$_L$</th><th>Right $Y$</th><th>$\bar y_R$</th><th>RSS$_R$</th><th>Total RSS</th></tr>
+        <tr><td>$X &lt; 1.5$</td><td>$\{2\}$</td><td>$2.00$</td><td>$0.00$</td><td>$\{4,3,8,7\}$</td><td>$5.50$</td><td>$17.00$</td><td>$17.00$</td></tr>
+        <tr><td>$X &lt; 2.5$</td><td>$\{2,4\}$</td><td>$3.00$</td><td>$2.00$</td><td>$\{3,8,7\}$</td><td>$6.00$</td><td>$14.00$</td><td>$16.00$</td></tr>
+        <tr><td>$X &lt; 4.5$</td><td>$\{2,4,3\}$</td><td>$3.00$</td><td>$2.00$</td><td>$\{8,7\}$</td><td>$7.50$</td><td>$0.50$</td><td>$\mathbf{2.50}$</td></tr>
+        <tr><td>$X &lt; 7.0$</td><td>$\{2,4,3,8\}$</td><td>$4.25$</td><td>$20.75$</td><td>$\{7\}$</td><td>$7.00$</td><td>$0.00$</td><td>$20.75$</td></tr>
+      </table>
+      Sample working for the winner, $X &lt; 4.5$:
+      $$\text{RSS}_L = (2-3)^2+(4-3)^2+(3-3)^2 = 1+1+0 = 2.00$$
+      $$\text{RSS}_R = (8-7.5)^2+(7-7.5)^2 = 0.25+0.25 = 0.50$$
+    </div>
+    <div class="box ex">
+      <strong>Step 3: the chosen split and how much it buys</strong>
+      The split $X &lt; 4.5$ gives the smallest total RSS, $2.50$. The fitted tree is
+      $$\hat f(X) = \begin{cases} 3.0 & \text{if } X &lt; 4.5 \\ 7.5 & \text{if } X \geq 4.5 \end{cases}$$
+      Before any split the root predicts $\bar y = 24/5 = 4.8$, giving
+      $$\text{TSS} = (2-4.8)^2+(4-4.8)^2+(3-4.8)^2+(8-4.8)^2+(7-4.8)^2 = 26.80$$
+      So one split removes $26.80 - 2.50 = 24.30$, which is $90.7\%$ of the total variation.
+    </div>
+    <div class="box note">
+      <strong>Reading the table</strong>
+      The two extreme splits perform worst. $X &lt; 1.5$ and $X &lt; 7.0$ each isolate a single observation, leaving four points with a wide spread in the other child. The best split is the one that separates the two natural groups, $\{1,2,3\}$ and $\{6,8\}$, and this is what recursive binary splitting discovers automatically without being told the groups exist.
+    </div>
+  </div>
+
+<div class="slide" data-slide="6">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Growing to Depth 2</h2>
+    <p>Continuing the same data, each child of the depth 1 tree is now split again. Recursive splitting treats each node as a fresh problem, using only the observations that reach it.</p>
+    <h3>Left node: $X &lt; 4.5$, containing $(1,2),(2,4),(3,3)$</h3>
+    <div class="box formula">
+      Candidate cutpoints are $1.5$ and $2.5$.
+      <table>
+        <tr><th>Split</th><th>Left $Y$</th><th>RSS$_L$</th><th>Right $Y$</th><th>RSS$_R$</th><th>Total</th></tr>
+        <tr><td>$X &lt; 1.5$</td><td>$\{2\}$</td><td>$0.00$</td><td>$\{4,3\}$</td><td>$0.50$</td><td>$\mathbf{0.50}$</td></tr>
+        <tr><td>$X &lt; 2.5$</td><td>$\{2,4\}$</td><td>$2.00$</td><td>$\{3\}$</td><td>$0.00$</td><td>$2.00$</td></tr>
+      </table>
+      The winner is $X &lt; 1.5$, with RSS $= 0.50$. Working: $\bar y_R = (4+3)/2 = 3.5$, so $\text{RSS}_R = (4-3.5)^2+(3-3.5)^2 = 0.25+0.25 = 0.50$.
+    </div>
+    <h3>Right node: $X \geq 4.5$, containing $(6,8),(8,7)$</h3>
+    <div class="box formula">
+      Only one cutpoint is available, $X &lt; 7.0$. It sends one observation to each side, so each child is a single point and both residuals are zero:
+      $$\text{RSS} = 0.00$$
+      The node is now perfectly fitted, which is exactly the warning sign discussed on Slide 9.
+    </div>
+    <div class="box ex">
+      <strong>Comparing the two depths</strong>
+      <table>
+        <tr><th>Tree</th><th>Leaves</th><th>Training RSS</th><th>Percent of TSS removed</th></tr>
+        <tr><td>Root only</td><td>1</td><td>$26.80$</td><td>$0.0\%$</td></tr>
+        <tr><td>Depth 1</td><td>2</td><td>$2.50$</td><td>$90.7\%$</td></tr>
+        <tr><td>Depth 2</td><td>4</td><td>$0.50$</td><td>$98.1\%$</td></tr>
+      </table>
+      Training RSS falls every time a split is added, and will reach exactly $0$ once every leaf holds a single observation. That is why training RSS can never be used to choose the tree size.
+    </div>
+    <div class="box warn">
+      <strong>What the second level actually bought</strong>
+      The first split removed $24.30$ of RSS using one degree of freedom. The second level removed a further $2.00$ using two more splits. With only five observations, four leaves means an average of $1.25$ observations per leaf, so the depth 2 tree is fitting individual points rather than structure. Cross validation would almost certainly prefer the depth 1 tree here, and cost-complexity pruning in Module 19 provides the machinery to make that choice formally.
+    </div>
+  </div>
+
+<div class="slide" data-slide="7">
+  <span class="tag topic">Predictors</span>
+  <h2>Categorical Predictors and Missing Values</h2>
+  <h3>Categorical predictors</h3>
+  <p>A qualitative predictor with $q$ unordered levels admits $2^{q-1}-1$ possible binary splits, which grows explosively: $q = 10$ already gives $511$ candidate splits.</p>
+  <div class="box def">
+    <strong>The ordering shortcut</strong>
+    For a <em>regression</em> tree, or a <em>two class</em> classification tree, the optimal split can be found without an exhaustive search. Order the levels by their mean response (or by the proportion in class 1), then treat the predictor as if it were ordered and test only the $q-1$ splits along that ordering. This provably yields the optimal partition, reducing the cost from exponential to linear.
+  </div>
+  <div class="box warn">
+    <strong>The bias this introduces</strong>
+    A categorical predictor with many levels has many more candidate splits than a binary one, so it is more likely to produce a good split <em>by chance alone</em>. Trees are therefore biased towards selecting high cardinality predictors. Grouping rare levels, or using a method that corrects for the number of candidate splits, mitigates this.
+  </div>
+  <h3>Missing values</h3>
+  <p>Trees handle missing data more gracefully than most methods, through two devices.</p>
+  <ul>
+    <li><strong>Missing as a category.</strong> For a categorical predictor, treat "missing" as a level in its own right. If missingness carries information, the tree can exploit it.</li>
+    <li><strong>Surrogate splits.</strong> For each split, record the alternative splits on other predictors that most closely reproduce it. When an observation reaches that node with the primary variable missing, the best available surrogate is used instead.</li>
+  </ul>
+  <div class="box ex">
+    <strong>Contrast with linear regression</strong>
+    Ordinary least squares discards any observation with a missing value in any predictor. With $p$ predictors each independently missing $5\%$ of the time, a complete case analysis with $p = 20$ retains only $0.95^{20} = 35.8\%$ of the data. A tree with surrogates keeps all of it.
+  </div>
+</div>
+
+<div class="slide" data-slide="8">
+    <span class="tag topic">Interpretation</span>
+    <h2>Feature Importance and Tree Properties</h2>
+    <div class="box def">
+      <strong>Variable importance</strong>
+      The importance of predictor $X_j$ is the total reduction in impurity (RSS or Gini) due to splits on $X_j$, summed over all nodes where $X_j$ is used:
+      $$\mathrm{VI}(j) = \sum_{\text{nodes } t:\,j \text{ used}} \bigl[\mathrm{Impurity}(t) - w_L\,\mathrm{Impurity}(t_L) - w_R\,\mathrm{Impurity}(t_R)\bigr]$$
+      where $w_L, w_R$ are the fractions of training observations in the left and right children. Higher importance means the predictor is used more frequently and produces larger purity gains.
+    </div>
+    <table>
+      <tr><th>Property</th><th>Decision Tree</th></tr>
+      <tr><td>Handles mixed types</td><td>Yes (categorical splits naturally)</td></tr>
+      <tr><td>Feature scaling needed</td><td>No</td></tr>
+      <tr><td>Missing values</td><td>Surrogate splits</td></tr>
+      <tr><td>Interactions</td><td>Captured automatically via hierarchical splits</td></tr>
+      <tr><td>Interpretability</td><td>High (visualise the full tree)</td></tr>
+      <tr><td>Variance</td><td>High (small data changes alter the tree)</td></tr>
+      <tr><td>Bias</td><td>Low for deep trees, high for shallow</td></tr>
+    </table>
+    <div class="box warn">
+      <strong>High variance: the core weakness</strong>
+      A decision tree fitted on a slightly different training set can look completely different. This instability is what makes ensembles (bagging, random forests, boosting) so powerful: they average over many trees to reduce variance.
+    </div>
+  </div>
+
+  <!-- Slide 6: Regression tree worked example -->
+  <div class="slide" data-slide="9">
+    <span class="tag topic">Overfitting</span>
+    <h2>Stopping Criteria and Overfitting</h2>
+    <div class="box def">
+      <strong>Common stopping criteria (pre-pruning)</strong>
+      <ul>
+        <li>Minimum node size: stop splitting if a node has fewer than $n_{\min}$ observations (e.g.\ 5 or 10)</li>
+        <li>Maximum depth: limit the tree to $d$ levels</li>
+        <li>Minimum impurity decrease: split only if the impurity reduction exceeds a threshold $\gamma$</li>
+        <li>Maximum leaf count: limit the total number of leaves</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <strong>Pre-pruning vs post-pruning</strong>
+      Pre-pruning (stopping early) is simple but myopic: a split that appears unhelpful may enable a good split two levels deeper. Post-pruning (grow a full tree then prune back) is more principled and is the approach taken by CART via cost-complexity pruning, covered in Module 19.
+    </div>
+    <div class="box note">
+      <strong>Overfitting in deep trees</strong>
+      A fully grown tree (one observation per leaf) has training error = 0 but extremely high test error. Each leaf memorises a single training point. The bias-variance trade-off: shallow trees have high bias (underfitting), deep trees have high variance (overfitting). Cost-complexity pruning selects the tree size by cross-validation.
+    </div>
+  </div>
+
+  <!-- Slide 8: In-class exercise -->
+  <div class="slide" data-slide="10">
+  <span class="tag topic">Comparison</span>
+  <h2>Trees Compared with Linear Models</h2>
+  <p>Neither model class dominates. The right choice depends on the shape of the true relationship.</p>
+  <table>
+    <tr><th></th><th>Linear regression</th><th>Regression tree</th></tr>
+    <tr><td>Model form</td><td>$f(X) = \beta_0 + \sum_j \beta_j X_j$</td><td>$f(X) = \sum_j c_j \cdot 1\{X \in R_j\}$</td></tr>
+    <tr><td>Fitted surface</td><td>Smooth, globally linear</td><td>Piecewise constant, discontinuous at box boundaries</td></tr>
+    <tr><td>Interactions</td><td>Must be specified by hand</td><td>Captured automatically by successive splits</td></tr>
+    <tr><td>Non linearity</td><td>Requires transformation or basis expansion</td><td>Approximated by many small boxes</td></tr>
+    <tr><td>Extrapolation</td><td>Extends beyond the data range</td><td>Cannot: predictions are constant outside the observed range</td></tr>
+    <tr><td>Stability</td><td>Stable; small data changes shift coefficients slightly</td><td>Unstable; one changed observation can alter the top split and hence the whole tree</td></tr>
+    <tr><td>Interpretation</td><td>Coefficients as partial effects</td><td>A flowchart of rules, readable by non specialists</td></tr>
+  </table>
+  <div class="box def">
+    <strong>When each wins</strong>
+    If the true relationship really is close to linear and additive, linear regression wins: it estimates $p+1$ parameters efficiently, whereas a tree needs many splits to approximate a straight line with a staircase and pays for each in variance. If the relationship is highly non linear with strong interactions, the tree wins, because it discovers that structure without being told where to look.
+  </div>
+  <div class="box note">
+    <strong>The instability point matters</strong>
+    A single tree has high variance: refitting on a slightly different sample can produce a visibly different tree. This weakness is precisely what bagging and random forests exist to correct, by averaging many trees grown on resampled data.
+  </div>
+</div>
+<div class="slide" data-slide="11">
+    <span class="tag exercise">In-Class Exercise</span>
+    <h2>In-Class Exercise</h2>
+    <div class="box ex">
+      <strong>Questions</strong>
+      <ol>
+        <li>A node contains four observations $(X,Y) = (1,3),\,(2,5),\,(3,10),\,(4,12)$. Compute the RSS of the node before any split.</li>
+        <li>Evaluate the three candidate splits $X &lt; 1.5$, $X &lt; 2.5$ and $X &lt; 3.5$. Which does recursive binary splitting choose, and how much RSS does it remove?</li>
+        <li>Using the chosen split, what does the tree predict for a new observation with $X = 3.2$?</li>
+        <li>A regression tree is fitted to $n=200$ observations with $p=10$ predictors. At each split, the algorithm considers all $10 \times (n-1)$ possible split points. In what way does recursive binary splitting approximate the optimal solution?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('ex-sol')">Show answers</button>
+    <div class="solution" id="ex-sol">
+      <ol>
+        <li>$\bar y = (3+5+10+12)/4 = 7.5$, so $\text{RSS} = (-4.5)^2+(-2.5)^2+2.5^2+4.5^2 = 20.25+6.25+6.25+20.25 = 53.00$.</li>
+        <li>$X &lt; 1.5$: left $\{3\}$, right $\{5,10,12\}$ with mean $9$, total RSS $= 0 + (16+1+9) = 26.00$. $X &lt; 2.5$: left $\{3,5\}$ with mean $4$ (RSS $2$), right $\{10,12\}$ with mean $11$ (RSS $2$), total $= \mathbf{4.00}$. $X &lt; 3.5$: left $\{3,5,10\}$ with mean $6$ (RSS $26$), right $\{12\}$, total $= 26.00$. The split $X &lt; 2.5$ is chosen, removing $53 - 4 = 49$ of RSS, which is $92.5\%$.</li>
+        <li>$X = 3.2 \geq 2.5$, so the observation falls in the right leaf, whose prediction is the mean of $\{10, 12\}$, namely $11$.</li>
+        <li>With $n=200$ and $p=10$ the algorithm evaluates $10 \times 199 = 1990$ candidate splits at the root. Recursive binary splitting is greedy: each split is chosen to minimise the current RSS, without considering future splits. A globally optimal tree (over all possible hierarchical partitions) requires exponential search. The greedy algorithm is the tractable approximation; it performs well in practice despite the global suboptimality.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Slide 9: Practice Problems -->
+  <div class="slide" data-slide="12">
+    <span class="tag practice">Practice Problems</span>
+    <h2>Practice Problems</h2>
+    <div class="box ex">
+      <strong>Problem 1: Conceptual</strong>
+      <ol type="a">
+        <li>Explain why a decision tree does not require feature standardisation, while logistic regression and ridge regression do.</li>
+        <li>True or False: A fully grown decision tree (one leaf per training observation) always has lower test MSE than a depth-2 tree on the same data.</li>
+        <li>A tree is grown on a dataset with a continuous predictor $X$ taking values $\{1.2, 3.4, 5.1, 7.8, 9.0\}$. How many distinct split points does CART consider for $X$?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('pp1-sol')">Show solution</button>
+    <div class="solution" id="pp1-sol">
+      <ol type="a">
+        <li>Decision tree splits are of the form $X_j &lt; s$: the scale of $X_j$ does not affect which split is chosen, only the threshold $s$. In contrast, ridge regression penalises $\sum\beta_j^2$ and logistic regression uses $\mathbf{x}^\top\boldsymbol\beta$: both treat coefficients differently depending on predictor scale, so standardisation is needed for fair penalisation or comparison.</li>
+        <li>False. A fully grown tree has zero training error (each leaf contains one observation) but very high variance. Its test MSE will be much higher than that of a pruned tree. Lower training error does not imply lower test MSE.</li>
+        <li>Candidate split points are midpoints between consecutive sorted values: $(1.2+3.4)/2=2.3$, $(3.4+5.1)/2=4.25$, $(5.1+7.8)/2=6.45$, $(7.8+9.0)/2=8.4$. CART considers 4 candidate split points.</li>
+      </ol>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2: Calculation</strong>
+      A regression tree node contains six observations $(X,Y)$: $(1,4),\,(2,6),\,(3,5),\,(4,12),\,(5,14),\,(6,13)$.
+      <ol type="a">
+        <li>Compute the RSS of the node before splitting.</li>
+        <li>Compute the total RSS after the split $X &lt; 3.5$, and state the prediction in each child.</li>
+        <li>Compute the RSS reduction. Is this split worthwhile?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('pp2-sol')">Show solution</button>
+    <div class="solution" id="pp2-sol">
+      <ol type="a">
+        <li>$\bar y = 54/6 = 9$, so $\text{RSS} = 25+9+16+9+25+16 = 100.00$.</li>
+        <li>Left $\{4,6,5\}$ has mean $5$ and $\text{RSS}_L = 1+1+0 = 2$. Right $\{12,14,13\}$ has mean $13$ and $\text{RSS}_R = 1+1+0 = 2$. Total $= 4.00$. The tree predicts $5$ for $X &lt; 3.5$ and $13$ for $X \geq 3.5$.</li>
+        <li>Reduction $= 100 - 4 = 96$, which is $96\%$ of the total variation. This is a very worthwhile split: the data fall into two tight, well separated groups, and one split captures almost all the structure.</li>
+      </ol>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 3: Conceptual</strong>
+      <ol type="a">
+        <li>A decision tree assigns a variable importance score to each predictor. What does it mean if predictor $X_3$ has the highest importance in a regression tree?</li>
+        <li>You compare a single deep decision tree and a linear regression model on the same dataset. The linear model has lower test MSE. What does this suggest about the true relationship?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('pp3-sol')">Show solution</button>
+    <div class="solution" id="pp3-sol">
+      <ol type="a">
+        <li>$X_3$ produces the largest total reduction in RSS (or Gini) across all nodes where it is used as a splitting variable. It is the most useful predictor for partitioning the data into homogeneous regions. Note: importance is based on training data and may not reflect the true population importance, especially if predictors are correlated.</li>
+        <li>The true relationship is likely approximately linear (or at least smoother than what the tree captures). Linear regression imposes a global parametric structure that fits well when the signal is linear; a deep tree uses its flexibility to fit noise, resulting in high variance. When linear regression beats a decision tree, it suggests the nonlinear patterns are weak and the tree's high variance outweighs its lower bias.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
+    <span class="slide-num" id="slide-num">Slide 1 of 12</span>
+    <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
+  </div>
+</div>
+</div>
+<script>
+var SK='aiml-m18-cart-v2',ts=12;
+var cs=parseInt(localStorage.getItem(SK)||'1');
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
+  document.querySelector('[data-slide="'+n+'"]').classList.add('active');
+  document.getElementById('pbar').style.width=(n/ts*100)+'%';
+  document.getElementById('slide-num').textContent='Slide '+n+' of '+ts;
+  document.getElementById('btn-prev').disabled=(n===1);
+  document.getElementById('btn-next').disabled=(n===ts);
+  localStorage.setItem(SK,n);cs=n;
+  if(n===2) setTimeout(drawTree,80);
+}
+function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
+function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block')}
+function chgZ(d){var c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base'));document.documentElement.style.setProperty('--base',(c+d)+'px')}
+
+function drawTree(){
+  var cv=document.getElementById('cv-tree');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  // Node drawing helper
+  function node(x,y,txt,sub,fill){
+    ctx.fillStyle=fill||'#dbeafe';ctx.strokeStyle='#2563eb';ctx.lineWidth=1.5;
+    var w=160,h=46,r=8;
+    ctx.beginPath();ctx.moveTo(x-w/2+r,y);ctx.lineTo(x+w/2-r,y);ctx.quadraticCurveTo(x+w/2,y,x+w/2,y+r);
+    ctx.lineTo(x+w/2,y+h-r);ctx.quadraticCurveTo(x+w/2,y+h,x+w/2-r,y+h);
+    ctx.lineTo(x-w/2+r,y+h);ctx.quadraticCurveTo(x-w/2,y+h,x-w/2,y+h-r);
+    ctx.lineTo(x-w/2,y+r);ctx.quadraticCurveTo(x-w/2,y,x-w/2+r,y);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.fillStyle='#1e293b';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(txt,x,y+18);
+    if(sub){ctx.font='11px sans-serif';ctx.fillStyle='#475569';ctx.fillText(sub,x,y+34);}
+  }
+  function leaf(x,y,txt,col){
+    ctx.fillStyle=col||'#f0fdf4';ctx.strokeStyle='#059669';ctx.lineWidth=1.5;
+    var w=130,h=44;
+    ctx.beginPath();ctx.roundRect(x-w/2,y,w,h,8);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#166534';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(txt,x,y+28);
+  }
+  function line(x1,y1,x2,y2){ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+  // Root
+  node(350,20,'Age < 40?','Root node','#dbeafe');
+  // Level 1
+  line(350,66,175,130);line(350,66,525,130);
+  node(175,130,'Income < 50k?','Internal','#dbeafe');
+  node(525,130,'Income < 80k?','Internal','#dbeafe');
+  // Level 2 leaves
+  line(175,176,90,230);line(175,176,260,230);
+  line(525,176,440,230);line(525,176,610,230);
+  leaf(90,230,'Low risk','#f0fdf4');
+  leaf(260,230,'Medium','#fef9c3');
+  leaf(440,230,'Medium','#fef9c3');
+  leaf(610,230,'High risk','#fff1f2');
+  // Edge labels
+  ctx.fillStyle='#475569';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Yes',260,115);ctx.fillText('No',440,115);
+  ctx.fillText('Yes',118,218);ctx.fillText('No',232,218);
+  ctx.fillText('Yes',468,218);ctx.fillText('No',582,218);
+}
+
+
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')chgSlide(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')chgSlide(-1);
+});
+showSlide(cs);
+</script>
+</body>
+</html>
