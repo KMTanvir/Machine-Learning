@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 19 – Classification Trees and Pruning | AST402</title>
+<script>
+MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea']}};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b}
+#wrap{max-width:1100px;margin:0 auto;padding:.6rem 1rem 2rem}
+header{background:#1e3a5f;color:#fff;padding:.7rem 1.2rem;border-radius:10px;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700}
+header .meta{font-size:calc(var(--base)*.78);opacity:.82}
+.zoom-bar{display:flex;gap:.35rem;align-items:center}
+.zoom-bar button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:.18rem .55rem;font-size:calc(var(--base)*.82);cursor:pointer}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width .3s}
+.slide{display:none}.slide.active{display:block}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:.7rem;border-bottom:2px solid #2563eb;padding-bottom:.3rem}
+.slide p,.slide li{line-height:1.65;margin-bottom:.45rem}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:.5rem}
+.slide ul li,.slide ol li{margin-bottom:.3rem}
+.tag{display:inline-block;font-size:calc(var(--base)*.72);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.13rem .55rem;border-radius:4px;margin-bottom:.6rem}
+.tag.module{background:#dbeafe;color:#1e40af}.tag.topic{background:#f0fdf4;color:#166534}
+.tag.exercise{background:#fef9c3;color:#854d0e}.tag.practice{background:#fce7f3;color:#9d174d}
+.box{border-radius:8px;padding:.75rem 1rem;margin:.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc}
+.box.def{border-color:#2563eb;background:#eff6ff}.box.formula{border-color:#7c3aed;background:#f5f3ff}
+.box.note{border-color:#d97706;background:#fffbeb}.box.warn{border-color:#dc2626;background:#fff1f2}
+.box.ex{border-color:#059669;background:#f0fdf4}
+.box strong{display:block;margin-bottom:.3rem;color:#1e293b}
+.sol-btn{margin-top:.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:.38rem .9rem;font-size:calc(var(--base)*.83);cursor:pointer}
+.sol-btn:hover{background:#2563eb}
+.solution{display:none;margin-top:.6rem;border-top:1px dashed #cbd5e1;padding-top:.6rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:calc(var(--base)*.9)}
+th,td{border:1px solid #cbd5e1;padding:.35rem .6rem;text-align:left}
+th{background:#f1f5f9;font-weight:600}
+canvas{display:block;border-radius:8px;background:#f8fafc}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid #e2e8f0}
+.nav-row button{background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;font-size:calc(var(--base)*.88);cursor:pointer}
+.nav-row button:hover{background:#2563eb}.nav-row button:disabled{background:#94a3b8;cursor:default}
+.slide-num{font-size:calc(var(--base)*.82);color:#64748b}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <h1>Module 19: Classification Trees and Pruning</h1>
+    <div class="meta">AST402 Statistics for AI and Machine Learning &nbsp;|&nbsp; Part F: Tree-Based Methods &nbsp;|&nbsp; IASDS, University of Dhaka</div>
+  </div>
+  <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
+</header>
+<div id="slides">
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:12%"></div></div>
+
+  <div class="slide active" data-slide="1">
+    <span class="tag module">Module 19</span>
+    <h2>Classification Trees and Pruning</h2>
+    <p>This module completes the treatment of single trees. First we adapt recursive binary splitting to a categorical response, using node impurity in place of residual sum of squares. Then we address the fact that a fully grown tree overfits, and derive cost-complexity pruning as a principled way to trade training error against tree size.</p>
+    <div class="box def">
+      <strong>Learning Objectives</strong>
+      <ul>
+        <li>Predict a class and estimate class probabilities from a terminal node</li>
+        <li>Compute the Gini index, cross entropy and misclassification error, and choose between them</li>
+        <li>Explain why fully grown trees overfit and why pre-pruning is myopic</li>
+        <li>Derive the cost-complexity (weakest link) pruning criterion</li>
+        <li>Apply the pruning algorithm step by step</li>
+        <li>Select the optimal tree size using cross-validation</li>
+        <li>Interpret the complexity parameter $\alpha$ as a regularisation penalty</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Pruning as regularisation</strong>
+      Cost-complexity pruning is the tree analogue of ridge/lasso regularisation. The penalty parameter $\alpha$ controls the bias-variance trade-off, with $\alpha = 0$ giving the full tree and $\alpha \to \infty$ collapsing to the root (intercept-only model).
+    </div>
+  </div>
+
+  <div class="slide" data-slide="2">
+  <span class="tag topic">Classification Trees</span>
+  <h2>Classification Trees: Prediction and Node Purity</h2>
+  <p>A classification tree grows in exactly the same way as a regression tree, by recursive binary splitting. Only two things change: how a node makes a prediction, and how the quality of a split is measured.</p>
+  <div class="box def">
+    <strong>Prediction rule</strong>
+    Let $\hat p_{mk}$ be the proportion of training observations in node $m$ that belong to class $k$:
+    $$\hat p_{mk} = \frac{1}{n_m}\sum_{i \in R_m} 1\{y_i = k\}$$
+    The node predicts the <em>majority class</em>, $\arg\max_k \hat p_{mk}$. The vector $(\hat p_{m1},\ldots,\hat p_{mK})$ itself serves as the estimated class probabilities, which is what allows a tree to produce a ROC curve.
+  </div>
+  <h3>Why RSS is replaced</h3>
+  <p>Residual sum of squares is meaningless for an unordered categorical response, so a measure of <em>node impurity</em> takes its place. A node is pure when all its observations share one class, and maximally impure when the classes are evenly balanced.</p>
+  <div class="box formula">
+    <strong>The three standard measures</strong>
+    $$\text{Misclassification error: } E_m = 1 - \max_k \hat p_{mk}$$
+    $$\text{Gini index: } G_m = \sum_{k=1}^{K}\hat p_{mk}(1-\hat p_{mk}) = 1 - \sum_{k=1}^{K}\hat p_{mk}^2$$
+    $$\text{Cross entropy: } D_m = -\sum_{k=1}^{K}\hat p_{mk}\log \hat p_{mk}$$
+    All three equal zero when the node is pure. For $K = 2$ they are maximised at $\hat p = 0.5$, taking the values $0.5$, $0.5$ and $\log 2 = 0.693$ respectively.
+  </div>
+  <div class="box note">
+    <strong>Combining child nodes</strong>
+    A split is scored by the <em>weighted</em> impurity of the two children, weighted by the number of observations each receives:
+    $$\text{score} = \frac{n_L}{n}Q_L + \frac{n_R}{n}Q_R$$
+    Weighting matters: a split producing one perfectly pure node containing a single observation is worth far less than one that cleanly separates two large groups.
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+    <span class="tag topic">Impurity</span>
+    <h2>Impurity Measures: Comparison</h2>
+    <canvas id="cv-impurity" width="700" height="220" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <p style="font-size:.82em;color:#475569;text-align:center;">Misclassification error (blue), Gini index (orange), and entropy/2 (green) as a function of class proportion $\hat{p}$ in a 2-class problem. Gini and entropy are more sensitive to impurity changes, making them better split criteria.</p>
+    <div class="box warn">
+      <strong>Misclassification error is a poor split criterion</strong>
+      Misclassification error $= 1 - \max_k \hat{p}_{mk}$ is not sensitive to the distribution of class probabilities within a node. Two nodes with very different impurity can have the same misclassification error. Use Gini or entropy for splitting; use misclassification error only for pruning evaluation.
+    </div>
+    <div class="box note">
+      <strong>Two nodes, same error, different impurity</strong>
+      With three classes, consider two nodes of $100$ observations each:
+      <table>
+        <tr><th>Node</th><th>Class counts</th><th>Error $= 1-\max_k \hat p_k$</th><th>Gini</th><th>Entropy</th></tr>
+        <tr><td>$X$</td><td>$(50,\,30,\,20)$</td><td>$0.5000$</td><td>$0.6200$</td><td>$1.0297$</td></tr>
+        <tr><td>$Y$</td><td>$(50,\,50,\,0)$</td><td>$0.5000$</td><td>$\mathbf{0.5000}$</td><td>$\mathbf{0.6931}$</td></tr>
+      </table>
+      Working for node $Y$: $G = 1-(0.5^2+0.5^2+0^2) = 1-0.50 = 0.50$, and $D = -2(0.5\ln 0.5) = 0.6931$.
+      Both nodes misclassify half their observations, so misclassification error cannot tell them apart. Yet node $Y$ has eliminated a class entirely and is clearly further along towards purity, which is exactly what Gini and entropy register and error does not.
+    </div>
+  </div>
+
+  <!-- Slide 5: Feature importance and properties -->
+  <div class="slide" data-slide="4">
+  <span class="tag exercise">Worked Example</span>
+  <h2>Worked Example: Choosing a Classification Split</h2>
+  <p>A node contains $80$ observations, $40$ of class A and $40$ of class B, so it is maximally impure. Two candidate splits are available.</p>
+  <table>
+    <tr><th>Split</th><th>Left child</th><th>Right child</th></tr>
+    <tr><td>Split 1</td><td>$30$ A, $10$ B &nbsp;($n_L = 40$)</td><td>$10$ A, $30$ B &nbsp;($n_R = 40$)</td></tr>
+    <tr><td>Split 2</td><td>$40$ A, $20$ B &nbsp;($n_L = 60$)</td><td>$0$ A, $20$ B &nbsp;($n_R = 20$)</td></tr>
+  </table>
+  <p><strong>Parent impurity.</strong> With $\hat p_A = \hat p_B = 0.5$:</p>
+  $$G_{\text{parent}} = 1 - (0.5^2 + 0.5^2) = 0.5, \qquad E_{\text{parent}} = 1 - 0.5 = 0.5$$
+  <h3>Split 1</h3>
+  $$G_L = 1 - \left[(0.75)^2 + (0.25)^2\right] = 1 - 0.625 = 0.375, \qquad G_R = 0.375 \text{ (by symmetry)}$$
+  $$G_{\text{split 1}} = \tfrac{40}{80}(0.375) + \tfrac{40}{80}(0.375) = \mathbf{0.375}$$
+  $$E_L = 1 - 0.75 = 0.25, \quad E_R = 0.25, \qquad E_{\text{split 1}} = \mathbf{0.25}$$
+  <h3>Split 2</h3>
+  $$G_L = 1 - \left[\left(\tfrac{40}{60}\right)^2 + \left(\tfrac{20}{60}\right)^2\right] = 1 - (0.4444 + 0.1111) = 0.4444, \qquad G_R = 1 - (0 + 1) = 0$$
+  $$G_{\text{split 2}} = \tfrac{60}{80}(0.4444) + \tfrac{20}{80}(0) = \mathbf{0.3333}$$
+  $$E_L = 1 - \tfrac{40}{60} = 0.3333, \quad E_R = 0, \qquad E_{\text{split 2}} = \tfrac{60}{80}(0.3333) + \tfrac{20}{80}(0) = \mathbf{0.25}$$
+  <div class="box warn">
+    <strong>The two criteria disagree</strong>
+    <table>
+      <tr><th>Criterion</th><th>Split 1</th><th>Split 2</th><th>Preferred</th></tr>
+      <tr><td>Gini</td><td>$0.3750$</td><td>$\mathbf{0.3333}$</td><td>Split 2</td></tr>
+      <tr><td>Misclassification error</td><td>$0.2500$</td><td>$0.2500$</td><td>Tie</td></tr>
+    </table>
+    Misclassification error cannot separate the two splits, because both leave $20$ of the $80$ observations misclassified. Gini prefers Split 2, and rightly so: Split 2 produces a <em>completely pure</em> node of $20$ observations, which is a terminal answer requiring no further work, whereas Split 1 leaves both children still mixed.
+  </div>
+  <div class="box def">
+    <strong>The lesson</strong>
+    Grow the tree with Gini or cross entropy, since they reward purity gains that misclassification error is blind to. Use misclassification error when <em>pruning</em>, where the objective is predictive accuracy of the final classifier rather than the quality of a further split.
+  </div>
+</div>
+<div class="slide" data-slide="5">
+    <span class="tag topic">Cost-Complexity Pruning</span>
+    <h2>Cost-Complexity (Weakest Link) Pruning</h2>
+    <div class="box formula">
+      <strong>Cost-complexity criterion</strong>
+      For a subtree $T$ with $|T|$ leaves, define:
+      $$C_\alpha(T) = \sum_{m=1}^{|T|} \sum_{i:\,x_i \in R_m}(y_i - \hat{y}_{R_m})^2 + \alpha|T|$$
+      The first term is training RSS; the second penalises the number of leaves. $\alpha \geq 0$ is the complexity parameter. For any $\alpha$, the optimal subtree $T(\alpha)$ minimises $C_\alpha(T)$ over all subtrees of the full tree $T_{\max}$.
+    </div>
+    <div class="box def">
+      <strong>Weakest link pruning algorithm</strong>
+      <ol>
+        <li>Grow the full tree $T_{\max}$ (stopping only at minimum node size).</li>
+        <li>For each internal node $t$, compute the effective $\alpha$ at which collapsing the subtree rooted at $t$ becomes beneficial:
+          $$g(t) = \frac{\mathrm{RSS}(t) - \mathrm{RSS}(T_t)}{|T_t| - 1}$$
+          where $T_t$ is the subtree rooted at $t$ and $\mathrm{RSS}(t)$ is the RSS of the single node $t$.</li>
+        <li>Collapse the node with smallest $g(t)$ (the weakest link). Record the resulting subtree.</li>
+        <li>Repeat until the tree collapses to a single node. This yields a sequence $T_0 \supset T_1 \supset \cdots \supset T_k = \{$root$\}$ with corresponding thresholds $0 \leq \alpha_0 &lt; \alpha_1 &lt; \cdots &lt; \alpha_k$.</li>
+        <li>Use cross-validation to select $\alpha^*$ from this sequence. Report $T(\alpha^*)$.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="6">
+    <span class="tag topic">Pruning Path</span>
+    <h2>The Pruning Sequence and Cross-Validation</h2>
+    <canvas id="cv-prune" width="700" height="230" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <p style="font-size:.82em;color:#475569;text-align:center;">Training error (blue) decreases monotonically with tree size. CV error (orange) is U-shaped: the optimal number of leaves balances bias and variance.</p>
+    <div class="box def">
+      <strong>Cross-validation procedure</strong>
+      <ol>
+        <li>Split data into $K$ folds.</li>
+        <li>For each fold, grow a full tree on the training portion and apply weakest-link pruning for the same $\alpha$ sequence.</li>
+        <li>Record the test error for each $\alpha$ across all folds.</li>
+        <li>Average the test errors. Select $\alpha^*$ minimising mean CV error (or apply the one-SE rule).</li>
+        <li>Refit on the full training data and prune to $T(\alpha^*)$.</li>
+      </ol>
+    </div>
+    <div class="box note">
+      <strong>One-SE rule</strong>
+      Select the smallest tree (fewest leaves) whose CV error is within one standard error of the minimum CV error. This applies Occam's razor: prefer simplicity when the evidence for a more complex model is weak.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="7">
+    <span class="tag topic">Worked Example</span>
+    <h2>Worked Example: Pruning Sequence</h2>
+    <p>Full tree $T_{\max}$ has 5 leaves, training RSS = 12. Internal nodes and their $g(t)$ values:</p>
+    <table>
+      <tr><th>Node</th><th>RSS at node</th><th>RSS of subtree</th><th>Leaves in subtree</th><th>$g(t)$</th></tr>
+      <tr><td>$t_1$</td><td>8.0</td><td>3.5</td><td>3</td><td>$(8.0-3.5)/(3-1)=2.25$</td></tr>
+      <tr><td>$t_2$</td><td>6.0</td><td>4.5</td><td>2</td><td>$(6.0-4.5)/(2-1)=1.50$</td></tr>
+      <tr><td>$t_3$</td><td>9.5</td><td>7.0</td><td>2</td><td>$(9.5-7.0)/(2-1)=2.50$</td></tr>
+    </table>
+    <div class="box ex">
+      <strong>Pruning steps</strong>
+      <ol>
+        <li>Smallest $g(t)$: $t_2$ with $g=1.50$. Collapse $t_2$: tree now has 4 leaves, threshold $\alpha_1 = 1.50$.</li>
+        <li>Recompute $g$ for remaining nodes. Next smallest: $t_1$ with $g=2.25$. Collapse: 2 leaves, $\alpha_2=2.25$.</li>
+        <li>Collapse $t_3$: 1 leaf (root), $\alpha_3=2.50$.</li>
+      </ol>
+      Cross-validation selects, say, $\alpha^*=2.0$: this corresponds to the 4-leaf subtree from step 1.
+    </div>
+    <div class="box note">
+      <strong>Key insight</strong>
+      $g(t)$ is the per-leaf improvement in training RSS from keeping the subtree rooted at $t$ instead of collapsing it to a single node. A small $g(t)$ means the subtree is doing little useful work: a good candidate for removal.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="8">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Evaluating $R_\alpha(T)$ Directly</h2>
+    <p>The pruning sequence can also be checked from the definition. Collapsing each node in turn produces four nested subtrees, whose training RSS follows directly from the $g(t)$ values on the previous slide.</p>
+    <div class="box def">
+      <strong>Building the subtree sequence</strong>
+      Collapsing a node raises RSS by $g(t)\times(|T_t|-1)$, so starting from $\text{RSS}(T_{\max}) = 12$:
+      <table>
+        <tr><th>Subtree</th><th>Formed by</th><th>Leaves $|T|$</th><th>Training RSS</th></tr>
+        <tr><td>$T_0 = T_{\max}$</td><td>&mdash;</td><td>5</td><td>$12.0$</td></tr>
+        <tr><td>$T_1$</td><td>collapse $t_2$: $+1.50\times 1$</td><td>4</td><td>$13.5$</td></tr>
+        <tr><td>$T_2$</td><td>collapse $t_1$: $+2.25\times 2$</td><td>2</td><td>$18.0$</td></tr>
+        <tr><td>$T_3$</td><td>collapse $t_3$: $+2.50\times 1$</td><td>1</td><td>$20.5$</td></tr>
+      </table>
+    </div>
+    <div class="box formula">
+      <strong>Evaluating the penalised criterion</strong>
+      $$R_\alpha(T) = \text{RSS}(T) + \alpha|T|$$
+      <table>
+        <tr><th>$\alpha$</th><th>$T_0$ (5)</th><th>$T_1$ (4)</th><th>$T_2$ (2)</th><th>$T_3$ (1)</th><th>Winner</th></tr>
+        <tr><td>$1.00$</td><td>$\mathbf{17.00}$</td><td>$17.50$</td><td>$20.00$</td><td>$21.50$</td><td>$T_0$</td></tr>
+        <tr><td>$1.50$</td><td>$19.50$</td><td>$19.50$</td><td>$21.00$</td><td>$22.00$</td><td>tie $T_0, T_1$</td></tr>
+        <tr><td>$2.00$</td><td>$22.00$</td><td>$\mathbf{21.50}$</td><td>$22.00$</td><td>$22.50$</td><td>$T_1$</td></tr>
+        <tr><td>$2.25$</td><td>$23.25$</td><td>$22.50$</td><td>$22.50$</td><td>$22.75$</td><td>tie $T_1, T_2$</td></tr>
+        <tr><td>$2.50$</td><td>$24.50$</td><td>$23.50$</td><td>$23.00$</td><td>$23.00$</td><td>tie $T_2, T_3$</td></tr>
+        <tr><td>$3.00$</td><td>$27.00$</td><td>$25.50$</td><td>$24.00$</td><td>$\mathbf{23.50}$</td><td>$T_3$</td></tr>
+      </table>
+      Sample working at $\alpha = 2$: $R_2(T_1) = 13.5 + 2(4) = 21.5$, against $R_2(T_0) = 12 + 2(5) = 22.0$.
+    </div>
+    <div class="box ex">
+      <strong>The ties are the thresholds</strong>
+      A tie occurs at exactly $\alpha = 1.50$, $2.25$ and $2.50$, which are precisely the three $g(t)$ values computed on the previous slide. This is not a coincidence: $g(t)$ is defined as the value of $\alpha$ at which keeping the subtree and collapsing it cost the same. The optimal subtree is therefore constant on each interval:
+      <table>
+        <tr><th>Range of $\alpha$</th><th>Optimal subtree</th><th>Leaves</th></tr>
+        <tr><td>$0 \leq \alpha &lt; 1.50$</td><td>$T_0$</td><td>5</td></tr>
+        <tr><td>$1.50 \leq \alpha &lt; 2.25$</td><td>$T_1$</td><td>4</td></tr>
+        <tr><td>$2.25 \leq \alpha &lt; 2.50$</td><td>$T_2$</td><td>2</td></tr>
+        <tr><td>$\alpha \geq 2.50$</td><td>$T_3$</td><td>1 (root)</td></tr>
+      </table>
+    </div>
+    <div class="box note">
+      <strong>Why this matters in practice</strong>
+      Although $\alpha$ is continuous, only finitely many subtrees can ever be optimal, here just four. Cross validation therefore does not need to search a continuum: it evaluates one representative $\alpha$ from each interval, which is why the whole pruning path can be computed cheaply. The value $\alpha^{*} = 2.0$ selected on the previous slide falls in $[1.50,\,2.25)$ and so returns $T_1$, the four leaf tree, agreeing with the sequence method.
+    </div>
+  </div>
+
+<div class="slide" data-slide="9">
+    <span class="tag topic">Interpretation</span>
+    <h2>Interpreting $\alpha$ and Tree Size</h2>
+    <div class="box def">
+      <strong>$\alpha$ as regularisation</strong>
+      The complexity parameter $\alpha$ plays the same role as $\lambda$ in ridge/lasso. Increasing $\alpha$ penalises additional leaves more heavily, producing smaller trees. Cross-validation selects the optimal trade-off between fit and complexity.
+    </div>
+    <table>
+      <tr><th>$\alpha$</th><th>Tree size</th><th>Bias</th><th>Variance</th></tr>
+      <tr><td>0</td><td>Full tree $T_{\max}$</td><td>Low</td><td>High (overfits)</td></tr>
+      <tr><td>Small</td><td>Large (many leaves)</td><td>Low</td><td>Moderate</td></tr>
+      <tr><td>$\alpha^*$ (CV-selected)</td><td>Optimal</td><td>Balanced</td><td>Balanced</td></tr>
+      <tr><td>Large</td><td>Small (few leaves)</td><td>High</td><td>Low</td></tr>
+      <tr><td>$\to\infty$</td><td>Root only</td><td>Maximum</td><td>0</td></tr>
+    </table>
+    <div class="box note">
+      <strong>Classification trees</strong>
+      For classification trees, replace RSS with the node misclassification error in the pruning criterion. Gini or entropy is used for splitting, but misclassification error is acceptable for pruning evaluation because it directly measures predictive accuracy.
+    </div>
+    <div class="box warn">
+      <strong>Single trees vs ensembles</strong>
+      Even with optimal pruning, a single decision tree has high variance. Bagging, random forests, and boosting (Modules 23 and 24) dramatically reduce variance by averaging over many trees. Pruning is most important for interpretability; for prediction accuracy, ensembles are preferred.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="10">
+    <span class="tag exercise">In-Class Exercise</span>
+    <h2>In-Class Exercise</h2>
+    <div class="box ex">
+      <strong>Questions</strong>
+      <ol>
+        <li>A full tree has training RSS 10 with 6 leaves. After collapsing one internal node, the tree has 4 leaves and training RSS 13. What is the increase in $C_\alpha$ from this collapse, and for what values of $\alpha$ is the collapse worthwhile?</li>
+        <li>Why is cross-validation needed to select $\alpha$? Why can we not just pick the tree minimising training RSS?</li>
+        <li>In weakest-link pruning, why do we remove the node with the smallest $g(t)$ first, rather than the node that causes the smallest increase in training RSS?</li>
+        <li>Compare cost-complexity pruning in trees with $L_1$ regularisation in lasso. Identify one conceptual similarity and one difference.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('ex-sol')">Show answers</button>
+    <div class="solution" id="ex-sol">
+      <ol>
+        <li>$\Delta C_\alpha = (13-10) - \alpha(4-6) = 3 + 2\alpha$. Wait, the number of leaves decreases from 6 to 4, so $\Delta|T| = -2$. $\Delta C_\alpha = 3 - \alpha\cdot 2 = 3-2\alpha$. The collapse is worthwhile when $\Delta C_\alpha &lt; 0$, i.e.\ $3-2\alpha &lt; 0 \Rightarrow \alpha > 1.5$. So for $\alpha > 1.5$, collapsing is beneficial.</li>
+        <li>Training RSS monotonically decreases with tree size: the full tree always wins. Using training RSS for selection would always select $T_{\max}$, which overfits. Cross-validation estimates test performance by evaluating on held-out data not used in tree construction.</li>
+        <li>$g(t)$ is the normalised gain per leaf removed, not the raw RSS increase. Removing a node with many leaves but small $g(t)$ removes a lot of complexity for little accuracy loss; removing a node with large $g(t)$ removes a node that contributes substantially. The weakest link is defined by its normalised contribution, making the sequence consistent with the cost-complexity criterion.</li>
+        <li>Similarity: both introduce a penalty on model complexity ($\alpha|T|$ vs $\lambda\|\boldsymbol\beta\|_1$) that trades off fit against size. Larger penalty gives simpler models. Both are selected by cross-validation. Difference: lasso produces exact zeros in coefficients (continuous shrinkage to zero), while pruning removes entire subtrees (discrete structural change). Lasso can gradually shrink any coefficient; pruning cannot partially collapse a node.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="11">
+    <span class="tag practice">Practice Problems</span>
+    <h2>Practice Problems</h2>
+    <div class="box ex">
+      <strong>Problem 1: Conceptual</strong>
+      <ol type="a">
+        <li>A decision tree is grown with minimum node size = 1 (fully grown). What is its training misclassification rate? What does this imply about using training accuracy to evaluate trees?</li>
+        <li>True or False: Cost-complexity pruning always selects the subtree with the fewest leaves.</li>
+        <li>Explain why collapsing the weakest-link node first guarantees a nested sequence of subtrees.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('pp1-sol')">Show solution</button>
+    <div class="solution" id="pp1-sol">
+      <ol type="a">
+        <li>With one observation per leaf, the tree perfectly memorises the training labels: training misclassification rate = 0. This means training accuracy is completely uninformative about generalisation: a model with 0% training error is almost certainly overfitting.</li>
+        <li>False. Cost-complexity pruning selects the subtree minimising $C_\alpha(T) = \text{RSS} + \alpha|T|$ for the cross-validated $\alpha^*$. The selected tree balances fit and complexity. For small $\alpha^*$, the selected tree may have many leaves; for large $\alpha^*$, few leaves. The one-SE rule may select a smaller tree, but the optimal $\alpha^*$ from CV may prefer a larger one.</li>
+        <li>Weakest-link pruning collapses one subtree at a time. Each collapse produces a subtree that is a strict subset of the previous. By always choosing the subtree that causes the smallest normalised increase in RSS, the algorithm produces a sequence $T_0 \supset T_1 \supset \cdots$ where each tree is obtained from the previous by a single collapse. Nestedness is guaranteed because each step only removes nodes (never adds them).</li>
+      </ol>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2: Calculation</strong>
+      A full tree has 4 leaves and training RSS 20. Three subtrees are available:
+      <table>
+        <tr><th>Subtree</th><th>Leaves</th><th>Training RSS</th></tr>
+        <tr><td>$T_1$</td><td>3</td><td>23</td></tr>
+        <tr><td>$T_2$</td><td>2</td><td>31</td></tr>
+        <tr><td>$T_3$ (root)</td><td>1</td><td>48</td></tr>
+      </table>
+      <ol type="a">
+        <li>Compute $C_\alpha(T)$ for each subtree and the full tree at $\alpha = 4$.</li>
+        <li>Which subtree minimises $C_4(T)$?</li>
+        <li>At what value of $\alpha$ does $T_1$ become preferred over the full tree?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('pp2-sol')">Show solution</button>
+    <div class="solution" id="pp2-sol">
+      <ol type="a">
+        <li>$C_4$: Full tree: $20+4(4)=36$. $T_1$: $23+4(3)=35$. $T_2$: $31+4(2)=39$. $T_3$: $48+4(1)=52$.</li>
+        <li>$T_1$ minimises $C_4$ with value 35.</li>
+        <li>$C_\alpha(\text{Full})=20+4\alpha$. $C_\alpha(T_1)=23+3\alpha$. $T_1$ preferred when $23+3\alpha &lt; 20+4\alpha \Rightarrow 3 &lt; \alpha$. So for $\alpha > 3$, $T_1$ is preferred over the full tree.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
+    <span class="slide-num" id="slide-num">Slide 1 of 7</span>
+    <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
+  </div>
+</div>
+</div>
+<script>
+var SK='aiml-m19-v1',ts=11;
+var cs=parseInt(localStorage.getItem(SK)||'1');
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
+  document.querySelector('[data-slide="'+n+'"]').classList.add('active');
+  document.getElementById('pbar').style.width=(n/ts*100)+'%';
+  document.getElementById('slide-num').textContent='Slide '+n+' of '+ts;
+  document.getElementById('btn-prev').disabled=(n===1);
+  document.getElementById('btn-next').disabled=(n===ts);
+  localStorage.setItem(SK,n);cs=n;
+  if(n===3)setTimeout(drawImpurity,80);
+  if(n===6)setTimeout(drawPrune,80);
+}
+function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
+function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block')}
+function chgZ(d){var c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base'));document.documentElement.style.setProperty('--base',(c+d)+'px')}
+
+function drawImpurity(){
+  var cv=document.getElementById('cv-impurity');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:46,r:20,t:16,b:36},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  function px(p){return pad.l+p*pw;}
+  function py(v){return pad.t+(1-v/0.55)*ph;}
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  // grid
+  ctx.strokeStyle='#f1f5f9';ctx.lineWidth=0.8;
+  [0.1,0.2,0.3,0.4,0.5].forEach(function(v){ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l+pw,py(v));ctx.stroke();});
+  // Misclassification (blue dashed)
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+  ctx.beginPath();
+  for(var i=0;i<=100;i++){var p=i/100;var v=Math.min(p,1-p);if(i===0)ctx.moveTo(px(p),py(v));else ctx.lineTo(px(p),py(v));}
+  ctx.stroke();ctx.setLineDash([]);
+  // Gini (orange)
+  ctx.strokeStyle='#f97316';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(var i=0;i<=100;i++){var p=i/100;var v=2*p*(1-p);if(i===0)ctx.moveTo(px(p),py(v));else ctx.lineTo(px(p),py(v));}
+  ctx.stroke();
+  // Entropy/2 (green)
+  ctx.strokeStyle='#059669';ctx.lineWidth=2;
+  ctx.beginPath();var first=true;
+  for(var i=1;i<=99;i++){var p=i/100;var v=(-p*Math.log(p)-(1-p)*Math.log(1-p))/2;if(first){ctx.moveTo(px(p),py(v));first=false;}else ctx.lineTo(px(p),py(v));}
+  ctx.stroke();
+  // labels
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [0,0.25,0.5,0.75,1].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(px(v),pad.t+ph);ctx.lineTo(px(v),pad.t+ph+4);ctx.strokeStyle='#94a3b8';ctx.stroke();
+    ctx.fillText(v,px(v),pad.t+ph+14);
+  });
+  ctx.textAlign='right';
+  [0,0.1,0.2,0.3,0.4,0.5].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l-4,py(v));ctx.stroke();
+    ctx.fillText(v.toFixed(1),pad.l-6,py(v)+3);
+  });
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Class proportion p',pad.l+pw/2,H-3);
+  // legend
+  var lx=pad.l+pw-160,ly=pad.t+10;
+  [[' Misclassification','#2563eb','dashed'],['Gini index','#f97316','solid'],['Entropy / 2','#059669','solid']].forEach(function(item,i){
+    ctx.strokeStyle=item[1];ctx.lineWidth=2;
+    if(item[2]==='dashed')ctx.setLineDash([4,3]);else ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(lx,ly+i*18+5);ctx.lineTo(lx+24,ly+i*18+5);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#334155';ctx.font='11px sans-serif';ctx.textAlign='left';
+    ctx.fillText(item[0],lx+28,ly+i*18+9);
+  });
+}
+
+function drawPrune(){
+  var cv=document.getElementById('cv-prune');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:50,r:20,t:20,b:36},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  var xMin=1,xMax=10,yMin=0,yMax=1;
+  function px(x){return pad.l+(x-xMin)/(xMax-xMin)*pw}
+  function py(y){return pad.t+(1-y)*ph}
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  // Training error (decreasing)
+  var trainE=[1,0.72,0.52,0.38,0.28,0.20,0.14,0.09,0.05,0.02];
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(var i=0;i<10;i++){var x=px(i+1),y=py(trainE[i]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+  ctx.stroke();
+  ctx.fillStyle='#2563eb';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Training error',px(7),py(trainE[6])-10);
+  // CV error (U-shaped)
+  var cvE=[0.85,0.60,0.42,0.32,0.29,0.31,0.36,0.42,0.50,0.59];
+  ctx.strokeStyle='#f97316';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(var i=0;i<10;i++){var x=px(i+1),y=py(cvE[i]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+  ctx.stroke();
+  ctx.fillStyle='#f97316';ctx.fillText('CV error',px(7),py(cvE[6])+16);
+  // optimal point
+  var opt=4; // index 4 = 5 leaves
+  ctx.strokeStyle='#059669';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(px(opt+1),pad.t);ctx.lineTo(px(opt+1),pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#059669';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Optimal (5 leaves)',px(opt+1),pad.t+14);
+  // axes
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  for(var i=1;i<=10;i++){
+    ctx.beginPath();ctx.moveTo(px(i),pad.t+ph);ctx.lineTo(px(i),pad.t+ph+4);ctx.strokeStyle='#94a3b8';ctx.stroke();
+    ctx.fillText(i,px(i),pad.t+ph+14);
+  }
+  ctx.textAlign='right';
+  [0,0.25,0.5,0.75,1].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l-4,py(v));ctx.stroke();
+    ctx.fillText(v.toFixed(2),pad.l-6,py(v)+3);
+  });
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Number of leaves',pad.l+pw/2,H-3);
+  ctx.save();ctx.translate(14,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Error',0,0);ctx.restore();
+}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowDown')chgSlide(1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')chgSlide(-1);});
+showSlide(cs);
+</script>
+</body>
+</html>
