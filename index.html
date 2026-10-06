@@ -307,6 +307,52 @@ a.mod-card{text-decoration:none;color:inherit}
 </div>
 <script>
 function openMod(url){window.location.href=url;}
+
+/* A module shows as available only if its folder/index.html exists next to this file.
+   To release a module, copy its folder into the student folder; nothing here needs editing. */
+function modExists(url){
+  url=encodeURI(url);
+  return new Promise(function(resolve){
+    if(location.protocol==='file:'){
+      /* fetch() is blocked on file://, so probe with a script tag: onload = file found, onerror = missing */
+      var s=document.createElement('script');
+      s.onload=function(){s.remove();resolve(true)};
+      s.onerror=function(){s.remove();resolve(false)};
+      s.src=url;
+      document.head.appendChild(s);
+    }else{
+      fetch(url,{cache:'no-store'}).then(function(r){resolve(r.ok)}).catch(function(){resolve(false)});
+    }
+  });
+}
+window.addEventListener('error',function(e){if(e.target===window&&/index\.html/.test(e.filename||''))e.preventDefault()},true);
+
+(function(){
+  var cards=Array.prototype.slice.call(document.querySelectorAll('.mod-card.available[onclick]'));
+  var jobs=cards.map(function(card){
+    var m=/openMod\('([^']+)'\)/.exec(card.getAttribute('onclick')||'');
+    if(!m)return Promise.resolve(true);
+    return modExists(m[1]).then(function(ok){
+      if(!ok){
+        card.classList.remove('available');card.classList.add('coming');
+        card.removeAttribute('onclick');
+        var st=card.querySelector('.mod-status');
+        if(st){st.className='mod-status soon';st.textContent='Coming soon';}
+      }
+      return ok;
+    });
+  });
+  Promise.all(jobs).then(function(){
+    var mods=Array.prototype.filter.call(document.querySelectorAll('.mod-card'),function(c){
+      var n=c.querySelector('.mod-num');return n&&/^Module\s/.test(n.textContent);
+    });
+    var avail=mods.filter(function(c){return c.classList.contains('available')}).length;
+    var sv=document.querySelectorAll('.stat .sv');
+    if(sv.length>2)sv[2].textContent=avail;
+    var pct=document.querySelector('.pb-pct');if(pct)pct.textContent=avail+' / '+mods.length;
+    var fill=document.querySelector('.pb-fill');if(fill)fill.style.width=(mods.length?avail/mods.length*100:0)+'%';
+  });
+})();
 </script>
 </body>
 </html>
