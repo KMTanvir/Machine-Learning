@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Extra – Ensemble Methods: A Brief Overview | AST402</title>
+<script>
+MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea']}};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b}
+#wrap{max-width:1100px;margin:0 auto;padding:.6rem 1rem 2rem}
+header{background:#1e3a5f;color:#fff;padding:.7rem 1.2rem;border-radius:10px;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700}
+header .meta{font-size:calc(var(--base)*.78);opacity:.82}
+.zoom-bar{display:flex;gap:.35rem;align-items:center}
+.zoom-bar button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:.18rem .55rem;font-size:calc(var(--base)*.82);cursor:pointer}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width .3s}
+.slide{display:none}.slide.active{display:block}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:.7rem;border-bottom:2px solid #2563eb;padding-bottom:.3rem}
+.slide p,.slide li{line-height:1.65;margin-bottom:.45rem}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:.5rem}
+.slide ul li,.slide ol li{margin-bottom:.3rem}
+.tag{display:inline-block;font-size:calc(var(--base)*.72);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.13rem .55rem;border-radius:4px;margin-bottom:.6rem}
+.tag.module{background:#dbeafe;color:#1e40af}.tag.topic{background:#f0fdf4;color:#166534}
+.tag.exercise{background:#fef9c3;color:#854d0e}.tag.practice{background:#fce7f3;color:#9d174d}
+.box{border-radius:8px;padding:.75rem 1rem;margin:.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc}
+.box.def{border-color:#2563eb;background:#eff6ff}.box.formula{border-color:#7c3aed;background:#f5f3ff}
+.box.note{border-color:#d97706;background:#fffbeb}.box.warn{border-color:#dc2626;background:#fff1f2}
+.box.ex{border-color:#059669;background:#f0fdf4}
+.box strong{display:block;margin-bottom:.3rem;color:#1e293b}
+.sol-btn{margin-top:.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:.38rem .9rem;font-size:calc(var(--base)*.83);cursor:pointer}
+.sol-btn:hover{background:#2563eb}
+.solution{display:none;margin-top:.6rem;border-top:1px dashed #cbd5e1;padding-top:.6rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:calc(var(--base)*.9)}
+th,td{border:1px solid #cbd5e1;padding:.35rem .6rem;text-align:left}
+th{background:#f1f5f9;font-weight:600}
+canvas{display:block;border-radius:8px;background:#f8fafc}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid #e2e8f0}
+.nav-row button{background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;font-size:calc(var(--base)*.88);cursor:pointer}
+.nav-row button:hover{background:#2563eb}.nav-row button:disabled{background:#94a3b8;cursor:default}
+.slide-num{font-size:calc(var(--base)*.82);color:#64748b}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <h1>Extra: Ensemble Methods, A Brief Overview</h1>
+    <div class="meta">AST402 Statistics for AI and Machine Learning &nbsp;|&nbsp; Ensemble Methods &nbsp;|&nbsp; IASDS, University of Dhaka</div>
+  </div>
+  <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
+</header>
+<div id="slides">
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:11%"></div></div>
+
+  <div class="slide active" data-slide="1">
+    <span class="tag module">Extra Module</span>
+    <h2>Ensemble Methods: A Brief Overview</h2>
+    <p>A single decision tree is interpretable but unstable: refitting on a slightly different sample can change the top split and hence the entire tree. Ensembles fix this by combining many trees, and in doing so produce some of the strongest predictors available for tabular data.</p>
+    <h3>What this module covers</h3>
+    <ul>
+      <li>Bagging, out of bag error, and why averaging reduces variance</li>
+      <li>Random forests, and the role of the $m_{try}$ decorrelation trick</li>
+      <li>AdaBoost and gradient boosting as forward stagewise additive modelling</li>
+      <li>Bagging versus boosting, and SHAP values for interpreting ensemble predictions</li>
+      <li>A brief overview of modern boosting: the XGBoost objective and hyperparameters, and how XGBoost, LightGBM and CatBoost differ</li>
+    </ul>
+    <div class="box note">
+      <strong>Where this sits in the course</strong>
+      This module builds directly on Modules 18 and 19, since every method here uses CART trees as its building block, and on the bootstrap from Module 15.
+    </div>
+  </div>
+<div class="slide" data-slide="2">
+    <span class="tag topic">Bagging</span>
+    <h2>Bootstrap Aggregation (Bagging)</h2>
+    <div class="box formula">
+      <strong>Bagging algorithm</strong>
+      <ol>
+        <li>For $b = 1, \ldots, B$: draw a bootstrap sample $\mathcal{D}^{*b}$ of size $n$ with replacement from $\mathcal{D}$.</li>
+        <li>Fit a full, unpruned tree $\hat{f}^{*b}$ on $\mathcal{D}^{*b}$ (no pruning: low bias, high variance individually).</li>
+        <li>Aggregate: for regression, $\hat{f}_{\text{bag}}(x) = \frac{1}{B}\sum_{b=1}^B \hat{f}^{*b}(x)$; for classification, take the majority vote.</li>
+      </ol>
+    </div>
+    <div class="box def">
+      <strong>Out-of-bag (OOB) error</strong>
+      Each bootstrap sample omits roughly $1/e \approx 36.8\%$ of observations. For each observation $i$, form $\hat{f}_{\text{OOB}}(x_i)$ by averaging only over trees where $i$ was not in the bootstrap sample. The OOB error is a valid estimate of test error without a separate validation set: it is essentially cross-validation for free.
+    </div>
+    <div class="box note">
+      <strong>Why unpruned trees?</strong>
+      Pruning reduces variance but increases bias. In bagging, we want each tree to have low bias (so the aggregate is also low-bias). Variance is handled by averaging $B$ trees rather than by pruning individual trees.
+    </div>
+    <div class="box warn">
+      <strong>Limitation: correlated trees</strong>
+      If one predictor is very strong, it dominates the first split of nearly every bootstrapped tree. The trees are then highly correlated, and averaging correlated estimators gives little variance reduction. Random forests address this directly.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="3">
+    <span class="tag topic">Random Forests</span>
+    <h2>Random Forests: Decorrelating the Ensemble</h2>
+    <canvas id="cv-rf" width="700" height="220" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <p style="font-size:.82em;color:#475569;text-align:center;">As the number of trees $B$ grows, test error (orange) stabilises. Using $m &lt; p$ features per split (random forest, solid) achieves lower error than bagging with $m=p$ (dashed).</p>
+    <div class="box formula">
+      <strong>Random forest modification</strong>
+      At each split, instead of searching all $p$ predictors, randomly sample $m \leq p$ candidate predictors and find the best split among only those $m$. Typical defaults: $m = \lfloor\sqrt{p}\rfloor$ for classification, $m = \lfloor p/3 \rfloor$ for regression.
+    </div>
+    <div class="box def">
+      <strong>Variance formula</strong>
+      With $B$ trees each having variance $\sigma^2$ and pairwise correlation $\rho$:
+      $$\mathrm{Var}\!\left(\hat{f}_{\text{RF}}\right) = \rho\,\sigma^2 + \frac{1-\rho}{B}\,\sigma^2$$
+      As $B \to \infty$, variance converges to $\rho\sigma^2$. Reducing $m$ reduces $\rho$, which reduces this floor. Reducing $m$ also slightly increases $\sigma^2$ (each tree is weaker), so there is an optimal $m$.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="4">
+    <span class="tag topic">Variable Importance</span>
+    <h2>Variable Importance in Random Forests</h2>
+    <div class="box def">
+      <strong>Impurity-based importance</strong>
+      For each predictor $X_j$, sum the total decrease in node impurity (Gini or RSS) across all splits on $X_j$, averaged over all $B$ trees:
+      $$\mathrm{VI}(j) = \frac{1}{B}\sum_{b=1}^B \sum_{t:\,\text{split on }X_j \text{ in tree }b} \Delta I(t)$$
+      where $\Delta I(t)$ is the impurity decrease at node $t$ weighted by the fraction of observations reaching $t$.
+    </div>
+    <div class="box def">
+      <strong>Permutation importance</strong>
+      For each tree $b$ and predictor $j$: record the OOB error on tree $b$, then randomly permute the values of $X_j$ in the OOB sample and recompute OOB error. The increase in error from permuting $X_j$ measures how much the model relies on $X_j$. Average this increase over all trees.
+      <br><br>
+      Permutation importance is more reliable than impurity importance for high-cardinality or continuous predictors, which tend to be spuriously favoured in impurity-based measures.
+    </div>
+    <div class="box note">
+      <strong>Interpretation</strong>
+      Variable importance does not provide a $p$-value or confidence interval. It is a ranking tool. A predictor with high importance is used frequently in splits that substantially reduce error. Low importance means either the predictor is irrelevant or its information is captured by correlated predictors.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="5">
+    <span class="tag topic">Hyperparameters</span>
+    <h2>Random Forest Hyperparameters</h2>
+    <table>
+      <tr><th>Hyperparameter</th><th>Role</th></tr>
+      <tr><td>Number of trees ($B$)</td><td>More trees only lower variance toward its floor; choose large enough for the OOB error to stabilise</td></tr>
+      <tr><td>Predictors tried per split ($m$)</td><td>Main tuning knob; typically $\sqrt{p}$ for classification and $p/3$ for regression. Smaller $m$ decorrelates the trees</td></tr>
+      <tr><td>Minimum node size</td><td>Controls tree depth; small values give deep, low bias trees (about 1 for classification, 5 for regression)</td></tr>
+      <tr><td>Maximum depth or leaves</td><td>Optional cap on tree complexity; usually left unrestricted</td></tr>
+      <tr><td>Bootstrap sample size</td><td>Usually $n$ with replacement; smaller samples add diversity but raise tree variance</td></tr>
+    </table>
+    <div class="box note">
+      <strong>Does random forest overfit as $B \to \infty$?</strong>
+      No. Adding more trees never increases test error (the variance formula shows variance can only decrease or stay constant). The risk is that training takes longer, not that the model gets worse. The minimum node size and $m$ are the true regularisation knobs.
+    </div>
+    <div class="box warn">
+      <strong>Correlation with test set size</strong>
+      OOB error is a reliable estimate of test error only when $n$ is large enough that each tree is built on a substantially different bootstrap sample. For very small $n$, explicit cross-validation is preferred over OOB error for hyperparameter selection.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="6">
+    <span class="tag topic">AdaBoost</span>
+    <h2>AdaBoost for Binary Classification</h2>
+    <div class="box formula">
+      <strong>AdaBoost algorithm ($y_i \in \{-1,+1\}$)</strong>
+      <ol>
+        <li>Initialise uniform weights: $w_i = 1/n$ for all $i$.</li>
+        <li>For $b = 1,\ldots,B$:
+          <ul>
+            <li>Fit a weak classifier $G_b(x)$ (typically a depth-1 stump) to $(x_i, y_i)$ with sample weights $w_i$.</li>
+            <li>Compute weighted misclassification error: $\mathrm{err}_b = \sum_{i=1}^n w_i \cdot \mathbf{1}[y_i \neq G_b(x_i)]$.</li>
+            <li>Compute classifier weight: $\alpha_b = \log\!\left(\dfrac{1-\mathrm{err}_b}{\mathrm{err}_b}\right)$.</li>
+            <li>Update observation weights: $w_i \leftarrow w_i \cdot \exp\!\left(\alpha_b \cdot \mathbf{1}[y_i \neq G_b(x_i)]\right)$, then renormalise.</li>
+          </ul>
+        </li>
+        <li>Final classifier: $G(x) = \mathrm{sign}\!\left(\sum_{b=1}^B \alpha_b G_b(x)\right)$.</li>
+      </ol>
+    </div>
+    <div class="box note">
+      <strong>Weight update interpretation</strong>
+      Misclassified observations receive higher weight in the next round; correctly classified ones receive lower weight. Each subsequent weak learner focuses on the observations the current ensemble struggles with. A perfect classifier ($\mathrm{err}_b=0$) gets $\alpha_b \to \infty$; a random classifier ($\mathrm{err}_b=0.5$) gets $\alpha_b=0$ (ignored).
+    </div>
+    <div class="box warn">
+      <strong>Sensitivity to noise</strong>
+      Because mislabelled observations receive ever-increasing weight, AdaBoost is sensitive to label noise. A single consistently mislabelled point can monopolise sample weight and degrade performance. Gradient boosting with regularisation is more robust.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="7">
+    <span class="tag topic">Gradient Boosting</span>
+    <h2>Gradient Boosting: Functional Gradient Descent</h2>
+    <canvas id="cv-boost" width="700" height="200" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <p style="font-size:.82em;color:#475569;text-align:center;">Residuals (grey) shrink as boosting iterations increase (left to right). Each new tree (orange) fits the current residuals, not the original targets.</p>
+    <div class="box formula">
+      <strong>Gradient boosting for regression (squared loss)</strong>
+      <ol>
+        <li>Initialise $\hat{f}^{(0)}(x) = \bar{y}$.</li>
+        <li>For $b = 1,\ldots,B$:
+          <ul>
+            <li>Compute negative gradient (pseudo-residuals): $r_i^{(b)} = y_i - \hat{f}^{(b-1)}(x_i)$.</li>
+            <li>Fit a regression tree $h_b$ to $\{(x_i, r_i^{(b)})\}$ with $d$ terminal nodes (stumps: $d=2$).</li>
+            <li>Update: $\hat{f}^{(b)}(x) = \hat{f}^{(b-1)}(x) + \nu \cdot h_b(x)$, where $\nu \in (0,1]$ is the learning rate (shrinkage).</li>
+          </ul>
+        </li>
+        <li>Output $\hat{f}^{(B)}(x)$.</li>
+      </ol>
+    </div>
+    <div class="box def">
+      <strong>Why "fit the residuals" is gradient descent</strong>
+      Boosting lowers the loss by moving the prediction $f$ in the direction of steepest descent, the negative gradient of the loss. For a general differentiable loss $L(y,f)$ the pseudo-residual at step $b$ is
+      $$r_i^{(b)} = -\frac{\partial L(y_i,f)}{\partial f}\bigg|_{f=\hat{f}^{(b-1)}(x_i)}$$
+      For squared error, take $L(y,f)=\tfrac{1}{2}(y-f)^2$. Then
+      $$\frac{\partial L}{\partial f} = f-y \quad\Longrightarrow\quad -\frac{\partial L}{\partial f} = y-f \quad\Longrightarrow\quad r_i^{(b)} = y_i-\hat{f}^{(b-1)}(x_i)$$
+      which is exactly the ordinary residual. So for squared loss, fitting each tree to the residuals <em>is</em> gradient descent; the factor $\tfrac{1}{2}$ is only there to cancel the 2 from differentiating.
+    </div>
+    <div class="box note">
+      <strong>Other loss functions</strong>
+      Because only the pseudo-residual changes, the same algorithm optimises log-loss (classification), absolute error (robust regression), quantile loss and many others.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="8">
+    <span class="tag topic">Regularisation</span>
+    <h2>Regularisation in Gradient Boosting</h2>
+    <table>
+      <tr><th>Parameter</th><th>Effect</th><th>Overfitting risk</th></tr>
+      <tr><td>$B$ (iterations)</td><td>More trees, lower training loss</td><td>High if $B$ too large</td></tr>
+      <tr><td>$\nu$ (learning rate)</td><td>Smaller steps, more trees needed</td><td>Low $\nu$ requires large $B$; use together</td></tr>
+      <tr><td>$d$ (tree depth)</td><td>Deeper trees capture more interactions</td><td>Deep trees can overfit; stumps ($d=1$) model additive effects only</td></tr>
+      <tr><td>Subsampling (stochastic GB)</td><td>Use fraction $f$ of data per tree</td><td>Reduces variance; acts like bagging within boosting</td></tr>
+    </table>
+    <div class="box def">
+      <strong>Learning rate and number of trees trade-off</strong>
+      Small $\nu$ (e.g.\ 0.01) with large $B$ (e.g.\ 5000) typically outperforms large $\nu$ with small $B$. The best strategy: fix a small $\nu$, then use early stopping on a validation set to find the optimal $B$.
+    </div>
+    <div class="box warn">
+      <strong>Boosting can overfit</strong>
+      Unlike random forests (whose variance converges), boosting with large $B$ and large $\nu$ can overfit because the model continues to fit residuals that are pure noise. Early stopping and small $\nu$ are essential regularisers. The optimal $B$ is always selected by CV or early stopping, never by inspecting training loss.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="9">
+    <span class="tag topic">Comparison</span>
+    <h2>Bagging vs. Boosting</h2>
+    <table>
+      <tr><th>Aspect</th><th>Bagging / Random Forest</th><th>Boosting</th></tr>
+      <tr><td>Tree fitting</td><td>Parallel, independent</td><td>Sequential, dependent</td></tr>
+      <tr><td>Data reuse</td><td>Bootstrap resampling</td><td>Residuals / reweighting</td></tr>
+      <tr><td>Tree depth</td><td>Full trees (low bias)</td><td>Shallow trees / stumps (weak learners)</td></tr>
+      <tr><td>Primary benefit</td><td>Variance reduction</td><td>Bias reduction</td></tr>
+      <tr><td>Overfitting risk</td><td>Low (more trees never hurts)</td><td>Moderate (depends on $B$ and $\nu$)</td></tr>
+      <tr><td>Noise sensitivity</td><td>Moderate</td><td>Higher (upweights hard examples)</td></tr>
+      <tr><td>Interpretability</td><td>Variable importance only</td><td>Variable importance; partial dependence plots</td></tr>
+    </table>
+    <div class="box note">
+      <strong>When to choose each</strong>
+      Random forests are the default choice: easy to tune, robust, and rarely overfit. Gradient boosting, especially XGBoost, often achieves lower test error on structured tabular data but requires careful tuning of $\nu$, $d$, and $B$, and is more prone to overfitting on small datasets.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="10">
+    <span class="tag topic">SHAP Values</span>
+    <h2>SHAP Values: Explaining a Boosted Model</h2>
+    <p>A boosted model with hundreds of trees is accurate but opaque. Impurity importance says which features the trees used, but not <em>how</em> a feature moved a particular prediction, or in which direction. SHAP answers both.</p>
+    <div class="box def">
+      <strong>The idea: a fair split of the prediction</strong>
+      Start from the <b>baseline</b>, the average prediction over the training data. The model's actual prediction for one observation differs from this baseline. SHAP divides that difference among the features so that each feature gets a signed share, its SHAP value $\phi_j$:
+      $$\hat f(x) \;=\; \underbrace{E[\hat f(X)]}_{\text{baseline}} \;+\; \phi_1 + \phi_2 + \cdots + \phi_p$$
+      A positive $\phi_j$ pushed the prediction up from the baseline, a negative one pushed it down, and the size says by how much. The shares always add up exactly to the gap.
+    </div>
+    <div class="box note">
+      <strong>Where the shares come from: a team analogy</strong>
+      Think of the features as team members who together produce the prediction. To judge one member's contribution fairly, ask what the team's output changes by when that member joins, and average this over every possible order in which the team could have been assembled and over every possible set of teammates already present. This average marginal contribution is the Shapley value from cooperative game theory. For tree ensembles an efficient algorithm (TreeSHAP) computes it exactly, without trying every ordering.
+    </div>
+    <div class="two-col" style="margin-top:.6rem;">
+      <div class="box ex">
+        <strong>Local explanation</strong>
+        The SHAP values for <em>one</em> observation explain <em>that</em> prediction: why was this applicant scored high risk? This is what a loan officer or a patient wants to know.
+      </div>
+      <div class="box ex">
+        <strong>Global explanation</strong>
+        Averaging $|\phi_j|$ over all observations ranks the features overall. SHAP therefore gives both views from the same numbers, which impurity importance cannot.
+      </div>
+    </div>
+    <div class="box warn">
+      <strong>SHAP explains the model, not the world</strong>
+      A large SHAP value means the model relies on that feature, not that the feature causes the outcome. With strongly correlated predictors the credit is shared between them, as with impurity importance, so interpret the shares with the same care.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="11">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Computing a SHAP Value by Hand</h2>
+    <p>A model predicts the risk of a disease from three features: $A$ = age, $B$ = BMI and $C$ = family history. We explain the prediction for one person. The model's output when only some features are available is:</p>
+    <table>
+      <tr><th>Features available</th><th>None</th><th>$A$</th><th>$B$</th><th>$C$</th><th>$A+B$</th><th>$A+C$</th><th>$B+C$</th><th>$A+B+C$</th></tr>
+      <tr><td>Model prediction</td><td>0.50</td><td>0.60</td><td>0.55</td><td>0.52</td><td>0.68</td><td>0.64</td><td>0.57</td><td>0.75</td></tr>
+    </table>
+    <p>The baseline is $f(\emptyset)=0.50$ and the full prediction is $0.75$, so $0.25$ must be shared among the three features.</p>
+    <div class="box def">
+      <strong>Step 1: how much does Age add, depending on when it joins?</strong>
+      Add the features one at a time, in every possible order, and record the jump in the prediction when Age arrives.
+      <table>
+        <tr><th>Order</th><th>Age joins</th><th>Prediction before</th><th>Prediction after</th><th>Age's contribution</th></tr>
+        <tr><td>$A,B,C$</td><td>first</td><td>$0.50$</td><td>$0.60$</td><td>$0.10$</td></tr>
+        <tr><td>$A,C,B$</td><td>first</td><td>$0.50$</td><td>$0.60$</td><td>$0.10$</td></tr>
+        <tr><td>$B,A,C$</td><td>after BMI</td><td>$0.55$</td><td>$0.68$</td><td>$0.13$</td></tr>
+        <tr><td>$C,A,B$</td><td>after family history</td><td>$0.52$</td><td>$0.64$</td><td>$0.12$</td></tr>
+        <tr><td>$B,C,A$</td><td>last</td><td>$0.57$</td><td>$0.75$</td><td>$0.18$</td></tr>
+        <tr><td>$C,B,A$</td><td>last</td><td>$0.57$</td><td>$0.75$</td><td>$0.18$</td></tr>
+      </table>
+      Age's contribution is not a single number: it depends on which features are already present ($0.10$ to $0.18$).
+    </div>
+    <div class="box formula">
+      <strong>Step 2: average over all orderings</strong>
+      There are $3! = 6$ orderings, each equally likely, so
+      $$\phi_A = \frac{0.10+0.10+0.13+0.12+0.18+0.18}{6} = \frac{0.81}{6} = 0.135$$
+      Equivalently, a weighted average of the four situations, with weights $2/6,\,1/6,\,1/6,\,2/6$ for "first", "after BMI", "after family history" and "last". A plain average of the four values would give $0.1325$, which is slightly off, because "first" and "last" each occur twice among the orderings.
+    </div>
+    <div class="box ex">
+      <strong>Step 3: do the same for every feature</strong>
+      <table>
+        <tr><th>Order</th><th>$A$ (age)</th><th>$B$ (BMI)</th><th>$C$ (family history)</th><th>Total</th></tr>
+        <tr><td>$A,B,C$</td><td>0.10</td><td>0.08</td><td>0.07</td><td>0.25</td></tr>
+        <tr><td>$A,C,B$</td><td>0.10</td><td>0.11</td><td>0.04</td><td>0.25</td></tr>
+        <tr><td>$B,A,C$</td><td>0.13</td><td>0.05</td><td>0.07</td><td>0.25</td></tr>
+        <tr><td>$C,A,B$</td><td>0.12</td><td>0.11</td><td>0.02</td><td>0.25</td></tr>
+        <tr><td>$B,C,A$</td><td>0.18</td><td>0.05</td><td>0.02</td><td>0.25</td></tr>
+        <tr><td>$C,B,A$</td><td>0.18</td><td>0.05</td><td>0.02</td><td>0.25</td></tr>
+        <tr><td><b>Average = SHAP value</b></td><td><b>0.135</b></td><td><b>0.075</b></td><td><b>0.040</b></td><td><b>0.250</b></td></tr>
+      </table>
+      Every row adds up to $0.25$, and so do the SHAP values: $0.135+0.075+0.040 = 0.25 = 0.75-0.50$. The prediction is fully accounted for: baseline $+$ SHAP values $=$ prediction. Age is the main driver for this person, BMI is second, and family history adds little.
+    </div>
+    <div class="box note">
+      <strong>Why trees do not enumerate orderings</strong>
+      With $p$ features there are $p!$ orderings, which is hopeless for $p=50$. TreeSHAP uses the tree structure to obtain the same values exactly without listing them.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="12">
+    <span class="tag exercise">Worked Example</span>
+    <h2>SHAP in Practice: One Loan Applicant</h2>
+    <p>A boosted model predicts the probability that a loan applicant defaults. Across all training applicants the average predicted probability, the baseline, is $0.30$. For one applicant the model predicts $0.52$.</p>
+    <canvas id="cv-shap" width="700" height="200" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <p style="font-size:.82em;color:#475569;text-align:center;">Blue bars push the predicted default probability above the baseline; red bars push it below.</p>
+    <div class="box formula">
+      <strong>Reading the plot</strong>
+      <table>
+        <tr><th>Feature (this applicant)</th><th>SHAP value</th><th>Interpretation</th></tr>
+        <tr><td>Missed payments = 3</td><td>$+0.28$</td><td>The biggest reason for the high risk score</td></tr>
+        <tr><td>Income = 90k</td><td>$-0.15$</td><td>Strong income lowers the risk</td></tr>
+        <tr><td>Debt to income ratio = 0.6</td><td>$+0.12$</td><td>Heavy debt raises the risk</td></tr>
+        <tr><td>Years employed = 8</td><td>$-0.08$</td><td>Stable employment lowers the risk</td></tr>
+        <tr><td>Age = 24</td><td>$+0.05$</td><td>A small upward push</td></tr>
+      </table>
+      The shares add up to $0.28-0.15+0.12-0.08+0.05 = +0.22$, so the prediction is $0.30 + 0.22 = 0.52$, exactly as the model reported.
+    </div>
+    <div class="box ex">
+      <strong>From one applicant to the whole model</strong>
+      Repeat this for every applicant and average the absolute values. If the averages came out as missed payments $0.21$, income $0.13$, debt ratio $0.10$, years employed $0.05$ and age $0.03$ (illustrative numbers), the global ranking would be the same order, and the bank would learn that payment history drives the model most. Plotting each applicant's SHAP value against the feature value would also show direction, for example risk rising steadily with the number of missed payments.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="13">
+    <span class="tag topic">Objective</span>
+    <h2>XGBoost: Objective and Hyperparameters</h2>
+    <p>XGBoost is gradient boosting with one addition: each new tree is built to reduce the loss <em>and</em> is penalised for being complicated.</p>
+    <div class="box formula">
+      <strong>What each new tree minimises</strong>
+      $$\text{Loss on the data} \;+\; \gamma T \;+\; \frac{\lambda}{2}\sum_{j=1}^{T} w_j^2$$
+      $T$ is the number of leaves and $w_j$ is the prediction in leaf $j$. The term $\gamma T$ discourages many leaves, and $\lambda$ shrinks large leaf predictions.
+    </div>
+    <div class="box def">
+      <strong>Two summaries per observation</strong>
+      For each observation, XGBoost records $g_i$, the slope of the loss (how wrong the current prediction is, and in which direction), and $h_i$, its curvature. For a leaf, add these up: $G=\sum g_i$ and $H=\sum h_i$. Everything below uses only $G$ and $H$.
+    </div>
+    <div class="box ex">
+      <strong>How XGBoost uses these (for understanding, not memorising)</strong>
+      <p>Best prediction for a leaf:</p>
+      $$w^* = -\frac{G}{H+\lambda}$$
+      <p>Gain from splitting a leaf into a left and a right child (split only if the gain is positive):</p>
+      $$\text{Gain} = \frac{1}{2}\left[\frac{G_L^2}{H_L+\lambda}+\frac{G_R^2}{H_R+\lambda}-\frac{G^2}{H+\lambda}\right] - \gamma$$
+    </div>
+    <div class="box note">
+      <strong>In words</strong>
+      A larger $\lambda$ shrinks leaf predictions and gains; a larger $\gamma$ blocks splits that do not improve the loss enough. Both make the tree simpler and guard against overfitting.
+    </div>
+    <h3>Key hyperparameters</h3>
+    <table>
+      <tr><th>Hyperparameter</th><th>Role</th></tr>
+      <tr><td>Number of trees ($B$)</td><td>Number of boosting rounds; chosen by early stopping</td></tr>
+      <tr><td>Learning rate ($\nu$)</td><td>Shrinkage applied to each tree; set small (0.01 to 0.1) with large $B$</td></tr>
+      <tr><td>Maximum tree depth</td><td>Controls the interaction order each tree can capture; 3 to 6 for most tasks</td></tr>
+      <tr><td>Row subsampling fraction</td><td>Fraction of observations used per tree; 0.7 to 0.9 reduces overfitting</td></tr>
+      <tr><td>Column subsampling fraction</td><td>Fraction of features used per tree; plays the role of the random forest's $m$</td></tr>
+      <tr><td>$L_2$ penalty ($\lambda$)</td><td>Ridge type penalty on leaf weights</td></tr>
+      <tr><td>Minimum split gain ($\gamma$)</td><td>A split is made only if its gain exceeds this threshold</td></tr>
+      <tr><td>Minimum Hessian sum per leaf</td><td>Prevents tiny leaves that fit only a handful of observations</td></tr>
+    </table>
+
+    <div class="box note">
+      <strong>Choosing the number of trees: early stopping</strong>
+      Hold out a validation set and monitor its loss after every boosting round. Stop when the validation loss has not improved for a set number of rounds (say 50) and keep the round with the lowest loss. The training loss always keeps falling, so it can never be used for this choice.
+    </div>
+    <div class="box warn">
+      <strong>Keep the test set out of it</strong>
+      The validation set used for early stopping must be separate from the test set. XGBoost also handles missing values natively, by learning a default direction at each split, so imputation is usually not needed.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="14">
+    <span class="tag topic">Modern Libraries</span>
+    <h2>LightGBM and CatBoost</h2>
+    <p>XGBoost is not the only widely used implementation of gradient boosting. Two others, LightGBM and CatBoost, optimise the same kind of regularised objective but make different design choices to be faster or to handle categorical data better.</p>
+    <div class="box def">
+      <strong>LightGBM: built for speed on large data</strong>
+      <ul>
+        <li><b>Leaf wise growth.</b> XGBoost expands every node at a given depth before going deeper, giving balanced trees. LightGBM instead splits whichever leaf promises the largest loss reduction, wherever it sits. For a fixed number of leaves this reaches lower training loss, but it grows deep narrow branches and overfits small datasets more readily, so the maximum number of leaves and the minimum observations per leaf matter a great deal.</li>
+        <li><b>Histogram split finding.</b> Continuous features are grouped into a few hundred bins, so candidate splits are bin boundaries rather than every observed value. This cuts both memory and time.</li>
+        <li><b>Gradient based sampling.</b> Observations with small gradients are already well fitted, so most of them can be skipped when searching for splits, with little loss of accuracy.</li>
+      </ul>
+    </div>
+    <div class="box def">
+      <strong>CatBoost: built for categorical predictors</strong>
+      Replacing a category by its mean response leaks the target into the predictor, since observation $i$'s own $y_i$ helps build its own feature. CatBoost applies <em>ordered target statistics</em>: it fixes a random permutation and computes each observation's encoding using only observations appearing earlier in that order, so no observation contributes to its own encoding. This is the same principle that motivates keeping feature engineering inside the cross validation loop. CatBoost also grows <em>symmetric (oblivious) trees</em>, where every node at a given depth uses the same split. These are less flexible but very fast to predict with, and they act as a built in regulariser.
+    </div>
+  </div>
+
+  <div class="slide" data-slide="15">
+    <span class="tag topic">Comparison</span>
+    <h2>XGBoost, LightGBM and CatBoost Compared</h2>
+    <p>All three optimise a regularised gradient boosting objective on trees; they differ in how they grow trees, how they find splits, and how they treat categorical predictors.</p>
+    <div class="box def">
+      <strong>The three compared</strong>
+      <table>
+        <tr><th></th><th>XGBoost</th><th>LightGBM</th><th>CatBoost</th></tr>
+        <tr><td>Tree growth</td><td>Level wise (depth balanced)</td><td>Leaf wise (best first)</td><td>Symmetric, oblivious trees</td></tr>
+        <tr><td>Split finding</td><td>Pre sorted and histogram</td><td>Histogram with gradient based sampling</td><td>Histogram</td></tr>
+        <tr><td>Categorical data</td><td>Must be encoded first</td><td>Native, integer encoded</td><td>Native, ordered target statistics</td></tr>
+        <tr><td>Typical speed</td><td>Fast</td><td>Fastest on wide data</td><td>Slower to train, fast to predict</td></tr>
+        <tr><td>Best suited to</td><td>General purpose baseline</td><td>Large $n$, many features</td><td>Many high cardinality categoricals</td></tr>
+      </table>
+    </div>
+    <div class="box warn">
+      <strong>What the differences do not change</strong>
+      All three overfit if run for too many rounds without early stopping. Published benchmarks separating them typically differ by less than the variation induced by hyperparameter tuning, so the library choice matters far less than tuning the learning rate, tree depth and number of rounds, and validating honestly. Choose CatBoost when the data is dominated by high cardinality categoricals, LightGBM when training time on large data is the binding constraint, and XGBoost otherwise.
+    </div>
+  </div>
+<div class="slide" data-slide="16">
+    <span class="tag summary">this material Summary</span>
+    <h2>Summary: Tree-Based and Ensemble Methods</h2>
+    <table>
+      <tr><th>Method</th><th>Bias</th><th>Variance</th><th>Interpretability</th><th>Key tuning parameter</th></tr>
+      <tr><td>Single tree (pruned)</td><td>Moderate</td><td>Moderate</td><td>High (visual tree)</td><td>$\alpha$ (complexity)</td></tr>
+      <tr><td>Bagging</td><td>Low</td><td>Lower</td><td>Low (black box)</td><td>$B$ (trees)</td></tr>
+      <tr><td>Random forest</td><td>Low</td><td>Low</td><td>Low (importance only)</td><td>$m$ (features/split)</td></tr>
+      <tr><td>Gradient boosting</td><td>Very low</td><td>Moderate</td><td>Low (importance, PDP)</td><td>$\nu$, $B$, $d$</td></tr>
+      <tr><td>XGBoost</td><td>Very low</td><td>Low</td><td>Low (SHAP available)</td><td>$\nu$, $B$, $\lambda$, $\gamma$</td></tr>
+    </table>
+    <div class="box note">
+      <strong>Choosing among tree-based methods</strong>
+      Start with a random forest: it is robust, easy to tune, and rarely overfits. If a meaningful improvement is needed (e.g. for a competition or production system), try XGBoost with careful hyperparameter tuning and early stopping. Use a single pruned tree only when interpretability is a hard requirement (regulatory, clinical, or educational settings). Bagging is rarely used standalone today; it is subsumed by random forests.
+    </div>
+    <div class="box def">
+      <strong>What tree-based methods cannot do</strong>
+      Tree-based methods are excellent for tabular data with complex interactions and mixed variable types. They are generally poor at: (1) extrapolation beyond the range of training data (trees can only predict convex combinations of training labels); (2) learning smooth functions of continuous inputs without many observations; (3) sequential or image data, where neural networks are preferred.
+    </div>
+  </div>
+
+<div class="slide" data-slide="17">
+    <span class="tag exercise">In-Class Exercise</span>
+    <h2>In-Class Exercise</h2>
+    <h3>Bagging and random forests</h3>
+    <div class="box ex">
+      <strong>Questions</strong>
+      <ol>
+        <li>In bagging with $B=100$ trees, approximately how many observations are in the OOB set for each tree? (Express as a fraction of $n$.)</li>
+        <li>Suppose $p=16$ predictors. What are the default values of $m$ for classification and regression random forests? What happens to the correlation between trees as $m$ decreases from 16 to 1?</li>
+        <li>A random forest with $m=p$ is equivalent to bagging. A random forest with $m=1$ selects one predictor at random at each split. Compare the bias and variance of these two extremes.</li>
+        <li>Variable importance scores show that $X_3$ and $X_7$ are both highly ranked and strongly correlated with each other. What happens to the importance of $X_3$ if $X_7$ is removed from the dataset? Why?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('bag-ex-sol')">Show answers</button>
+    <div class="solution" id="bag-ex-sol">
+      <ol>
+        <li>Each bootstrap sample of size $n$ (with replacement) omits each observation with probability $(1-1/n)^n \to e^{-1} \approx 0.368$. So approximately $36.8\%$ of observations are OOB for each tree.</li>
+        <li>Classification default: $m=\lfloor\sqrt{16}\rfloor=4$. Regression default: $m=\lfloor 16/3\rfloor=5$. As $m$ decreases, the strong predictors are excluded from more splits, forcing trees to use weaker or different predictors. Trees become more diverse (less correlated), which reduces $\rho$ and therefore ensemble variance, at the cost of each individual tree being noisier.</li>
+        <li>$m=p$ (bagging): low bias (full trees), but trees are correlated because the dominant predictor appears in nearly every first split. Variance floor is $\rho\sigma^2$ with $\rho$ potentially large. $m=1$ (random single feature): each tree is built from single-feature splits, so individual tree bias is high (cannot model interactions between predictors). However, trees are nearly uncorrelated ($\rho$ small), so the variance floor is very low. The optimum $m$ balances these two forces.</li>
+        <li>If $X_7$ is removed, $X_3$ will likely absorb much of the importance previously split between the two correlated predictors. When both are present, the random feature subset at each split sometimes excludes $X_3$ and includes $X_7$ (and vice versa), sharing the credit. Removing $X_7$ forces all the splits that would have used $X_7$ to now use the next best alternative, which may be $X_3$, increasing its apparent importance. This is a manifestation of why importance scores should be interpreted with caution when predictors are correlated.</li>
+      </ol>
+    </div>
+    <h3>Boosting</h3>
+    <div class="box ex">
+      <strong>Questions</strong>
+      <ol>
+        <li>In AdaBoost, a weak classifier achieves $\mathrm{err}=0.3$ on the weighted training set. Compute $\alpha$ and interpret its sign and magnitude.</li>
+        <li>In gradient boosting with squared loss, the pseudo-residuals are $r_i = y_i - \hat{f}^{(b-1)}(x_i)$. What are the pseudo-residuals for absolute loss $L(y,f)=|y-f|$?</li>
+        <li>Explain why using stumps ($d=1$) in gradient boosting means the model can only represent additive effects in the first iteration, but can capture interactions in later iterations.</li>
+        <li>A gradient boosting model with $\nu=0.1$ and $B=100$ achieves the same training loss as one with $\nu=0.01$ and $B=1000$. Which model is likely to generalise better, and why?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('bst-ex-sol')">Show answers</button>
+    <div class="solution" id="bst-ex-sol">
+      <ol>
+        <li>$\alpha = \log((1-0.3)/0.3)=\log(0.7/0.3)=\log(2.333)\approx 0.847$. Positive: the classifier is better than random ($\mathrm{err}&lt;0.5$), so it gets positive weight in the final ensemble. Magnitude 0.847: moderate weight. If $\mathrm{err}=0$, $\alpha\to\infty$; if $\mathrm{err}=0.5$, $\alpha=0$; if $\mathrm{err}>0.5$, $\alpha&lt;0$ (the classifier is worse than random and effectively gets flipped).</li>
+        <li>For $L=|y-f|$: $\partial L/\partial f = -\mathrm{sign}(y-f)$ for $y\neq f$. So $r_i = -\partial L/\partial f = \mathrm{sign}(y_i - \hat{f}^{(b-1)}(x_i))$. Each pseudo-residual is $+1$ (if underpredicting) or $-1$ (if overpredicting), regardless of the residual magnitude. This makes gradient boosting with absolute loss robust to outliers (large residuals do not get extra weight).</li>
+        <li>At iteration $b=1$: the model is $\hat{f}^{(0)}=\bar{y}$, and the stump fits a single split on one predictor. The update $\hat{f}^{(1)}=\bar{y}+\nu h_1(x)$ depends on only one predictor: purely additive. At iteration $b=2$: the residuals $r_i^{(2)}=y_i-\hat{f}^{(1)}(x_i)$ depend on the first stump's prediction. The second stump may split on a different predictor, and its residuals already encode the first predictor's contribution. As iterations accumulate, residuals that are systematic functions of multiple predictors can be fitted by different stumps, creating an implicit interaction through the residual chain, even though each individual tree is additive.</li>
+        <li>The smaller learning rate ($\nu=0.01$, $B=1000$) is generally preferred. Smaller steps explore the loss surface more carefully, are less likely to overshoot, and the variance introduced per step is lower. With early stopping based on validation error, the optimal $B$ for the smaller $\nu$ model is found more precisely. In practice, small $\nu$ and large $B$ consistently produce better generalisation than large $\nu$ and small $B$ when both achieve the same training loss, because the small-step model is more regularised.</li>
+      </ol>
+    </div>
+  </div>
+
+<div class="slide" data-slide="18">
+    <span class="tag practice">Practice Problems</span>
+    <h2>Practice Problems</h2>
+    <h3>Bagging and random forests</h3>
+    <div class="box ex">
+      <strong>Problem 1: Conceptual</strong>
+      <ol type="a">
+        <li>Explain why averaging $B$ trees reduces variance but does not reduce bias. What does this imply about the individual trees in bagging?</li>
+        <li>True or False: The OOB error always underestimates test error because the OOB sample is smaller than a proper test set.</li>
+        <li>In a random forest with $B=500$ trees, increasing $B$ to 1000 is unlikely to improve accuracy significantly. Explain why, referencing the variance formula.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('bag-pp1-sol')">Show solution</button>
+    <div class="solution" id="bag-pp1-sol">
+      <ol type="a">
+        <li>Averaging $B$ estimators with mean $\mu$ and variance $\sigma^2$ gives an average with mean $\mu$ (unchanged: bias is not reduced) and variance $\sigma^2/B$ (reduced, if independent) or $\rho\sigma^2+(1-\rho)\sigma^2/B$ (if correlated). Bias is a property of each tree's expected prediction relative to the truth; averaging does not change expectations. This implies each individual tree should have low bias: achieved by growing full unpruned trees on large enough bootstrap samples. The ensemble handles the variance problem.</li>
+        <li>False. OOB error is not biased downward because of sample size. Each OOB prediction is made by a tree that has not seen that observation during training, so it genuinely measures out-of-sample performance. The OOB set for each observation is about $0.368n$ trees, which is ample for stable prediction. OOB error is widely accepted as nearly equivalent to leave-one-out cross-validation in practice.</li>
+        <li>From $\mathrm{Var}(\hat{f}_\text{RF})=\rho\sigma^2+(1-\rho)\sigma^2/B$: the first term $\rho\sigma^2$ is independent of $B$. As $B$ grows, the second term $(1-\rho)\sigma^2/B \to 0$. Going from 500 to 1000 reduces the second term by half, but if $\rho\sigma^2$ already dominates (as it does for large $B$), the further reduction is negligible. The variance is essentially at its floor $\rho\sigma^2$, and no amount of additional trees can reduce it below this limit.</li>
+      </ol>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2: Calculation</strong>
+      A random forest has $B=200$ trees, each with variance $\sigma^2=0.16$ and pairwise correlation $\rho=0.4$.
+      <ol type="a">
+        <li>Compute the variance of the random forest prediction.</li>
+        <li>What variance would bagging (same trees but $\rho=0.7$) achieve with $B=200$?</li>
+        <li>What is the variance floor as $B\to\infty$ in each case?</li>
+        <li>If reducing $m$ changes $\rho$ from 0.7 to 0.4 but increases individual tree variance from 0.16 to 0.22, which setting gives lower ensemble variance at $B=200$?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('bag-pp2-sol')">Show solution</button>
+    <div class="solution" id="bag-pp2-sol">
+      <ol type="a">
+        <li>$\mathrm{Var}=0.4(0.16)+(1-0.4)(0.16)/200=0.064+0.6(0.0008)=0.064+0.00048\approx 0.0645$.</li>
+        <li>$\mathrm{Var}=0.7(0.16)+(0.3)(0.16)/200=0.112+0.00024\approx 0.1122$.</li>
+        <li>Floor ($B\to\infty$): case (a) $\rho\sigma^2=0.064$; case (b) $0.7(0.16)=0.112$. Reduced correlation cuts the floor by nearly half.</li>
+        <li>Case with $\rho=0.4,\sigma^2=0.22$: $\mathrm{Var}=0.4(0.22)+(0.6)(0.22)/200=0.088+0.00066\approx 0.0887$. Case with $\rho=0.7,\sigma^2=0.16$: $0.1122$ (from b). The lower-correlation setting ($\rho=0.4$) gives lower ensemble variance ($0.0887&lt;0.1122$) even though individual trees are noisier.</li>
+      </ol>
+    </div>
+    <h3>Boosting</h3>
+    <div class="box ex">
+      <strong>Problem 1: AdaBoost</strong>
+      Three training points with labels $y \in \{-1,+1\}$: $(x_1,+1)$, $(x_2,-1)$, $(x_3,+1)$. Uniform initial weights $w=(1/3,1/3,1/3)$. Stump $G_1$ correctly classifies $x_1,x_3$ and misclassifies $x_2$.
+      <ol type="a">
+        <li>Compute $\mathrm{err}_1$ and $\alpha_1$.</li>
+        <li>Update the weights. Which observation gets the highest weight?</li>
+        <li>What does the new weight distribution imply for the second stump $G_2$?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('bst-pp1-sol')">Show solution</button>
+    <div class="solution" id="bst-pp1-sol">
+      <ol type="a">
+        <li>$\mathrm{err}_1 = w_2 = 1/3$. $\alpha_1 = \log((1-1/3)/(1/3))=\log(2)\approx 0.693$.</li>
+        <li>$x_2$ is misclassified, so its weight is multiplied by $e^{\alpha_1}=e^{0.693}=2$: new weight $\propto (1/3)(1)$, $(1/3)(2)$, $(1/3)(1)=(1/3,2/3,1/3)$. Normalised: $(1/4, 1/2, 1/4)$. $x_2$ has the highest weight (0.5).</li>
+        <li>$G_2$ is trained with double the weight on $x_2$. It is strongly incentivised to correctly classify $x_2$. Any stump that perfectly classifies $x_2$ will have low weighted error even if it misclassifies one of $x_1$ or $x_3$ (each with weight 0.25).</li>
+      </ol>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2: Gradient boosting steps</strong>
+      Data: $(x_1,y_1)=(1,3)$, $(x_2,y_2)=(2,5)$, $(x_3,y_3)=(3,2)$. Use squared loss and $\nu=0.5$.
+      <ol type="a">
+        <li>Initialise $\hat{f}^{(0)}=\bar{y}$. Compute the initial pseudo-residuals.</li>
+        <li>A stump fits the residuals and predicts $+2$ for $x_1$, $+2$ for $x_2$, $-2$ for $x_3$. Update $\hat{f}^{(1)}$ and compute new residuals.</li>
+        <li>How do the new residuals compare to the initial residuals? What has boosting achieved?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('bst-pp2-sol')">Show solution</button>
+    <div class="solution" id="bst-pp2-sol">
+      <ol type="a">
+        <li>$\bar{y}=(3+5+2)/3=10/3\approx 3.33$. $r_1^{(1)}=3-3.33=-0.33$, $r_2^{(1)}=5-3.33=1.67$, $r_3^{(1)}=2-3.33=-1.33$.</li>
+        <li>$\hat{f}^{(1)}(x_1)=3.33+0.5(2)=4.33$, $\hat{f}^{(1)}(x_2)=3.33+0.5(2)=4.33$, $\hat{f}^{(1)}(x_3)=3.33+0.5(-2)=2.33$. New residuals: $r_1^{(2)}=3-4.33=-1.33$, $r_2^{(2)}=5-4.33=0.67$, $r_3^{(2)}=2-2.33=-0.33$.</li>
+        <li>$r_2$ decreased from 1.67 to 0.67 (the biggest initial residual was corrected most). $r_1$ and $r_3$ changed slightly. The overall sum of squared residuals decreased: from $0.33^2+1.67^2+1.33^2\approx 0.11+2.79+1.77=4.67$ to $1.33^2+0.67^2+0.33^2\approx 1.77+0.45+0.11=2.33$. Boosting has reduced training loss by roughly half in one step, with more iterations to further reduce the remaining residuals.</li>
+      </ol>
+    </div>
+    <h3>XGBoost</h3>
+    <div class="box ex">
+      <strong>Problem 1: XGBoost objective</strong>
+      At a leaf with observations $I=\{1,2,3\}$, gradients $g=(2,-1,3)$ and Hessians $h=(1,1,2)$. Set $\lambda=1$.
+      <ol type="a">
+        <li>Compute the optimal leaf weight $w^*$.</li>
+        <li>If splitting this leaf produces children with $G_L=-1,H_L=1$ and $G_R=5,H_R=3$, compute the split gain with $\lambda=1$ and $\gamma=0$.</li>
+        <li>At what value of $\gamma$ would this split be rejected?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('xgb-pp1-sol')">Show solution</button>
+    <div class="solution" id="xgb-pp1-sol">
+      <ol type="a">
+        <li>$G=2+(-1)+3=4$, $H=1+1+2=4$. $w^*=-G/(H+\lambda)=-4/(4+1)=-0.8$.</li>
+        <li>Parent: $G_j=4$, $H_j=4$. $\text{Gain}=\frac{1}{2}\left[\frac{(-1)^2}{1+1}+\frac{5^2}{3+1}-\frac{4^2}{4+1}\right]-0=\frac{1}{2}\left[\frac{1}{2}+\frac{25}{4}-\frac{16}{5}\right]=\frac{1}{2}[0.5+6.25-3.2]=\frac{1}{2}(3.55)=1.775$.</li>
+        <li>The split is accepted when Gain $-\gamma>0$, i.e.\ $\gamma&lt;1.775$. For $\gamma\geq 1.775$, the split is rejected.</li>
+      </ol>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2: Conceptual</strong>
+      <ol type="a">
+        <li>An XGBoost model achieves training AUC 0.99 and validation AUC 0.72. Which hyperparameters would you adjust first? Justify your answer.</li>
+        <li>A colleague proposes a column subsampling fraction of $0.3$ with a maximum tree depth of $8$. Explain the bias-variance implications of this combination.</li>
+        <li>SHAP values for observation $x_5$ sum to $+0.45$. The baseline prediction (mean) is 0.30. What is the model's predicted value for $x_5$?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('xgb-pp2-sol')">Show solution</button>
+    <div class="solution" id="xgb-pp2-sol">
+      <ol type="a">
+        <li>The large train-validation gap (0.99 vs 0.72) indicates severe overfitting. First priorities: reduce the maximum tree depth (from 6 to 3 or 4), increase the minimum Hessian sum per leaf (e.g.\ to 5 to 10), and reduce the row and column subsampling fractions (e.g.\ to 0.7). Also increase $\lambda$ and $\gamma$. Use early stopping with a patience of 50 rounds to find the optimal number of trees. Reducing the learning rate alone without adjusting tree complexity is less effective for this degree of overfitting.</li>
+        <li>A column subsampling fraction of $0.3$ means each tree sees only 30% of features: reduces correlation between trees (like a random forest), which reduces variance. A maximum depth of $8$ means very deep trees: each individual tree has low bias but high variance. The combination attempts to balance these two forces: deep trees allow complex function approximation, while low column sampling reduces ensemble variance. However, deep trees with few features can produce unstable splits at lower levels where the available feature set is very restricted. In practice, this combination can work but a depth of 4 to 6 with a column fraction of 0.7 to 0.8 is usually more stable.</li>
+        <li>$\hat{f}(x_5) = E[\hat{f}] + \sum_j \phi_j(5) = 0.30 + 0.45 = 0.75$.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
+    <span class="slide-num" id="slide-num">Slide 1 of 18</span>
+    <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
+  </div>
+</div>
+</div>
+<script>
+var SK='aiml-ensemble-v1',ts=18;
+var cs=parseInt(localStorage.getItem(SK)||'1');
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
+  document.querySelector('[data-slide="'+n+'"]').classList.add('active');
+  document.getElementById('pbar').style.width=(n/ts*100)+'%';
+  document.getElementById('slide-num').textContent='Slide '+n+' of '+ts;
+  document.getElementById('btn-prev').disabled=(n===1);
+  document.getElementById('btn-next').disabled=(n===ts);
+  localStorage.setItem(SK,n);cs=n;
+  if(n===3)setTimeout(drawRF,80);
+  if(n===7)setTimeout(drawBoost,80);
+  if(n===12)setTimeout(drawShap,80);
+}
+function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
+function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block')}
+function chgZ(d){var c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base'));document.documentElement.style.setProperty('--base',(c+d)+'px')}
+
+function drawRF(){
+  var cv=document.getElementById('cv-rf');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:52,r:20,t:22,b:36},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  var xMin=1,xMax=500,yMin=0.08,yMax=0.32;
+  function px(x){return pad.l+(Math.log(x)-Math.log(xMin))/(Math.log(xMax)-Math.log(xMin))*pw}
+  function py(y){return pad.t+(1-(y-yMin)/(yMax-yMin))*ph}
+  // axis
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  // grid
+  ctx.strokeStyle='#e2e8f0';ctx.lineWidth=0.8;
+  [0.10,0.15,0.20,0.25,0.30].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l+pw,py(v));ctx.stroke();
+  });
+  // Bagging curve (m=p, higher floor)
+  function bagErr(B){return 0.18+0.12/Math.pow(B,0.6)}
+  // RF curve (m<p, lower floor)
+  function rfErr(B){return 0.115+0.16/Math.pow(B,0.7)}
+  var Bvals=[1,2,4,8,16,32,64,100,200,300,500];
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  Bvals.forEach(function(B,i){var x=px(B),y=py(bagErr(B));if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='#f97316';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  Bvals.forEach(function(B,i){var x=px(B),y=py(rfErr(B));if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+  ctx.stroke();
+  // labels
+  ctx.fillStyle='#94a3b8';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Bagging (m=p)',px(200),py(bagErr(200))-8);
+  ctx.fillStyle='#f97316';
+  ctx.fillText('Random forest (m<p)',px(100),py(rfErr(100))-8);
+  // axes labels
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  [1,10,100,500].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(px(v),pad.t+ph);ctx.lineTo(px(v),pad.t+ph+4);ctx.strokeStyle='#94a3b8';ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.fillText(v,px(v),pad.t+ph+14);
+  });
+  ctx.textAlign='right';
+  [0.10,0.15,0.20,0.25,0.30].forEach(function(v){
+    ctx.beginPath();ctx.moveTo(pad.l,py(v));ctx.lineTo(pad.l-4,py(v));ctx.strokeStyle='#94a3b8';ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.fillText(v.toFixed(2),pad.l-6,py(v)+3);
+  });
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Number of trees B',pad.l+pw/2,H-2);
+  ctx.save();ctx.translate(13,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Test error',0,0);ctx.restore();
+}
+
+function drawBoost(){
+  var cv=document.getElementById('cv-boost');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var pad={l:15,r:15,t:18,b:18};
+  var nPanel=3,gap=16;
+  var pw=(W-pad.l-pad.r-gap*(nPanel-1))/nPanel;
+  var ph=H-pad.t-pad.b;
+  var x0=[0.1,0.25,0.4,0.55,0.7,0.85,0.95];
+  var y0=[0.8,0.3,0.65,0.5,0.9,0.2,0.6];
+  function truth(x){return 0.3+0.6*Math.sin(2.5*x+0.3)}
+  function stepFn(x,cuts,vals){for(var i=0;i<cuts.length-1;i++){if(x>=cuts[i]&&x<cuts[i+1])return vals[i];}return vals[vals.length-1]}
+  var panels=[
+    {iter:0,pred:function(x){return 0.55},label:'b=0: mean'},
+    {iter:1,pred:function(x){return 0.55+0.4*stepFn(x,[0,0.45,1],[1,-1],null)},label:'b=1'},
+    {iter:3,pred:function(x){var b0=0.55,b1=0.4*(x<0.45?1:-1),b2=0.15*(x<0.25?-1:(x<0.7?1:-1)),b3=0.08*(x<0.6?-1:1);return b0+b1+b2+b3},label:'b=3'}
+  ];
+  panels.forEach(function(pan,pi){
+    var ox=pad.l+pi*(pw+gap);
+    function px(x){return ox+x*pw}
+    function py(y){return pad.t+(1-y)*ph}
+    // axis
+    ctx.strokeStyle='#e2e8f0';ctx.lineWidth=1;
+    ctx.beginPath();ctx.rect(ox,pad.t,pw,ph);ctx.stroke();
+    // data points (grey circles)
+    x0.forEach(function(x,i){
+      var res=y0[i]-pan.pred(x);
+      ctx.beginPath();ctx.arc(px(x),py(y0[i]),4,0,2*Math.PI);
+      ctx.fillStyle='#94a3b8';ctx.fill();
+      // residual line
+      ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(px(x),py(pan.pred(x)));ctx.lineTo(px(x),py(y0[i]));ctx.stroke();
+    });
+    // current fit
+    ctx.strokeStyle='#f97316';ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var xi=0;xi<=50;xi++){var xv=xi/50,yv=pan.pred(xv);if(xi===0)ctx.moveTo(px(xv),py(yv));else ctx.lineTo(px(xv),py(yv));}
+    ctx.stroke();
+    // label
+    ctx.fillStyle='#1e3a5f';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+    ctx.fillText(pan.label,ox+pw/2,pad.t-4);
+  });
+}
+
+function drawShap(){
+  var cv=document.getElementById('cv-shap');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var feats=['Missed payments = 3','Income = 90k','Debt to income = 0.6','Years employed = 8','Age = 24'];
+  var shaps=[0.28,-0.15,0.12,-0.08,0.05];
+  var n=feats.length,rh=30,gap=8,padL=140,padR=20,padT=18,padB=30;
+  var baseline=W/2;
+  var maxAbs=0.35;
+  function bx(v){return baseline+v/maxAbs*(W-padL-padR-10)/2}
+  ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#334155';
+  ctx.fillText('SHAP values for one applicant (baseline 0.30, prediction 0.52)',W/2,12);
+  // baseline line
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(baseline,padT);ctx.lineTo(baseline,padT+(rh+gap)*n);ctx.stroke();ctx.setLineDash([]);
+  shaps.forEach(function(v,i){
+    var y=padT+i*(rh+gap);
+    var x1=Math.min(baseline,bx(v)),x2=Math.max(baseline,bx(v));
+    ctx.fillStyle=v>=0?'rgba(37,99,235,0.18)':'rgba(220,38,38,0.18)';
+    ctx.fillRect(x1,y+4,x2-x1,rh-8);
+    ctx.strokeStyle=v>=0?'#2563eb':'#dc2626';ctx.lineWidth=2;
+    ctx.strokeRect(x1,y+4,x2-x1,rh-8);
+    ctx.fillStyle='#1e293b';ctx.font='11px sans-serif';ctx.textAlign='right';
+    ctx.fillText(feats[i],padL-6,y+rh/2+4);
+    ctx.textAlign='left';
+    ctx.fillStyle=v>=0?'#2563eb':'#dc2626';
+    ctx.fillText((v>=0?'+':'')+v.toFixed(2),bx(v)+4,y+rh/2+4);
+  });
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Baseline',baseline,padT+(rh+gap)*n+14);
+  ctx.fillStyle='#2563eb';ctx.textAlign='right';
+  ctx.fillText('Positive contribution',baseline-6,padT+(rh+gap)*n+14);
+  ctx.fillStyle='#dc2626';ctx.textAlign='left';
+  ctx.fillText('Negative contribution',baseline+6,padT+(rh+gap)*n+14);
+}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowDown')chgSlide(1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')chgSlide(-1);});
+showSlide(cs);
+</script>
+</body>
+</html>
