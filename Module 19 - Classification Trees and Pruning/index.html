@@ -209,73 +209,79 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
   </div>
 
   <div class="slide" data-slide="7">
-    <span class="tag topic">Worked Example</span>
+    <span class="tag exercise">Worked Example</span>
     <h2>Worked Example: Pruning Sequence</h2>
-    <p>Full tree $T_{\max}$ has 5 leaves, training RSS = 12. Internal nodes and their $g(t)$ values:</p>
+    <p>The full tree $T_{\max}$ below has 5 leaves and training RSS $=12$. Each leaf shows its own RSS. Each internal node is also labelled with the RSS it would have if collapsed into a single leaf.</p>
+    <canvas id="cv-prune-ex" width="700" height="300" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
     <table>
       <tr><th>Node</th><th>RSS at node</th><th>RSS of subtree</th><th>Leaves in subtree</th><th>$g(t)$</th></tr>
-      <tr><td>$t_1$</td><td>8.0</td><td>3.5</td><td>3</td><td>$(8.0-3.5)/(3-1)=2.25$</td></tr>
-      <tr><td>$t_2$</td><td>6.0</td><td>4.5</td><td>2</td><td>$(6.0-4.5)/(2-1)=1.50$</td></tr>
-      <tr><td>$t_3$</td><td>9.5</td><td>7.0</td><td>2</td><td>$(9.5-7.0)/(2-1)=2.50$</td></tr>
+      <tr><td>$t_0$ (root)</td><td>26.0</td><td>12.0</td><td>5</td><td>$(26.0-12.0)/(5-1)=3.50$</td></tr>
+      <tr><td>$t_1$</td><td>9.0</td><td>4.5</td><td>3</td><td>$(9.0-4.5)/(3-1)=2.25$</td></tr>
+      <tr><td>$t_2$</td><td>4.0</td><td>2.5</td><td>2</td><td>$(4.0-2.5)/(2-1)=1.50$</td></tr>
+      <tr><td>$t_3$</td><td>10.0</td><td>7.5</td><td>2</td><td>$(10.0-7.5)/(2-1)=2.50$</td></tr>
     </table>
     <div class="box ex">
-      <strong>Pruning steps</strong>
+      <strong>Pruning steps (recomputing $g$ after each collapse)</strong>
       <ol>
-        <li>Smallest $g(t)$: $t_2$ with $g=1.50$. Collapse $t_2$: tree now has 4 leaves, threshold $\alpha_1 = 1.50$.</li>
-        <li>Recompute $g$ for remaining nodes. Next smallest: $t_1$ with $g=2.25$. Collapse: 2 leaves, $\alpha_2=2.25$.</li>
-        <li>Collapse $t_3$: 1 leaf (root), $\alpha_3=2.50$.</li>
+        <li>Smallest $g$: $t_2$ with $1.50$. Collapse $t_2$: 4 leaves, RSS $=12+1.50=13.5$, $\alpha_1=1.50$.</li>
+        <li>Recompute. Collapsing $t_2$ changed $t_1$: its subtree now has 2 leaves and RSS $2.0+4.0=6.0$, so $g(t_1)=(9.0-6.0)/(2-1)=3.00$ (it was $2.25$). Now $t_3$ is smallest at $2.50$. Collapse $t_3$: 3 leaves, RSS $=16.0$, $\alpha_2=2.50$.</li>
+        <li>Recompute: $g(t_1)=3.00$, $g(t_0)=(26-16)/(3-1)=5.00$. Collapse $t_1$: 2 leaves, RSS $=19.0$, $\alpha_3=3.00$.</li>
+        <li>Only the root remains: $g(t_0)=(26-19)/(2-1)=7.00$. Collapse $t_0$: 1 leaf, RSS $=26.0$, $\alpha_4=7.00$.</li>
       </ol>
-      Cross-validation selects, say, $\alpha^*=2.0$: this corresponds to the 4-leaf subtree from step 1.
+      Cross-validation selects, say, $\alpha^*=2.0$, which lies in $[1.50,\,2.50)$ and corresponds to the 4-leaf subtree from step 1.
     </div>
     <div class="box note">
       <strong>Key insight</strong>
-      $g(t)$ is the per-leaf improvement in training RSS from keeping the subtree rooted at $t$ instead of collapsing it to a single node. A small $g(t)$ means the subtree is doing little useful work: a good candidate for removal.
+      $g(t)$ is the per-leaf improvement in training RSS from keeping the subtree rooted at $t$ instead of collapsing it to a single node. A small $g(t)$ means the subtree is doing little useful work: a good candidate for removal. Because collapsing a node changes the subtrees above it, the $g$ values must be recomputed after every step, as $t_1$ shows.
     </div>
   </div>
 
   <div class="slide" data-slide="8">
     <span class="tag exercise">Worked Example</span>
     <h2>Worked Example: Evaluating $R_\alpha(T)$ Directly</h2>
-    <p>The pruning sequence can also be checked from the definition. Collapsing each node in turn produces four nested subtrees, whose training RSS follows directly from the $g(t)$ values on the previous slide.</p>
+    <p>The pruning sequence can also be checked from the definition. Collapsing the weakest node at each step produces five nested subtrees, whose training RSS follows from the steps on the previous slide.</p>
     <div class="box def">
       <strong>Building the subtree sequence</strong>
-      Collapsing a node raises RSS by $g(t)\times(|T_t|-1)$, so starting from $\text{RSS}(T_{\max}) = 12$:
+      Collapsing a node raises RSS by $g(t)\times(|T_t|-1)$, where $g$ and $|T_t|$ are taken at the moment of collapse. Starting from $\text{RSS}(T_{\max}) = 12$:
       <table>
         <tr><th>Subtree</th><th>Formed by</th><th>Leaves $|T|$</th><th>Training RSS</th></tr>
         <tr><td>$T_0 = T_{\max}$</td><td>&mdash;</td><td>5</td><td>$12.0$</td></tr>
         <tr><td>$T_1$</td><td>collapse $t_2$: $+1.50\times 1$</td><td>4</td><td>$13.5$</td></tr>
-        <tr><td>$T_2$</td><td>collapse $t_1$: $+2.25\times 2$</td><td>2</td><td>$18.0$</td></tr>
-        <tr><td>$T_3$</td><td>collapse $t_3$: $+2.50\times 1$</td><td>1</td><td>$20.5$</td></tr>
+        <tr><td>$T_2$</td><td>collapse $t_3$: $+2.50\times 1$</td><td>3</td><td>$16.0$</td></tr>
+        <tr><td>$T_3$</td><td>collapse $t_1$: $+3.00\times 1$</td><td>2</td><td>$19.0$</td></tr>
+        <tr><td>$T_4$</td><td>collapse $t_0$: $+7.00\times 1$</td><td>1</td><td>$26.0$</td></tr>
       </table>
     </div>
     <div class="box formula">
       <strong>Evaluating the penalised criterion</strong>
       $$R_\alpha(T) = \text{RSS}(T) + \alpha|T|$$
       <table>
-        <tr><th>$\alpha$</th><th>$T_0$ (5)</th><th>$T_1$ (4)</th><th>$T_2$ (2)</th><th>$T_3$ (1)</th><th>Winner</th></tr>
-        <tr><td>$1.00$</td><td>$\mathbf{17.00}$</td><td>$17.50$</td><td>$20.00$</td><td>$21.50$</td><td>$T_0$</td></tr>
-        <tr><td>$1.50$</td><td>$19.50$</td><td>$19.50$</td><td>$21.00$</td><td>$22.00$</td><td>tie $T_0, T_1$</td></tr>
-        <tr><td>$2.00$</td><td>$22.00$</td><td>$\mathbf{21.50}$</td><td>$22.00$</td><td>$22.50$</td><td>$T_1$</td></tr>
-        <tr><td>$2.25$</td><td>$23.25$</td><td>$22.50$</td><td>$22.50$</td><td>$22.75$</td><td>tie $T_1, T_2$</td></tr>
-        <tr><td>$2.50$</td><td>$24.50$</td><td>$23.50$</td><td>$23.00$</td><td>$23.00$</td><td>tie $T_2, T_3$</td></tr>
-        <tr><td>$3.00$</td><td>$27.00$</td><td>$25.50$</td><td>$24.00$</td><td>$\mathbf{23.50}$</td><td>$T_3$</td></tr>
+        <tr><th>$\alpha$</th><th>$T_0$ (5)</th><th>$T_1$ (4)</th><th>$T_2$ (3)</th><th>$T_3$ (2)</th><th>$T_4$ (1)</th><th>Winner</th></tr>
+        <tr><td>$1.00$</td><td>$\mathbf{17.00}$</td><td>$17.50$</td><td>$19.00$</td><td>$21.00$</td><td>$27.00$</td><td>$T_0$</td></tr>
+        <tr><td>$1.50$</td><td>$19.50$</td><td>$19.50$</td><td>$20.50$</td><td>$22.00$</td><td>$27.50$</td><td>tie $T_0, T_1$</td></tr>
+        <tr><td>$2.00$</td><td>$22.00$</td><td>$\mathbf{21.50}$</td><td>$22.00$</td><td>$23.00$</td><td>$28.00$</td><td>$T_1$</td></tr>
+        <tr><td>$2.50$</td><td>$24.50$</td><td>$23.50$</td><td>$23.50$</td><td>$24.00$</td><td>$28.50$</td><td>tie $T_1, T_2$</td></tr>
+        <tr><td>$3.00$</td><td>$27.00$</td><td>$25.50$</td><td>$25.00$</td><td>$25.00$</td><td>$29.00$</td><td>tie $T_2, T_3$</td></tr>
+        <tr><td>$5.00$</td><td>$37.00$</td><td>$33.50$</td><td>$31.00$</td><td>$\mathbf{29.00}$</td><td>$31.00$</td><td>$T_3$</td></tr>
+        <tr><td>$7.00$</td><td>$47.00$</td><td>$41.50$</td><td>$37.00$</td><td>$33.00$</td><td>$33.00$</td><td>tie $T_3, T_4$</td></tr>
       </table>
       Sample working at $\alpha = 2$: $R_2(T_1) = 13.5 + 2(4) = 21.5$, against $R_2(T_0) = 12 + 2(5) = 22.0$.
     </div>
     <div class="box ex">
       <strong>The ties are the thresholds</strong>
-      A tie occurs at exactly $\alpha = 1.50$, $2.25$ and $2.50$, which are precisely the three $g(t)$ values computed on the previous slide. This is not a coincidence: $g(t)$ is defined as the value of $\alpha$ at which keeping the subtree and collapsing it cost the same. The optimal subtree is therefore constant on each interval:
+      A tie occurs at exactly $\alpha = 1.50$, $2.50$, $3.00$ and $7.00$, which are precisely the four $\alpha$ values found on the previous slide. This is not a coincidence: $g(t)$ is defined as the value of $\alpha$ at which keeping the subtree and collapsing it cost the same. The optimal subtree is therefore constant on each interval:
       <table>
         <tr><th>Range of $\alpha$</th><th>Optimal subtree</th><th>Leaves</th></tr>
         <tr><td>$0 \leq \alpha &lt; 1.50$</td><td>$T_0$</td><td>5</td></tr>
-        <tr><td>$1.50 \leq \alpha &lt; 2.25$</td><td>$T_1$</td><td>4</td></tr>
-        <tr><td>$2.25 \leq \alpha &lt; 2.50$</td><td>$T_2$</td><td>2</td></tr>
-        <tr><td>$\alpha \geq 2.50$</td><td>$T_3$</td><td>1 (root)</td></tr>
+        <tr><td>$1.50 \leq \alpha &lt; 2.50$</td><td>$T_1$</td><td>4</td></tr>
+        <tr><td>$2.50 \leq \alpha &lt; 3.00$</td><td>$T_2$</td><td>3</td></tr>
+        <tr><td>$3.00 \leq \alpha &lt; 7.00$</td><td>$T_3$</td><td>2</td></tr>
+        <tr><td>$\alpha \geq 7.00$</td><td>$T_4$</td><td>1 (root)</td></tr>
       </table>
     </div>
     <div class="box note">
       <strong>Why this matters in practice</strong>
-      Although $\alpha$ is continuous, only finitely many subtrees can ever be optimal, here just four. Cross validation therefore does not need to search a continuum: it evaluates one representative $\alpha$ from each interval, which is why the whole pruning path can be computed cheaply. The value $\alpha^{*} = 2.0$ selected on the previous slide falls in $[1.50,\,2.25)$ and so returns $T_1$, the four leaf tree, agreeing with the sequence method.
+      Although $\alpha$ is continuous, only finitely many subtrees can ever be optimal, here just five. Cross validation therefore does not need to search a continuum: it evaluates one representative $\alpha$ from each interval, which is why the whole pruning path can be computed cheaply. The value $\alpha^{*} = 2.0$ selected on the previous slide falls in $[1.50,\,2.50)$ and so returns $T_1$, the four leaf tree, agreeing with the sequence method.
     </div>
   </div>
 
@@ -300,7 +306,7 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
     </div>
     <div class="box warn">
       <strong>Single trees vs ensembles</strong>
-      Even with optimal pruning, a single decision tree has high variance. Bagging, random forests, and boosting (Modules 23 and 24) dramatically reduce variance by averaging over many trees. Pruning is most important for interpretability; for prediction accuracy, ensembles are preferred.
+      Even with optimal pruning, a single decision tree has high variance. Bagging, random forests, and boosting (Module 20) dramatically reduce variance by averaging over many trees. Pruning is most important for interpretability; for prediction accuracy, ensembles are preferred.
     </div>
   </div>
 
@@ -319,7 +325,7 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
     <button class="sol-btn" onclick="togSol('ex-sol')">Show answers</button>
     <div class="solution" id="ex-sol">
       <ol>
-        <li>$\Delta C_\alpha = (13-10) - \alpha(4-6) = 3 + 2\alpha$. Wait, the number of leaves decreases from 6 to 4, so $\Delta|T| = -2$. $\Delta C_\alpha = 3 - \alpha\cdot 2 = 3-2\alpha$. The collapse is worthwhile when $\Delta C_\alpha &lt; 0$, i.e.\ $3-2\alpha &lt; 0 \Rightarrow \alpha > 1.5$. So for $\alpha > 1.5$, collapsing is beneficial.</li>
+        <li>Collapsing raises the training RSS by $13-10=3$ and lowers the number of leaves from 6 to 4, so $\Delta|T| = -2$. Hence $\Delta C_\alpha = \Delta\text{RSS} + \alpha\,\Delta|T| = 3 - 2\alpha$. The collapse is worthwhile when $\Delta C_\alpha &lt; 0$, that is $3-2\alpha &lt; 0 \Rightarrow \alpha > 1.5$. So for $\alpha > 1.5$ collapsing is beneficial; at $\alpha = 1.5$ the two trees cost the same.</li>
         <li>Training RSS monotonically decreases with tree size: the full tree always wins. Using training RSS for selection would always select $T_{\max}$, which overfits. Cross-validation estimates test performance by evaluating on held-out data not used in tree construction.</li>
         <li>$g(t)$ is the normalised gain per leaf removed, not the raw RSS increase. Removing a node with many leaves but small $g(t)$ removes a lot of complexity for little accuracy loss; removing a node with large $g(t)$ removes a node that contributes substantially. The weakest link is defined by its normalised contribution, making the sequence consistent with the cost-complexity criterion.</li>
         <li>Similarity: both introduce a penalty on model complexity ($\alpha|T|$ vs $\lambda\|\boldsymbol\beta\|_1$) that trades off fit against size. Larger penalty gives simpler models. Both are selected by cross-validation. Difference: lasso produces exact zeros in coefficients (continuous shrinkage to zero), while pruning removes entire subtrees (discrete structural change). Lasso can gradually shrink any coefficient; pruning cannot partially collapse a node.</li>
@@ -391,6 +397,7 @@ function showSlide(n){
   localStorage.setItem(SK,n);cs=n;
   if(n===3)setTimeout(drawImpurity,80);
   if(n===6)setTimeout(drawPrune,80);
+  if(n===7)setTimeout(drawPruneEx,80);
 }
 function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
 function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block')}
@@ -448,6 +455,35 @@ function drawImpurity(){
   });
 }
 
+function drawPruneEx(){
+  var cv=document.getElementById('cv-prune-ex');if(!cv)return;
+  var ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);
+  function node(x,y,name,sub,col){
+    ctx.fillStyle=col;ctx.strokeStyle='#2563eb';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(x-52,y,104,46,8);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillText(name,x,y+19);
+    ctx.font='11px sans-serif';ctx.fillStyle='#475569';ctx.fillText(sub,x,y+36);}
+  function leaf(x,y,name,rss){
+    ctx.fillStyle='#f0fdf4';ctx.strokeStyle='#059669';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(x-42,y,84,44,8);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#166534';ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillText('Leaf '+name,x,y+19);
+    ctx.font='11px sans-serif';ctx.fillText('RSS = '+rss,x,y+35);}
+  function line(x1,y1,x2,y2){ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+  // levels y: 15, 95, 175, 250
+  line(350,61,200,95);line(350,61,540,95);
+  line(200,141,120,175);line(200,141,290,175);
+  line(540,141,470,175);line(540,141,610,175);
+  line(290,221,235,250);line(290,221,345,250);
+  node(350,15,'t0 (root)','if collapsed: 26.0','#dbeafe');
+  node(200,95,'t1','if collapsed: 9.0','#dbeafe');
+  node(540,95,'t3','if collapsed: 10.0','#dbeafe');
+  leaf(120,175,'a','2.0');
+  node(290,175,'t2','if collapsed: 4.0','#dbeafe');
+  leaf(235,250,'b','1.0');leaf(345,250,'c','1.5');
+  leaf(470,175,'d','3.5');leaf(610,175,'e','4.0');
+  ctx.fillStyle='#64748b';ctx.font='11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Leaf RSS values sum to 12.0',12,292);
+}
 function drawPrune(){
   var cv=document.getElementById('cv-prune');if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
