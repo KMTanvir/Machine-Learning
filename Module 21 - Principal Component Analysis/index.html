@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 21 – Principal Component Analysis | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b}
+#wrap{max-width:1100px;margin:0 auto;padding:.6rem 1rem 2rem}
+header{background:#1e3a5f;color:#fff;padding:.7rem 1.2rem;border-radius:10px;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700}
+header .meta{font-size:calc(var(--base)*.78);opacity:.82}
+.zoom-bar{display:flex;gap:.35rem;align-items:center}
+.zoom-bar button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:.18rem .55rem;font-size:calc(var(--base)*.82);cursor:pointer}
+.zoom-bar button:hover{background:rgba(255,255,255,.32)}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width .3s}
+.slide{display:none}.slide.active{display:block}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:.7rem;border-bottom:2px solid #2563eb;padding-bottom:.3rem}
+.slide h3{font-size:calc(var(--base)*1.05);color:#1e3a5f;margin:.9rem 0 .4rem}
+.slide p,.slide li{line-height:1.65;margin-bottom:.45rem}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:.5rem}
+.slide ul li,.slide ol li{margin-bottom:.3rem}
+.tag{display:inline-block;font-size:calc(var(--base)*.72);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.13rem .55rem;border-radius:4px;margin-bottom:.6rem}
+.tag.module{background:#dbeafe;color:#1e40af}
+.tag.topic{background:#f0fdf4;color:#166534}
+.tag.exercise{background:#fef9c3;color:#854d0e}
+.tag.practice{background:#fce7f3;color:#9d174d}
+.box{border-radius:8px;padding:.75rem 1rem;margin:.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc}
+.box.def{border-color:#2563eb;background:#eff6ff}
+.box.formula{border-color:#7c3aed;background:#f5f3ff}
+.box.note{border-color:#d97706;background:#fffbeb}
+.box.warn{border-color:#dc2626;background:#fff1f2}
+.box.ex{border-color:#059669;background:#f0fdf4}
+.box>strong:first-child{display:block;margin-bottom:.3rem;color:#1e293b}
+.box strong{color:#1e293b}
+.sol-btn{margin-top:.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:.38rem .9rem;font-size:calc(var(--base)*.83);cursor:pointer}
+.sol-btn:hover{background:#2563eb}
+.solution{display:none;margin-top:.6rem;border-top:1px dashed #cbd5e1;padding-top:.6rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:calc(var(--base)*.9)}
+th,td{border:1px solid #cbd5e1;padding:.35rem .6rem;text-align:left}
+th{background:#f1f5f9;font-weight:600}
+canvas{display:block;border-radius:8px;background:#f8fafc}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid #e2e8f0}
+.nav-row button{background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;font-size:calc(var(--base)*.88);cursor:pointer}
+.nav-row button:hover{background:#2563eb}
+.nav-row button:disabled{background:#94a3b8;cursor:default}
+.slide-num{font-size:calc(var(--base)*.82);color:#64748b}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <h1>Module 21: Principal Component Analysis</h1>
+    <div class="meta">AST402 Statistics for AI and Machine Learning &nbsp;|&nbsp; Part G: Dimensionality Reduction &nbsp;|&nbsp; IASDS, University of Dhaka</div>
+  </div>
+  <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
+</header>
+<div id="slides">
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:9%"></div></div>
+
+  <!-- Slide 1 -->
+  <div class="slide active" data-slide="1">
+    <span class="tag module">Module 21</span>
+    <h2>Principal Component Analysis</h2>
+    <p>When predictors are numerous and correlated, much of the information they carry is redundant. Principal component analysis finds a small set of new variables, built as linear combinations of the originals, that retain as much of the variation as possible. It is the foundation for dimension reduction, for visualisation, and for the regression methods of Module 22.</p>
+    <div class="box def">
+      <strong>Learning Objectives</strong>
+      <ul>
+        <li>State the optimisation problem that defines the first principal component</li>
+        <li>Obtain principal components from the eigendecomposition of the covariance matrix</li>
+        <li>Compute loadings, scores and the proportion of variance explained by hand</li>
+        <li>Decide whether to standardise the predictors, and explain why it matters</li>
+        <li>Choose the number of components using a scree plot and cumulative variance</li>
+        <li>Recognise what PCA cannot do</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>Unsupervised by construction</strong>
+      PCA never looks at a response variable. It summarises the predictors alone, which makes it useful for exploration and visualisation, but also creates the weakness that Module 22 addresses: the directions of greatest variance in $X$ need not be the directions most useful for predicting $Y$.
+    </div>
+  </div>
+
+<div class="slide" data-slide="2">
+    <span class="tag topic">Motivation</span>
+    <h2>Why Reduce Dimension?</h2>
+    <div class="box def">
+      <strong>Three distinct problems with large $p$</strong>
+      <ul>
+        <li><strong>Variance.</strong> Least squares with $p$ predictors estimates $p+1$ parameters. As $p$ approaches $n$ the fit becomes unstable, and when $p > n$ it is not unique at all.</li>
+        <li><strong>Redundancy.</strong> Highly correlated predictors carry overlapping information. Ten predictors that are near copies of one another supply little more than one predictor does, yet cost ten degrees of freedom.</li>
+        <li><strong>Visualisation.</strong> Data in $p$ dimensions cannot be plotted directly. There are $\binom{p}{2}$ pairwise scatterplots, which is $190$ plots for $p = 20$, and no pair shows the joint structure.</li>
+      </ul>
+    </div>
+    <h3>The idea</h3>
+    <p>Replace the $p$ original predictors by $M \ll p$ derived variables $Z_1, \ldots, Z_M$, each a linear combination of the originals:</p>
+    $$Z_m = \sum_{j=1}^{p}\phi_{jm}X_j$$
+    <p>The weights $\phi_{jm}$ are called <strong>loadings</strong>, and the resulting values of $Z_m$ for each observation are called <strong>scores</strong>. PCA chooses the loadings so that the first few components capture as much of the variance in $X$ as possible.</p>
+    <div class="box note">
+      <strong>A projection, not a selection</strong>
+      Subset selection in Module 16 <em>discarded</em> predictors. PCA keeps all of them but combines them, so every original variable still contributes. That preserves information but costs interpretability: a component is a weighted blend rather than a single measurable quantity.
+    </div>
+  </div>
+
+<div class="slide" data-slide="3">
+    <span class="tag topic">Definition</span>
+    <h2>The First Principal Component</h2>
+    <div class="box def">
+      <strong>The optimisation problem</strong>
+      Assume each $X_j$ has been centred to mean zero. The first principal component is the normalised linear combination with the largest sample variance:
+      $$\max_{\phi_{11},\ldots,\phi_{p1}} \; \frac{1}{n}\sum_{i=1}^{n}\left(\sum_{j=1}^{p}\phi_{j1}x_{ij}\right)^{2}
+        \qquad \text{subject to} \qquad \sum_{j=1}^{p}\phi_{j1}^{2} = 1$$
+    </div>
+    <p>The constraint is essential. Without it the objective could be made arbitrarily large simply by scaling the loadings up, so the problem would have no solution. Fixing the loading vector to unit length makes the comparison one of <em>direction</em> rather than magnitude.</p>
+    <h3>Subsequent components</h3>
+    <p>The second principal component maximises the same variance subject to being uncorrelated with the first, which for centred data means the loading vectors are orthogonal:</p>
+    $$\sum_{j=1}^{p}\phi_{j1}\phi_{j2} = 0$$
+    <p>Continuing in this way produces at most $\min(n-1,\,p)$ components, mutually orthogonal and ordered by decreasing variance.</p>
+    <div class="box formula">
+      <strong>Equivalent characterisations</strong>
+      The first component can be described in three equivalent ways, which is why PCA appears in so many different contexts:
+      <ul>
+        <li>the direction of <strong>maximum variance</strong> in the data;</li>
+        <li>the line <strong>closest to the data</strong> in squared perpendicular distance;</li>
+        <li>the best rank one approximation to the centred data matrix.</li>
+      </ul>
+      Note the second differs from least squares regression, which minimises <em>vertical</em> distance to a line. PCA minimises perpendicular distance and so treats the variables symmetrically.
+    </div>
+  </div>
+
+<div class="slide" data-slide="4">
+    <span class="tag topic">Computation</span>
+    <h2>Solving PCA by Eigendecomposition</h2>
+    <div class="box def">
+      <strong>The solution</strong>
+      Let $\mathbf{S}$ be the $p \times p$ sample covariance matrix of the centred predictors. The constrained problem on the previous slide is solved by the eigenvectors of $\mathbf{S}$:
+      $$\mathbf{S}\boldsymbol{\phi}_m = \lambda_m \boldsymbol{\phi}_m, \qquad \lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p \geq 0$$
+      The $m$th loading vector is the eigenvector $\boldsymbol{\phi}_m$, and the variance of the $m$th component equals its eigenvalue:
+      $$\operatorname{Var}(Z_m) = \lambda_m$$
+    </div>
+    <h3>Why the eigenvectors solve it</h3>
+    <p>Writing the objective as $\boldsymbol{\phi}^{\top}\mathbf{S}\boldsymbol{\phi}$ subject to $\boldsymbol{\phi}^{\top}\boldsymbol{\phi} = 1$, the Lagrangian is</p>
+    $$L = \boldsymbol{\phi}^{\top}\mathbf{S}\boldsymbol{\phi} - \lambda(\boldsymbol{\phi}^{\top}\boldsymbol{\phi} - 1)$$
+    <p>Setting the derivative to zero gives $2\mathbf{S}\boldsymbol{\phi} - 2\lambda\boldsymbol{\phi} = \mathbf{0}$, that is $\mathbf{S}\boldsymbol{\phi} = \lambda\boldsymbol{\phi}$. So any stationary point is an eigenvector, and premultiplying by $\boldsymbol{\phi}^{\top}$ gives $\boldsymbol{\phi}^{\top}\mathbf{S}\boldsymbol{\phi} = \lambda$. The variance attained is therefore the eigenvalue itself, and the maximum is the largest one.</p>
+    <div class="box note">
+      <strong>Two useful identities</strong>
+      Because $\mathbf{S}$ is symmetric and positive semi definite, its eigenvalues are real and non negative, and its eigenvectors are orthogonal. Also
+      $$\sum_{m=1}^{p}\lambda_m = \operatorname{trace}(\mathbf{S}) = \sum_{j=1}^{p}\operatorname{Var}(X_j)$$
+      so the components redistribute the total variance without creating or destroying any. In practice software uses the singular value decomposition of the centred data matrix rather than forming $\mathbf{S}$, which is numerically more stable, but the answer is the same.
+    </div>
+  </div>
+
+<div class="slide" data-slide="5">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: PCA on Two Variables</h2>
+    <p>Two centred predictors have sample covariance matrix</p>
+    $$\mathbf{S} = \begin{pmatrix} 5 & 2 \\ 2 & 2 \end{pmatrix}$$
+    <div class="box formula">
+      <strong>Step 1: the characteristic equation</strong>
+      $$\det(\mathbf{S} - \lambda\mathbf{I}) = (5-\lambda)(2-\lambda) - 4 = \lambda^2 - 7\lambda + 6 = 0$$
+      Note $7 = \operatorname{trace}(\mathbf{S})$ and $6 = \det(\mathbf{S}) = 10 - 4$. Factorising,
+      $$(\lambda - 6)(\lambda - 1) = 0 \quad\Longrightarrow\quad \lambda_1 = 6, \quad \lambda_2 = 1$$
+    </div>
+    <div class="box formula">
+      <strong>Step 2: the loading vectors</strong>
+      For $\lambda_1 = 6$, solve $(\mathbf{S}-6\mathbf{I})\boldsymbol{\phi} = \mathbf{0}$:
+      $$\begin{pmatrix} -1 & 2 \\ 2 & -4 \end{pmatrix}\begin{pmatrix}\phi_1 \\ \phi_2\end{pmatrix} = \mathbf{0}
+        \;\Longrightarrow\; \phi_1 = 2\phi_2$$
+      Any multiple of $(2,1)$ works; normalising to unit length,
+      $$\boldsymbol{\phi}_1 = \frac{1}{\sqrt{5}}\begin{pmatrix}2\\1\end{pmatrix} = \begin{pmatrix}0.8944\\0.4472\end{pmatrix}$$
+      For $\lambda_2 = 1$, solve $4\phi_1 + 2\phi_2 = 0$, giving $\phi_2 = -2\phi_1$ and
+      $$\boldsymbol{\phi}_2 = \frac{1}{\sqrt{5}}\begin{pmatrix}1\\-2\end{pmatrix} = \begin{pmatrix}0.4472\\-0.8944\end{pmatrix}$$
+    </div>
+    <div class="box ex">
+      <strong>Step 3: checks that should always be made</strong>
+      <table>
+        <tr><th>Check</th><th>Verification</th></tr>
+        <tr><td>Eigenvalue equation</td><td>$\mathbf{S}(2,1)^{\top} = (12,6)^{\top} = 6(2,1)^{\top}$ &nbsp;&#10003;</td></tr>
+        <tr><td>Trace preserved</td><td>$\lambda_1 + \lambda_2 = 6+1 = 7 = 5+2$ &nbsp;&#10003;</td></tr>
+        <tr><td>Determinant preserved</td><td>$\lambda_1\lambda_2 = 6 = \det(\mathbf{S})$ &nbsp;&#10003;</td></tr>
+        <tr><td>Orthogonality</td><td>$\boldsymbol{\phi}_1^{\top}\boldsymbol{\phi}_2 = \tfrac{1}{5}(2 - 2) = 0$ &nbsp;&#10003;</td></tr>
+      </table>
+    </div>
+    <div class="box def">
+      <strong>Step 4: interpretation</strong>
+      The scores are $Z_1 = 0.8944X_1 + 0.4472X_2$ and $Z_2 = 0.4472X_1 - 0.8944X_2$. Both loadings on $Z_1$ are positive, so the first component is a weighted average, an overall size measure, with $X_1$ receiving twice the weight of $X_2$ because it is the more variable. The second component contrasts the two variables. The proportion of variance explained is
+      $$\text{PVE}_1 = \frac{6}{7} = 0.8571, \qquad \text{PVE}_2 = \frac{1}{7} = 0.1429$$
+      so a single component retains $85.7\%$ of the total variance, and the correlation between the original variables, $2/\sqrt{10} = 0.6325$, is what makes this possible.
+    </div>
+  </div>
+
+<div class="slide" data-slide="6">
+    <span class="tag topic">Variance Explained</span>
+    <h2>Proportion of Variance Explained and the Scree Plot</h2>
+    <div class="box formula">
+      <strong>Definitions</strong>
+      $$\text{PVE}_m = \frac{\lambda_m}{\sum_{k=1}^{p}\lambda_k}, \qquad
+        \text{Cumulative PVE} = \frac{\sum_{k=1}^{m}\lambda_k}{\sum_{k=1}^{p}\lambda_k}$$
+      Each $\text{PVE}_m$ lies in $[0,1]$ and they sum to one across all $p$ components.
+    </div>
+    <canvas id="cv-scree" width="700" height="260" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+    <p>Scree plot (bars, left) and cumulative variance explained (line, right) for the five eigenvalues in the example below.</p>
+    <div class="box ex">
+      <strong>Worked example</strong>
+      Five predictors give eigenvalues $4.2,\; 2.1,\; 1.3,\; 0.3,\; 0.1$, summing to $8.0$.
+      <table>
+        <tr><th>Component</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+        <tr><th>$\lambda_m$</th><td>4.2</td><td>2.1</td><td>1.3</td><td>0.3</td><td>0.1</td></tr>
+        <tr><th>PVE</th><td>0.5250</td><td>0.2625</td><td>0.1625</td><td>0.0375</td><td>0.0125</td></tr>
+        <tr><th>Cumulative</th><td>0.5250</td><td>0.7875</td><td>0.9500</td><td>0.9875</td><td>1.0000</td></tr>
+      </table>
+      Working: $\text{PVE}_1 = 4.2/8.0 = 0.5250$ and $\text{PVE}_2 = 2.1/8.0 = 0.2625$, so the cumulative figure after two components is $0.7875$.
+    </div>
+    <div class="box def">
+      <strong>Reading the plot</strong>
+      Three criteria point the same way here. The <em>elbow</em> in the scree plot occurs after the third component, where the curve flattens. The <em>Kaiser rule</em>, keep components with $\lambda_m > 1$ when working from the correlation matrix, also retains three. A <em>cumulative threshold</em> of $90\%$ is first exceeded at three components, which retain $95\%$. Reducing from five variables to three loses only $5\%$ of the variance.
+    </div>
+    <div class="box warn">
+      <strong>These rules are conventions, not tests</strong>
+      None has a formal justification and they frequently disagree. The elbow is often ambiguous, and the Kaiser rule is known to over retain. When the components feed a supervised model, the honest criterion is cross validated prediction error, which is exactly the approach taken in Module 22.
+    </div>
+  </div>
+
+<div class="slide" data-slide="7">
+    <span class="tag warn">Scaling</span>
+    <h2>Why Scaling Changes Everything</h2>
+    <div class="box warn">
+      <strong>PCA is not scale invariant</strong>
+      The components maximise variance, and variance depends on units. Measuring a length in millimetres rather than metres multiplies its variance by $10^6$, so that variable would dominate the first component for no substantive reason.
+    </div>
+    <h3>A concrete illustration</h3>
+    <p>Suppose income is recorded in taka, with standard deviation $50{,}000$, and years of education has standard deviation $3$. The variances are $2.5\times 10^{9}$ and $9$. The first principal component of the raw covariance matrix would be essentially income alone, since it accounts for more than $99.99\%$ of the total variance. Education could not influence the answer whatever its correlation structure.</p>
+    <div class="box def">
+      <strong>The remedy</strong>
+      Standardise each predictor to unit variance before applying PCA, which is equivalent to performing the eigendecomposition on the <strong>correlation matrix</strong> rather than the covariance matrix. Every variable then contributes variance $1$, so the total variance is $p$ and no variable is privileged by its units.
+    </div>
+    <table>
+      <tr><th>Situation</th><th>Use</th><th>Reason</th></tr>
+      <tr><td>Variables in different units</td><td>Correlation matrix</td><td>Units are arbitrary, so variance comparisons are meaningless</td></tr>
+      <tr><td>Variables in the same units, comparable spread</td><td>Either, often covariance</td><td>Differences in variance are genuine information</td></tr>
+      <tr><td>Some variables far more variable, deliberately</td><td>Covariance matrix</td><td>You want the dominant variables to dominate</td></tr>
+    </table>
+    <div class="box note">
+      <strong>Practical default</strong>
+      Standardise unless there is a clear reason not to. Note also that when working from the correlation matrix the eigenvalues sum to $p$, which is what makes the Kaiser rule of $\lambda_m > 1$ meaningful: a component is retained only if it explains more variance than a single original variable does.
+    </div>
+  </div>
+
+<div class="slide" data-slide="8">
+    <span class="tag topic">Interpretation</span>
+    <h2>Loadings, Scores and Biplots</h2>
+    <div class="box def">
+      <strong>Two objects, two roles</strong>
+      <table>
+        <tr><th></th><th>Loadings $\phi_{jm}$</th><th>Scores $z_{im}$</th></tr>
+        <tr><td>One value for each</td><td>variable</td><td>observation</td></tr>
+        <tr><td>Tells you</td><td>how the component is built</td><td>where an observation sits on it</td></tr>
+        <tr><td>Number of them</td><td>$p$ per component</td><td>$n$ per component</td></tr>
+      </table>
+      A <strong>biplot</strong> superimposes the two, plotting observations as points in the space of the first two components and variables as arrows given by their loadings.
+    </div>
+    <h3>Reading a biplot</h3>
+    <ul>
+      <li>Arrows pointing in a <strong>similar direction</strong> indicate positively correlated variables.</li>
+      <li>Arrows at roughly <strong>right angles</strong> indicate approximately uncorrelated variables.</li>
+      <li>Arrows in <strong>opposite directions</strong> indicate negative correlation.</li>
+      <li>A <strong>long arrow</strong> means the variable is well represented by the first two components; a short one means it lies mostly in the discarded directions, so its position should not be over interpreted.</li>
+      <li>Observations far from the origin are extreme on those components, and points clustering together are similar across all the variables at once.</li>
+    </ul>
+    <div class="box warn">
+      <strong>Signs are arbitrary</strong>
+      If $\boldsymbol{\phi}$ is an eigenvector then so is $-\boldsymbol{\phi}$, with the same eigenvalue. Flipping the sign reflects the plot but changes nothing substantive, so two software packages can produce mirror image biplots from identical data. Never interpret the sign of a loading on its own; only the <em>relative</em> signs within a component carry meaning.
+    </div>
+  </div>
+
+<div class="slide" data-slide="9">
+    <span class="tag warn">Limitations</span>
+    <h2>What PCA Cannot Do</h2>
+    <div class="box warn">
+      <strong>It ignores the response</strong>
+      PCA is unsupervised. The direction of greatest variance in $X$ carries no guarantee of being related to $Y$. It is entirely possible for the response to depend on the <em>last</em> principal component, in which case discarding low variance directions destroys exactly the signal that mattered. This is the motivation for partial least squares in Module 22.
+    </div>
+    <div class="box warn">
+      <strong>It only finds linear structure</strong>
+      Components are linear combinations, so PCA can only capture linear relationships. Data lying on a curved manifold, such as points arranged on a spiral or a circle, cannot be summarised by any single linear direction, and PCA will report that several components are needed when in truth one nonlinear coordinate would suffice.
+    </div>
+    <div class="box warn">
+      <strong>It is sensitive to outliers</strong>
+      Variance is a squared quantity, so a single extreme observation can pull the first component towards itself. Inspect the data, or use a robust variant, before trusting the directions.
+    </div>
+    <div class="box warn">
+      <strong>Components can be hard to explain</strong>
+      A component with substantial loadings on twenty variables is a mathematical object, not a measurable quantity. Gains in dimension come at a direct cost in interpretability, which is the opposite of the trade offered by lasso in Module 17, where the surviving predictors keep their original meaning.
+    </div>
+    <div class="box def">
+      <strong>When PCA is the right tool</strong>
+      Predictors are numerous and genuinely correlated; the relationships are approximately linear; the aim is exploration, visualisation, or feeding a downstream model rather than explaining individual coefficients; and there is no strong reason to believe the response depends on a low variance direction.
+    </div>
+  </div>
+
+<div class="slide" data-slide="10">
+    <span class="tag exercise">In-Class Exercise</span>
+    <h2>In-Class Exercise</h2>
+    <div class="box ex">
+      <strong>Problem</strong>
+      Two standardised predictors have correlation $0.6$, so the correlation matrix is
+      $$\mathbf{R} = \begin{pmatrix} 1 & 0.6 \\ 0.6 & 1 \end{pmatrix}$$
+      <ol>
+        <li>Find both eigenvalues.</li>
+        <li>Find the corresponding unit loading vectors.</li>
+        <li>Compute the proportion of variance explained by the first component.</li>
+        <li>Explain what happens to the eigenvalues as the correlation approaches $1$, and as it approaches $0$.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m20-ex-sol')">Show solution</button>
+    <div class="solution" id="m20-ex-sol">
+      <p><strong>1.</strong> $\det(\mathbf{R}-\lambda\mathbf{I}) = (1-\lambda)^2 - 0.36 = 0$, so $(1-\lambda) = \pm 0.6$ and
+      $$\lambda_1 = 1.6, \qquad \lambda_2 = 0.4$$
+      Check: $\lambda_1 + \lambda_2 = 2 = \operatorname{trace}(\mathbf{R}) = p$, as it must be for a correlation matrix.</p>
+      <p><strong>2.</strong> For $\lambda_1 = 1.6$: $(1-1.6)\phi_1 + 0.6\phi_2 = 0$ gives $\phi_1 = \phi_2$, so
+      $$\boldsymbol{\phi}_1 = \tfrac{1}{\sqrt2}(1,\,1)^{\top} = (0.7071,\,0.7071)^{\top}$$
+      For $\lambda_2 = 0.4$: $0.6\phi_1 + 0.6\phi_2 = 0$ gives $\phi_2 = -\phi_1$, so
+      $$\boldsymbol{\phi}_2 = \tfrac{1}{\sqrt2}(1,\,-1)^{\top} = (0.7071,\,-0.7071)^{\top}$$
+      With two standardised variables the components are always the sum and the difference, whatever the correlation, because symmetry forces it.</p>
+      <p><strong>3.</strong> $\text{PVE}_1 = 1.6/2 = \mathbf{0.80}$, so one component retains $80\%$ of the variance.</p>
+      <p><strong>4.</strong> In general $\lambda_1 = 1+r$ and $\lambda_2 = 1-r$. As $r \to 1$ the eigenvalues tend to $2$ and $0$: the variables become identical, the data collapse onto a line, and one component captures everything. As $r \to 0$ both tend to $1$: the variables are uncorrelated, no direction is preferred, and PCA achieves no reduction at all. <strong>PCA is useful precisely to the extent that the predictors are correlated.</strong></p>
+    </div>
+  </div>
+
+<div class="slide" data-slide="11">
+    <span class="tag practice">Practice Problems</span>
+    <h2>Practice Problems</h2>
+    <div class="box ex">
+      <strong>Problem 1</strong>
+      A covariance matrix has eigenvalues $6.0,\, 3.5,\, 1.8,\, 1.2,\, 0.9,\, 0.6$.
+      <ol>
+        <li>Compute the PVE and cumulative PVE for each component.</li>
+        <li>How many components are needed to retain at least $80\%$ of the variance?</li>
+        <li>What is the total variance of the original variables?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m20-pp1-sol')">Show solution</button>
+    <div class="solution" id="m20-pp1-sol">
+      <p>Total $= 6.0+3.5+1.8+1.2+0.9+0.6 = 14.0$, which by the trace identity is also the total variance of the original variables, answering part 3.</p>
+      <table>
+        <tr><th>$m$</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+        <tr><th>$\lambda_m$</th><td>6.0</td><td>3.5</td><td>1.8</td><td>1.2</td><td>0.9</td><td>0.6</td></tr>
+        <tr><th>PVE</th><td>0.4286</td><td>0.2500</td><td>0.1286</td><td>0.0857</td><td>0.0643</td><td>0.0429</td></tr>
+        <tr><th>Cumulative</th><td>0.4286</td><td>0.6786</td><td>0.8071</td><td>0.8929</td><td>0.9571</td><td>1.0000</td></tr>
+      </table>
+      <p>The cumulative figure first reaches $80\%$ at $m = \mathbf{3}$, where it is $0.8071$.</p>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2</strong>
+      A study measures height in centimetres (variance $64$) and weight in kilograms (variance $144$), with covariance $72$.
+      <ol>
+        <li>Find the first eigenvalue and its PVE using the covariance matrix.</li>
+        <li>Height is now recorded in millimetres instead. Write the new covariance matrix.</li>
+        <li>Without full calculation, explain what happens to the first component, and state what should be done instead.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m20-pp2-sol')">Show solution</button>
+    <div class="solution" id="m20-pp2-sol">
+      <p><strong>1.</strong> $\mathbf{S} = \begin{pmatrix} 64 & 72 \\ 72 & 144\end{pmatrix}$, so $\operatorname{trace} = 208$ and $\det = 9216 - 5184 = 4032$. Then
+      $$\lambda^2 - 208\lambda + 4032 = 0, \qquad
+        \lambda = \frac{208 \pm \sqrt{208^2 - 4(4032)}}{2} = \frac{208 \pm \sqrt{27{,}136}}{2} = \frac{208 \pm 164.7301}{2}$$
+      giving $\lambda_1 = \mathbf{186.3650}$ and $\lambda_2 = 21.6350$. Hence $\text{PVE}_1 = 186.3650/208 = \mathbf{0.8960}$.</p>
+      <p><strong>2.</strong> Multiplying height by $10$ multiplies its variance by $100$ and its covariance with weight by $10$:
+      $$\mathbf{S}_{\text{new}} = \begin{pmatrix} 6400 & 720 \\ 720 & 144 \end{pmatrix}$$</p>
+      <p><strong>3.</strong> Height now accounts for $6400$ of the total variance of $6544$, or $97.8\%$, so the first component becomes almost pure height and weight is effectively ignored. Nothing about the data changed, only the unit of measurement, which shows the result is an artefact. <strong>Standardise both variables and use the correlation matrix.</strong> Here $r = 72/\sqrt{64 \times 144} = 72/96 = 0.75$, giving $\lambda_1 = 1.75$ and $\text{PVE}_1 = 0.875$ whatever the units.</p>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 3</strong>
+      Explain why the loading vectors must be constrained to unit length, and why the second component is required to be orthogonal to the first. What would go wrong if each constraint were dropped?
+    </div>
+    <button class="sol-btn" onclick="togSol('m20-pp3-sol')">Show solution</button>
+    <div class="solution" id="m20-pp3-sol">
+      <p><strong>Unit length.</strong> The variance of $Z = \sum\phi_j X_j$ scales with the squared length of $\boldsymbol{\phi}$: replacing $\boldsymbol{\phi}$ by $c\boldsymbol{\phi}$ multiplies the variance by $c^2$. Without the constraint the objective is unbounded, since taking $c \to \infty$ makes the variance arbitrarily large, and the maximisation has no solution. Fixing $\|\boldsymbol{\phi}\| = 1$ makes the problem about direction alone.</p>
+      <p><strong>Orthogonality.</strong> Without it, the second component would simply be the first one again, since the same direction still maximises variance. Every subsequent component would be a copy, and nothing new would be learned. Requiring orthogonality forces each component into the subspace not yet explained, which is what makes the components carry non redundant information and what allows their variances to be added together in the PVE calculation.</p>
+    </div>
+  </div>
+<div class="nav-row">
+    <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
+    <span class="slide-num" id="slide-num">Slide 1 of 11</span>
+    <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
+  </div>
+</div>
+</div>
+<script>
+var SK='aiml-m20-v1',ts=11;
+var cs=parseInt(localStorage.getItem(SK)||'1');
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
+  document.querySelector('[data-slide="'+n+'"]').classList.add('active');
+  document.getElementById('pbar').style.width=(n/ts*100)+'%';
+  document.getElementById('slide-num').textContent='Slide '+n+' of '+ts;
+  document.getElementById('btn-prev').disabled=(n===1);
+  document.getElementById('btn-next').disabled=(n===ts);
+  localStorage.setItem(SK,n);cs=n;
+  if(n===6) setTimeout(drawScree,80);
+}
+function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
+function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block')}
+function chgZ(d){var c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base'));document.documentElement.style.setProperty('--base',(c+d)+'px')}
+
+function drawScree(){
+  var cv=document.getElementById('cv-scree');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  var ev=[4.2,2.1,1.3,0.3,0.1],tot=8.0;
+  var pad={l:46,r:46,t:16,b:38},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  var maxE=4.5;
+  function bx(i){return pad.l+(i+0.5)*(pw/ev.length)}
+  function by(v){return pad.t+(1-v/maxE)*ph}
+  function cy(f){return pad.t+(1-f)*ph}
+  ctx.strokeStyle='#f1f5f9';ctx.lineWidth=1;
+  [0,1,2,3,4].forEach(function(v){ctx.beginPath();ctx.moveTo(pad.l,by(v));ctx.lineTo(pad.l+pw,by(v));ctx.stroke();});
+  var bw=pw/ev.length*0.5;
+  ev.forEach(function(v,i){
+    ctx.fillStyle='#2563eb';
+    ctx.fillRect(bx(i)-bw/2,by(v),bw,pad.t+ph-by(v));
+    ctx.fillStyle='#334155';ctx.font='10px sans-serif';ctx.textAlign='center';
+    ctx.fillText(v.toFixed(1),bx(i),by(v)-4);
+  });
+  ctx.strokeStyle='#dc2626';ctx.lineWidth=2;ctx.beginPath();
+  var c=0;
+  ev.forEach(function(v,i){c+=v;var y=cy(c/tot);if(i===0)ctx.moveTo(bx(i),y);else ctx.lineTo(bx(i),y);});
+  ctx.stroke();
+  c=0;ctx.fillStyle='#dc2626';
+  ev.forEach(function(v,i){c+=v;ctx.beginPath();ctx.arc(bx(i),cy(c/tot),3.2,0,6.3);ctx.fill();});
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad.l+pw,pad.t);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+  ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='right';
+  [0,1,2,3,4].forEach(function(v){ctx.fillText(v.toFixed(0),pad.l-6,by(v)+3);});
+  ctx.textAlign='left';
+  [0,0.25,0.5,0.75,1].forEach(function(f){ctx.fillText((f*100).toFixed(0)+'%',pad.l+pw+6,cy(f)+3);});
+  ctx.textAlign='center';
+  ev.forEach(function(v,i){ctx.fillText('PC'+(i+1),bx(i),pad.t+ph+15);});
+  ctx.fillStyle='#2563eb';ctx.font='bold 10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('eigenvalue',pad.l+4,pad.t+11);
+  ctx.fillStyle='#dc2626';ctx.textAlign='right';
+  ctx.fillText('cumulative %',pad.l+pw-4,pad.t+11);
+  ctx.fillStyle='#334155';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Component',pad.l+pw/2,H-4);
+}
+
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')chgSlide(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')chgSlide(-1);
+});
+showSlide(cs);
+</script>
+</body>
+</html>
