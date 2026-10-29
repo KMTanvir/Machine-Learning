@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Module 21 – Principal Component Analysis | AST402</title>
+<title>Module 21: Principal Component Analysis | AST402</title>
 <script>
 MathJax = {
   tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
@@ -128,37 +128,37 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
     <p>The second principal component maximises the same variance subject to being uncorrelated with the first, which for centred data means the loading vectors are orthogonal:</p>
     $$\sum_{j=1}^{p}\phi_{j1}\phi_{j2} = 0$$
     <p>Continuing in this way produces at most $\min(n-1,\,p)$ components, mutually orthogonal and ordered by decreasing variance.</p>
-    <div class="box formula">
-      <strong>Equivalent characterisations</strong>
-      The first component can be described in three equivalent ways, which is why PCA appears in so many different contexts:
-      <ul>
-        <li>the direction of <strong>maximum variance</strong> in the data;</li>
-        <li>the line <strong>closest to the data</strong> in squared perpendicular distance;</li>
-        <li>the best rank one approximation to the centred data matrix.</li>
-      </ul>
-      Note the second differs from least squares regression, which minimises <em>vertical</em> distance to a line. PCA minimises perpendicular distance and so treats the variables symmetrically.
-    </div>
   </div>
 
 <div class="slide" data-slide="4">
     <span class="tag topic">Computation</span>
     <h2>Solving PCA by Eigendecomposition</h2>
+    <p>The last slide asked for the direction of greatest variance. Linear algebra gives a ready made answer: look at the covariance matrix of the data and find its eigenvectors.</p>
     <div class="box def">
-      <strong>The solution</strong>
-      Let $\mathbf{S}$ be the $p \times p$ sample covariance matrix of the centred predictors. The constrained problem on the previous slide is solved by the eigenvectors of $\mathbf{S}$:
-      $$\mathbf{S}\boldsymbol{\phi}_m = \lambda_m \boldsymbol{\phi}_m, \qquad \lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p \geq 0$$
-      The $m$th loading vector is the eigenvector $\boldsymbol{\phi}_m$, and the variance of the $m$th component equals its eigenvalue:
-      $$\operatorname{Var}(Z_m) = \lambda_m$$
+      <strong>The recipe</strong>
+      <ol>
+        <li>Centre the predictors and compute the $p \times p$ sample covariance matrix $\mathbf{S}$.</li>
+        <li>Find its eigenvalues and eigenvectors:
+        $$\mathbf{S}\boldsymbol{\phi}_m = \lambda_m \boldsymbol{\phi}_m, \qquad \lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p \geq 0$$</li>
+        <li>Each eigenvector $\boldsymbol{\phi}_m$ is a set of loadings, a direction in the data.</li>
+        <li>Its eigenvalue $\lambda_m$ is the variance of the component along that direction.</li>
+      </ol>
+      The eigenvector with the largest eigenvalue is the first principal component, the next largest is the second, and so on.
     </div>
-    <h3>Why the eigenvectors solve it</h3>
-    <p>Writing the objective as $\boldsymbol{\phi}^{\top}\mathbf{S}\boldsymbol{\phi}$ subject to $\boldsymbol{\phi}^{\top}\boldsymbol{\phi} = 1$, the Lagrangian is</p>
-    $$L = \boldsymbol{\phi}^{\top}\mathbf{S}\boldsymbol{\phi} - \lambda(\boldsymbol{\phi}^{\top}\boldsymbol{\phi} - 1)$$
-    <p>Setting the derivative to zero gives $2\mathbf{S}\boldsymbol{\phi} - 2\lambda\boldsymbol{\phi} = \mathbf{0}$, that is $\mathbf{S}\boldsymbol{\phi} = \lambda\boldsymbol{\phi}$. So any stationary point is an eigenvector, and premultiplying by $\boldsymbol{\phi}^{\top}$ gives $\boldsymbol{\phi}^{\top}\mathbf{S}\boldsymbol{\phi} = \lambda$. The variance attained is therefore the eigenvalue itself, and the maximum is the largest one.</p>
+    <table>
+      <tr><th>Eigen quantity</th><th>What it means for PCA</th></tr>
+      <tr><td>Eigenvector $\boldsymbol{\phi}_m$</td><td>The direction of the $m$th component (its loadings)</td></tr>
+      <tr><td>Eigenvalue $\lambda_m$</td><td>How much variance the data has along that direction, $\operatorname{Var}(Z_m) = \lambda_m$</td></tr>
+    </table>
     <div class="box note">
-      <strong>Two useful identities</strong>
-      Because $\mathbf{S}$ is symmetric and positive semi definite, its eigenvalues are real and non negative, and its eigenvectors are orthogonal. Also
-      $$\sum_{m=1}^{p}\lambda_m = \operatorname{trace}(\mathbf{S}) = \sum_{j=1}^{p}\operatorname{Var}(X_j)$$
-      so the components redistribute the total variance without creating or destroying any. In practice software uses the singular value decomposition of the centred data matrix rather than forming $\mathbf{S}$, which is numerically more stable, but the answer is the same.
+      <strong>Two facts worth knowing</strong>
+      <ul>
+        <li><strong>The components are uncorrelated.</strong> Because $\mathbf{S}$ is symmetric, its eigenvectors are perpendicular to one another.</li>
+        <li><strong>No variance is lost.</strong> The eigenvalues add up to the total variance of the original variables:
+        $$\sum_{m=1}^{p}\lambda_m = \sum_{j=1}^{p}\operatorname{Var}(X_j)$$
+        PCA only redistributes the same total across new directions, concentrating it in the first few.</li>
+      </ul>
+      Software usually uses the singular value decomposition instead of forming $\mathbf{S}$, which is more stable numerically, but the answer is the same.
     </div>
   </div>
 
