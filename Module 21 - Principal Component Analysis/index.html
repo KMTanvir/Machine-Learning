@@ -69,7 +69,7 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
   <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
 </header>
 <div id="slides">
-  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:9%"></div></div>
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:10%"></div></div>
 
   <!-- Slide 1 -->
   <div class="slide active" data-slide="1">
@@ -259,33 +259,6 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
   </div>
 
 <div class="slide" data-slide="8">
-    <span class="tag topic">Interpretation</span>
-    <h2>Loadings, Scores and Biplots</h2>
-    <div class="box def">
-      <strong>Two objects, two roles</strong>
-      <table>
-        <tr><th></th><th>Loadings $\phi_{jm}$</th><th>Scores $z_{im}$</th></tr>
-        <tr><td>One value for each</td><td>variable</td><td>observation</td></tr>
-        <tr><td>Tells you</td><td>how the component is built</td><td>where an observation sits on it</td></tr>
-        <tr><td>Number of them</td><td>$p$ per component</td><td>$n$ per component</td></tr>
-      </table>
-      A <strong>biplot</strong> superimposes the two, plotting observations as points in the space of the first two components and variables as arrows given by their loadings.
-    </div>
-    <h3>Reading a biplot</h3>
-    <ul>
-      <li>Arrows pointing in a <strong>similar direction</strong> indicate positively correlated variables.</li>
-      <li>Arrows at roughly <strong>right angles</strong> indicate approximately uncorrelated variables.</li>
-      <li>Arrows in <strong>opposite directions</strong> indicate negative correlation.</li>
-      <li>A <strong>long arrow</strong> means the variable is well represented by the first two components; a short one means it lies mostly in the discarded directions, so its position should not be over interpreted.</li>
-      <li>Observations far from the origin are extreme on those components, and points clustering together are similar across all the variables at once.</li>
-    </ul>
-    <div class="box warn">
-      <strong>Signs are arbitrary</strong>
-      If $\boldsymbol{\phi}$ is an eigenvector then so is $-\boldsymbol{\phi}$, with the same eigenvalue. Flipping the sign reflects the plot but changes nothing substantive, so two software packages can produce mirror image biplots from identical data. Never interpret the sign of a loading on its own; only the <em>relative</em> signs within a component carry meaning.
-    </div>
-  </div>
-
-<div class="slide" data-slide="9">
     <span class="tag warn">Limitations</span>
     <h2>What PCA Cannot Do</h2>
     <div class="box warn">
@@ -310,7 +283,7 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
     </div>
   </div>
 
-<div class="slide" data-slide="10">
+<div class="slide" data-slide="9">
     <span class="tag exercise">In-Class Exercise</span>
     <h2>In-Class Exercise</h2>
     <div class="box ex">
@@ -339,7 +312,7 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
     </div>
   </div>
 
-<div class="slide" data-slide="11">
+<div class="slide" data-slide="10">
     <span class="tag practice">Practice Problems</span>
     <h2>Practice Problems</h2>
     <div class="box ex">
@@ -393,13 +366,13 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
   </div>
 <div class="nav-row">
     <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
-    <span class="slide-num" id="slide-num">Slide 1 of 11</span>
+    <span class="slide-num" id="slide-num">Slide 1 of 10</span>
     <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
   </div>
 </div>
 </div>
 <script>
-var SK='aiml-m20-v1',ts=11;
+var SK='aiml-m21-v2',ts=10;
 var cs=parseInt(localStorage.getItem(SK)||'1');
 function showSlide(n){
   document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
