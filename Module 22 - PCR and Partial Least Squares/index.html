@@ -270,13 +270,13 @@ canvas{display:block;border-radius:8px;background:#f8fafc}
     <p><strong>Research problem:</strong> predict house price $Y$ from $X_1$ (house size), $X_2$ (number of bedrooms) and $X_3$ (distance from the city centre). There are five observations, and all variables are already standardised.</p>
     <div class="box ex">
       <strong>Step 1: the first PLS component</strong>
-      Compute the covariance of each predictor with $Y$:
+      For standardised variables the covariance with $Y$ is the correlation, so every value lies between $-1$ and $1$:
       <table>
         <tr><th>Predictor</th><td>$X_1$</td><td>$X_2$</td><td>$X_3$</td></tr>
-        <tr><th>$\operatorname{Cov}(X_j, Y)$</th><td>$3.600$</td><td>$1.265$</td><td>$1.549$</td></tr>
+        <tr><th>$\operatorname{Cov}(X_j, Y)$</th><td>$0.900$</td><td>$0.316$</td><td>$0.387$</td></tr>
       </table>
       The weights are proportional to these covariances, normalised so that their squares sum to $1$:
-      $$\phi_{11} = \frac{3.600}{\sqrt{3.600^2 + 1.265^2 + 1.549^2}} = \frac{3.600}{4.118} = 0.874, \qquad \phi_{21} = 0.307, \qquad \phi_{31} = 0.376$$
+      $$\phi_{11} = \frac{0.900}{\sqrt{0.900^2 + 0.316^2 + 0.387^2}} = \frac{0.900}{1.030} = 0.874, \qquad \phi_{21} = 0.307, \qquad \phi_{31} = 0.376$$
       $$Z_1 = 0.874X_1 + 0.307X_2 + 0.376X_3$$
       House size gets the greatest weight because it has the strongest covariance with price.
     </div>
