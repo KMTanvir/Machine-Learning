@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 22: PCR and Partial Least Squares | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b}
+#wrap{max-width:1100px;margin:0 auto;padding:.6rem 1rem 2rem}
+header{background:#1e3a5f;color:#fff;padding:.7rem 1.2rem;border-radius:10px;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700}
+header .meta{font-size:calc(var(--base)*.78);opacity:.82}
+.zoom-bar{display:flex;gap:.35rem;align-items:center}
+.zoom-bar button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:.18rem .55rem;font-size:calc(var(--base)*.82);cursor:pointer}
+.zoom-bar button:hover{background:rgba(255,255,255,.32)}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width .3s}
+.slide{display:none}.slide.active{display:block}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:.7rem;border-bottom:2px solid #2563eb;padding-bottom:.3rem}
+.slide h3{font-size:calc(var(--base)*1.05);color:#1e3a5f;margin:.9rem 0 .4rem}
+.slide p,.slide li{line-height:1.65;margin-bottom:.45rem}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:.5rem}
+.slide ul li,.slide ol li{margin-bottom:.3rem}
+.tag{display:inline-block;font-size:calc(var(--base)*.72);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.13rem .55rem;border-radius:4px;margin-bottom:.6rem}
+.tag.module{background:#dbeafe;color:#1e40af}
+.tag.topic{background:#f0fdf4;color:#166534}
+.tag.exercise{background:#fef9c3;color:#854d0e}
+.tag.practice{background:#fce7f3;color:#9d174d}
+.box{border-radius:8px;padding:.75rem 1rem;margin:.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc}
+.box.def{border-color:#2563eb;background:#eff6ff}
+.box.formula{border-color:#7c3aed;background:#f5f3ff}
+.box.note{border-color:#d97706;background:#fffbeb}
+.box.warn{border-color:#dc2626;background:#fff1f2}
+.box.ex{border-color:#059669;background:#f0fdf4}
+.box>strong:first-child{display:block;margin-bottom:.3rem;color:#1e293b}
+.box strong{color:#1e293b}
+.sol-btn{margin-top:.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:.38rem .9rem;font-size:calc(var(--base)*.83);cursor:pointer}
+.sol-btn:hover{background:#2563eb}
+.solution{display:none;margin-top:.6rem;border-top:1px dashed #cbd5e1;padding-top:.6rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:calc(var(--base)*.9)}
+th,td{border:1px solid #cbd5e1;padding:.35rem .6rem;text-align:left}
+th{background:#f1f5f9;font-weight:600}
+canvas{display:block;border-radius:8px;background:#f8fafc}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid #e2e8f0}
+.nav-row button{background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;font-size:calc(var(--base)*.88);cursor:pointer}
+.nav-row button:hover{background:#2563eb}
+.nav-row button:disabled{background:#94a3b8;cursor:default}
+.slide-num{font-size:calc(var(--base)*.82);color:#64748b}
+.pc{margin:.5rem 0}
+.pc .row{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-top:.45rem}
+.pc .tg{font-size:calc(var(--base)*.72);font-weight:700;padding:.1rem .6rem;border-radius:999px}
+.pc .tg.keep{background:#dcfce7;color:#166534}
+.pc .tg.drop{background:#fee2e2;color:#b91c1c}
+.pc .trk{height:11px;background:#e2e8f0;border-radius:6px;margin:.25rem 0}
+.pc .bar{height:100%;border-radius:6px}
+.pc .bar.keep{background:#16a34a}.pc .bar.drop{background:#dc2626}
+.pc .sub{font-size:calc(var(--base)*.8);color:#475569}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <h1>Module 22: PCR and Partial Least Squares</h1>
+    <div class="meta">AST402 Statistics for AI and Machine Learning &nbsp;|&nbsp; Part G: Dimensionality Reduction &nbsp;|&nbsp; IASDS, University of Dhaka</div>
+  </div>
+  <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
+</header>
+<div id="slides">
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:9%"></div></div>
+
+  <!-- Slide 1 -->
+  <div class="slide active" data-slide="1">
+    <span class="tag module">Module 22</span>
+    <h2>Principal Components Regression and Partial Least Squares</h2>
+    <p>Module 21 built components from the predictors alone. This module uses them for prediction, and then fixes the weakness that arises from ignoring the response. Both methods fit a regression in a low dimensional space of derived variables rather than in the original predictor space.</p>
+    <div class="box def">
+      <strong>The common framework</strong>
+      Both methods construct $M &lt; p$ derived predictors $Z_1,\ldots,Z_M$ as linear combinations of the originals, then regress $Y$ on those:
+      $$Z_m = \sum_{j=1}^{p}\phi_{jm}X_j, \qquad Y \approx \theta_0 + \sum_{m=1}^{M}\theta_m Z_m$$
+      They differ in one respect only: <strong>how the loadings $\phi_{jm}$ are chosen</strong>. PCR picks directions of maximum variance in $X$. PLS picks directions of maximum covariance with $Y$.
+    </div>
+    <div class="box note">
+      <strong>Why this reduces variance</strong>
+      Fitting $M+1$ coefficients instead of $p+1$ constrains the model. That constraint introduces some bias, but sharply reduces variance, and a model with fewer, uncorrelated inputs is also easier to fit when $p$ is large relative to $n$.
+    </div>
+  </div>
+
+<div class="slide" data-slide="2">
+    <span class="tag topic">PCR</span>
+    <h2>Principal Components Regression</h2>
+    <div class="box def">
+      <strong>The algorithm</strong>
+      <ol>
+        <li>Standardise each predictor to mean $0$ and variance $1$.</li>
+        <li>Compute the principal components $Z_1,\ldots,Z_p$ of the predictors, as in Module 21.</li>
+        <li>Keep the first $M$ components and fit least squares of $Y$ on $Z_1,\ldots,Z_M$.</li>
+        <li>Choose $M$ by cross validation.</li>
+      </ol>
+    </div>
+    <h3>Recovering coefficients on the original scale</h3>
+    <p>Because each $Z_m$ is a linear combination of the $X_j$, the fitted model can always be written back in terms of the original predictors:</p>
+    $$\hat\beta_j^{\,\text{PCR}} = \sum_{m=1}^{M}\hat\theta_m \phi_{jm}$$
+    <p>Every predictor therefore receives a non zero coefficient. <strong>PCR is a shrinkage method, not a selection method</strong>: it never sets a coefficient to exactly zero.</p>
+    <div class="box formula">
+      <strong>The constraint being imposed</strong>
+      Using $M &lt; p$ components restricts $\hat{\boldsymbol\beta}$ to lie in the $M$ dimensional subspace spanned by the first $M$ loading vectors. The remaining $p-M$ directions are assigned a coefficient of exactly zero. PCR therefore applies a hard cut: it keeps some directions in full and discards the rest entirely.
+    </div>
+    <div class="box note">
+      <strong>Special cases</strong>
+      With $M = p$ nothing is discarded and PCR reproduces ordinary least squares exactly, since the components merely form a rotated basis for the same space. With $M = 0$ the model is the intercept alone. So $M$ traverses the full range from the null model to OLS.
+    </div>
+  </div>
+
+<div class="slide" data-slide="3">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Recovering Coefficients on the Original Scale</h2>
+    <p>Suppose there are three standardised predictors: $X_1$ (income), $X_2$ (education) and $X_3$ (experience). After running PCR we retain $M = 2$ components, whose loadings are</p>
+    $$Z_1 = 0.6X_1 + 0.5X_2 + 0.4X_3, \qquad Z_2 = 0.2X_1 - 0.7X_2 + 0.6X_3$$
+    <p>Regressing $Y$ on $Z_1$ and $Z_2$ gives the fitted model</p>
+    $$\hat Y = 10 + 3Z_1 + 2Z_2, \qquad \hat\theta_1 = 3,\ \hat\theta_2 = 2$$
+    <div class="box formula">
+      <strong>Step 1: recover the coefficient of each original predictor</strong>
+      Use $\hat\beta_j = \sum_{m}\hat\theta_m\phi_{jm}$, that is, each predictor's loadings weighted by the component coefficients.
+      $$\hat\beta_1 = 3(0.6) + 2(0.2) = 1.8 + 0.4 = 2.2$$
+      $$\hat\beta_2 = 3(0.5) + 2(-0.7) = 1.5 - 1.4 = 0.1$$
+      $$\hat\beta_3 = 3(0.4) + 2(0.6) = 1.2 + 1.2 = 2.4$$
+    </div>
+    <div class="box def">
+      <strong>Step 2: the model on the original scale</strong>
+      $$\hat Y = 10 + 2.2X_1 + 0.1X_2 + 2.4X_3$$
+    </div>
+    <div class="box ex">
+      <strong>Check with one observation</strong>
+      Take $X_1 = X_2 = X_3 = 1$. Then $Z_1 = 0.6+0.5+0.4 = 1.5$ and $Z_2 = 0.2-0.7+0.6 = 0.1$, so through the components $\hat Y = 10 + 3(1.5) + 2(0.1) = 14.7$. Through the original predictors, $\hat Y = 10 + 2.2 + 0.1 + 2.4 = 14.7$. The two routes agree, as they must.
+    </div>
+    <div class="box note">
+      <strong>What to notice</strong>
+      Only two coefficients $\hat\theta_1,\hat\theta_2$ were estimated, yet all three predictors receive a coefficient. This recovery step is identical for PCR and PLS; only the loadings $\phi_{jm}$ differ.
+    </div>
+  </div>
+
+<div class="slide" data-slide="4">
+    <span class="tag topic">Why It Works</span>
+    <h2>The Assumption Behind PCR</h2>
+    <div class="box def">
+      <strong>The key assumption</strong>
+      PCR works well when <em>the directions in which $X$ varies most are also the directions along which $Y$ varies most</em>. Under that assumption the discarded low variance components carry little signal, so removing them costs almost no bias while removing a great deal of variance.
+    </div>
+    <h3>An example: predicting house prices</h3>
+    <p>Suppose we predict house price from $X_1$ (house size), $X_2$ (number of bedrooms) and $X_3$ (distance from the city centre). Size and bedrooms move together, so most of the variation in $X$ lies along a single direction. PCR keeps the first two principal components and discards PC3.</p>
+    <div class="two-col">
+      <div class="box ex">
+        <strong>1. The assumption is satisfied</strong>
+        <div class="pc">
+        <div class="row"><span>PC1 (80% of the variance in $X$)</span><span class="tg keep">Retained</span></div>
+        <div class="trk"><div class="bar keep" style="width:80%"></div></div>
+        <div class="sub">Relationship with $Y$: very strong</div>
+        <div class="row"><span>PC2 (15% of the variance in $X$)</span><span class="tg keep">Retained</span></div>
+        <div class="trk"><div class="bar keep" style="width:15%"></div></div>
+        <div class="sub">Relationship with $Y$: moderate</div>
+        <div class="row"><span>PC3 (5% of the variance in $X$)</span><span class="tg drop">Discarded</span></div>
+        <div class="trk"><div class="bar drop" style="width:5%"></div></div>
+        <div class="sub">Relationship with $Y$: very weak</div>
+      </div>
+        PCR discards only the component that says almost nothing about price. Little bias is added and the variance falls, so PCR works well.
+      </div>
+      <div class="box warn">
+        <strong>2. The assumption fails</strong>
+        <div class="pc">
+        <div class="row"><span>PC1 (80% of the variance in $X$)</span><span class="tg keep">Retained</span></div>
+        <div class="trk"><div class="bar keep" style="width:80%"></div></div>
+        <div class="sub">Relationship with $Y$: weak</div>
+        <div class="row"><span>PC2 (15% of the variance in $X$)</span><span class="tg keep">Retained</span></div>
+        <div class="trk"><div class="bar keep" style="width:15%"></div></div>
+        <div class="sub">Relationship with $Y$: moderate</div>
+        <div class="row"><span>PC3 (5% of the variance in $X$)</span><span class="tg drop">Discarded</span></div>
+        <div class="trk"><div class="bar drop" style="width:5%"></div></div>
+        <div class="sub">Relationship with $Y$: very strong</div>
+      </div>
+        PCR discards the component that matters most for price, simply because it varies little in $X$. No choice of $M$ below $p$ recovers it.
+      </div>
+    </div>
+    <div class="box note">
+      <strong>Why PCR cannot tell the difference</strong>
+      PCR ranks components by their variance in $X$ and never consults $Y$, so it treats both situations identically. That failure mode is the entire motivation for partial least squares.
+    </div>
+  </div>
+
+<div class="slide" data-slide="5">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Choosing $M$ by Cross Validation</h2>
+    <p>Five standardised predictors are available. Ten fold cross validation is run for each number of components, giving the following results, with a standard error of about $2.8$ at the minimum.</p>
+    <div class="box formula">
+      <table>
+        <tr><th>Components $M$</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+        <tr><th>CV MSE</th><td>42.1</td><td>31.5</td><td>28.9</td><td>29.4</td><td>30.2</td></tr>
+        <tr><th>Cumulative PVE</th><td>0.53</td><td>0.79</td><td>0.95</td><td>0.99</td><td>1.00</td></tr>
+      </table>
+    </div>
+    <div class="box ex">
+      <strong>Step 1: the minimum</strong>
+      The smallest CV MSE is $28.9$ at $M = 3$. Note that $M = 5$ is ordinary least squares, with CV MSE $30.2$, so using all five components is <em>worse</em> than using three. The gain from dimension reduction is $30.2 - 28.9 = 1.3$, a reduction of $4.3\%$ in test error, achieved purely by reducing variance.
+    </div>
+    <div class="box ex">
+      <strong>Step 2: the one standard error rule</strong>
+      $$\text{threshold} = 28.9 + 2.8 = 31.7$$
+      Models within the threshold are $M = 2$ ($31.5$), $M = 3$ ($28.9$) and $M = 4$ ($29.4$). The simplest is $M = \mathbf{2}$.
+      <table>
+        <tr><th>$M$</th><th>CV MSE</th><th>Within $31.7$?</th></tr>
+        <tr><td>1</td><td>42.1</td><td>No</td></tr>
+        <tr><td>2</td><td>31.5</td><td>Yes, and simplest</td></tr>
+        <tr><td>3</td><td>28.9</td><td>Yes (the minimum)</td></tr>
+        <tr><td>4</td><td>29.4</td><td>Yes</td></tr>
+        <tr><td>5</td><td>30.2</td><td>No</td></tr>
+      </table>
+    </div>
+    <div class="box warn">
+      <strong>A caution about the PVE column</strong>
+      It is tempting to choose $M$ from cumulative variance explained, and $95\%$ at $M = 3$ looks reassuring here. But PVE measures only how well the components summarise $X$; it says nothing about $Y$. The two criteria agree in this example, and they need not in general. <strong>Choose $M$ by cross validated prediction error, not by variance explained.</strong>
+    </div>
+  </div>
+
+<div class="slide" data-slide="6">
+    <span class="tag topic">PLS</span>
+    <h2>Partial Least Squares</h2>
+    <div class="box def">
+      <strong>The first PLS direction</strong>
+      Standardise all predictors and the response. Set each loading equal to the covariance between that predictor and the response:
+      $$\phi_{j1} \;\propto\; \operatorname{Cov}(X_j,\,Y)$$
+      then normalise so that $\sum_j \phi_{j1}^2 = 1$. The first derived variable is
+      $$Z_1 = \sum_{j=1}^{p}\phi_{j1}X_j$$
+      For standardised variables the covariance is the correlation, so PLS places the greatest weight on the predictors most strongly correlated with $Y$.
+    </div>
+    <h3>Subsequent directions</h3>
+    <ol>
+      <li>Regress each $X_j$ on $Z_1$ and keep the residuals. This removes from every predictor the part already explained by the first direction.</li>
+      <li>Compute $Z_2$ from those residuals in exactly the same way, using covariances with $Y$.</li>
+      <li>Repeat until $M$ directions have been formed, choosing $M$ by cross validation.</li>
+    </ol>
+    <p>This <em>orthogonalisation</em> step is what makes each new direction carry information the earlier ones did not.</p>
+    <div class="box formula">
+      <strong>PCR and PLS side by side</strong>
+      <table>
+        <tr><th></th><th>PCR</th><th>PLS</th></tr>
+        <tr><td>Criterion</td><td>$\max \operatorname{Var}(Z_m)$</td><td>$\max \operatorname{Cov}(Z_m, Y)^2$</td></tr>
+        <tr><td>Uses $Y$?</td><td>No, unsupervised</td><td>Yes, supervised</td></tr>
+        <tr><td>Directions depend on</td><td>$\mathbf{X}$ only</td><td>$\mathbf{X}$ and $Y$</td></tr>
+        <tr><td>Bias</td><td>Higher</td><td>Lower</td></tr>
+        <tr><td>Variance</td><td>Lower</td><td>Higher</td></tr>
+      </table>
+      PLS chases the response, so it reduces bias; but because the directions are estimated using $Y$, they inherit noise from $Y$, which raises variance. In practice the two effects tend to cancel, and PLS rarely beats PCR by much.
+    </div>
+  </div>
+
+<div class="slide" data-slide="7">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Partial Least Squares with Two Components</h2>
+    <p><strong>Research problem:</strong> predict house price $Y$ from $X_1$ (house size), $X_2$ (number of bedrooms) and $X_3$ (distance from the city centre). There are five observations, and all variables are already standardised.</p>
+    <div class="box ex">
+      <strong>Step 1: the first PLS component</strong>
+      Compute the covariance of each predictor with $Y$:
+      <table>
+        <tr><th>Predictor</th><td>$X_1$</td><td>$X_2$</td><td>$X_3$</td></tr>
+        <tr><th>$\operatorname{Cov}(X_j, Y)$</th><td>$3.600$</td><td>$1.265$</td><td>$1.549$</td></tr>
+      </table>
+      The weights are proportional to these covariances, normalised so that their squares sum to $1$:
+      $$\phi_{11} = \frac{3.600}{\sqrt{3.600^2 + 1.265^2 + 1.549^2}} = \frac{3.600}{4.118} = 0.874, \qquad \phi_{21} = 0.307, \qquad \phi_{31} = 0.376$$
+      $$Z_1 = 0.874X_1 + 0.307X_2 + 0.376X_3$$
+      House size gets the greatest weight because it has the strongest covariance with price.
+    </div>
+    <div class="box ex">
+      <strong>Step 2: remove the information captured by $Z_1$</strong>
+      Regress each predictor on $Z_1$ and keep the residuals:
+      $$X_j = a_j + b_j Z_1 + r_j, \qquad r_j = X_j - \hat X_j, \qquad j = 1, 2, 3$$
+      This gives three residual predictors $r_1, r_2, r_3$, the parts of each $X_j$ that $Z_1$ did not explain.
+    </div>
+    <div class="box ex">
+      <strong>Step 3: the second PLS component</strong>
+      Repeat Step 1 using the residuals:
+      <table>
+        <tr><th>Residual</th><td>$r_1$</td><td>$r_2$</td><td>$r_3$</td></tr>
+        <tr><th>$\operatorname{Cov}(r_j, Y)$</th><td>$-0.173$</td><td>$-0.553$</td><td>$0.853$</td></tr>
+      </table>
+      Normalising gives $\boldsymbol\phi_2 = (-0.168,\,-0.536,\,0.827)$, so
+      $$Z_2 = -0.168r_1 - 0.536r_2 + 0.827r_3$$
+    </div>
+    <div class="box def">
+      <strong>Step 4: the final regression</strong>
+      Regress $Y$ on the two components, $Y = \theta_0 + \theta_1Z_1 + \theta_2Z_2 + \epsilon$. Suppose the estimated model is
+      $$\hat Y = 0.925Z_1 + 0.165Z_2$$
+      The intercept is zero because the variables were standardised and centred.
+    </div>
+  </div>
+
+<div class="slide" data-slide="8">
+    <span class="tag topic">Comparison</span>
+    <h2>Choosing Between PCR and PLS</h2>
+    <table>
+      <tr><th>Method</th><th>Uses $Y$?</th><th>Sets coefficients to zero?</th><th>Keeps original variables?</th><th>Main strength</th></tr>
+      <tr><td>PCR</td><td>No</td><td>No</td><td>No, uses components</td><td>Handles $p &gt; n$; removes collinearity entirely</td></tr>
+      <tr><td>PLS</td><td>Yes</td><td>No</td><td>No, uses components</td><td>Supervised directions; often needs fewer components</td></tr>
+    </table>
+    <div class="box def">
+      <strong>Practical guidance</strong>
+      <ul>
+        <li><strong>Use PCR when $p$ is very large relative to $n$</strong> and the predictors are highly collinear, since the components are exactly orthogonal by construction and the collinearity problem disappears.</li>
+        <li><strong>Use PLS when a supervised reduction is wanted</strong> and few components must be retained, for example predicting a patient's blood pressure or disease risk from thousands of correlated gene expression measurements recorded for only a few hundred patients.</li>
+        <li><strong>Always standardise</strong> before either method, and always choose the number of components $M$ by cross validation.</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>What the empirical evidence shows</strong>
+      PLS is often expected to beat PCR because it is supervised, yet in practice the gain is small and inconsistent, since the extra variance from estimating directions using a noisy $Y$ offsets the reduction in bias. Choose on the basis of cross validated error and on which output you can defend to a reader.
+    </div>
+  </div>
+
+<div class="slide" data-slide="9">
+    <span class="tag exercise">In-Class Exercise</span>
+    <h2>In-Class Exercise</h2>
+    <div class="box ex">
+      <strong>Problem</strong>
+      A PCR model with four standardised predictors retains $M = 2$ components, with loadings and fitted coefficients
+      $$\boldsymbol\phi_1 = (0.5,\,0.5,\,0.5,\,0.5)^{\top}, \qquad
+        \boldsymbol\phi_2 = (0.5,\,0.5,\,-0.5,\,-0.5)^{\top}$$
+      $$\hat\theta_1 = 3.0, \qquad \hat\theta_2 = -1.0$$
+      <ol>
+        <li>Verify that both loading vectors are unit length and mutually orthogonal.</li>
+        <li>Recover the implied coefficients $\hat\beta_j$ on the original predictors.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m21-ex-sol')">Show solution</button>
+    <div class="solution" id="m21-ex-sol">
+      <p><strong>1.</strong> $\|\boldsymbol\phi_1\|^2 = 4(0.25) = 1$ and likewise $\|\boldsymbol\phi_2\|^2 = 1$, so both are unit length. Their inner product is
+      $$0.25 + 0.25 - 0.25 - 0.25 = 0$$
+      so they are orthogonal, as principal component loadings must be.</p>
+      <p><strong>2.</strong> Using $\hat\beta_j = \sum_m \hat\theta_m\phi_{jm}$:
+      $$\hat\beta_1 = 3.0(0.5) + (-1.0)(0.5) = 1.5 - 0.5 = \mathbf{1.0}$$
+      $$\hat\beta_2 = 3.0(0.5) + (-1.0)(0.5) = \mathbf{1.0}$$
+      $$\hat\beta_3 = 3.0(0.5) + (-1.0)(-0.5) = 1.5 + 0.5 = \mathbf{2.0}$$
+      $$\hat\beta_4 = 3.0(0.5) + (-1.0)(-0.5) = \mathbf{2.0}$$
+      So $\hat{\boldsymbol\beta} = (1.0,\,1.0,\,2.0,\,2.0)^{\top}$.</p>
+    </div>
+  </div>
+
+<div class="slide" data-slide="10">
+    <span class="tag practice">Practice Problems</span>
+    <h2>Practice Problems</h2>
+    <div class="box ex">
+      <strong>Problem 1</strong>
+      Four standardised predictors have covariances with the standardised response $(-0.6,\,0.3,\,0.0,\,0.9)$.
+      <ol>
+        <li>Compute the first PLS direction.</li>
+        <li>Which predictor dominates, and which is excluded?</li>
+        <li>State how the answer would change if the response were multiplied by $10$.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m21-pp1-sol')">Show solution</button>
+    <div class="solution" id="m21-pp1-sol">
+      <p><strong>1.</strong> $$\|\boldsymbol\phi\| = \sqrt{0.36+0.09+0.00+0.81} = \sqrt{1.26} = 1.1225$$
+      $$\boldsymbol\phi_1 = \frac{1}{1.1225}(-0.6,\,0.3,\,0.0,\,0.9)^{\top} = (-0.5345,\;0.2673,\;0.0000,\;0.8018)^{\top}$$
+      Check: $0.2857+0.0714+0+0.6429 = 1.0000$ &#10003;</p>
+      <p><strong>2.</strong> $X_4$ dominates, with the largest weight in absolute value, and $X_1$ enters with a substantial negative weight. $X_3$ has zero covariance with $Y$, so it receives zero weight and is <em>excluded from the first direction</em>. It may still enter later directions, since after orthogonalisation its residual can become correlated with $Y$.</p>
+      <p><strong>3.</strong> Nothing changes. Multiplying $Y$ by $10$ multiplies every covariance by $10$, hence multiplies $\|\boldsymbol\phi\|$ by $10$, and the normalisation divides it out. The direction is invariant to the scale of $Y$; only the scale of the predictors matters, which is why they must be standardised.</p>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2</strong>
+      A dataset has $n = 40$ observations and $p = 60$ predictors.
+      <ol>
+        <li>Explain why ordinary least squares cannot be used.</li>
+        <li>What is the largest number of principal components that can be computed?</li>
+        <li>Explain how PCR makes the problem tractable, and name one other method from this module that would also work.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m21-pp2-sol')">Show solution</button>
+    <div class="solution" id="m21-pp2-sol">
+      <p><strong>1.</strong> With $p = 60 &gt; n = 40$ the design matrix has more columns than rows, so $\mathbf{X}^{\top}\mathbf{X}$ is singular and cannot be inverted. Infinitely many coefficient vectors fit the data perfectly, giving training RSS of exactly zero and no unique solution. The fit is useless for prediction.</p>
+      <p><strong>2.</strong> At most $\min(n-1,\,p) = \min(39,\,60) = \mathbf{39}$ components. Centring the data removes one degree of freedom, so $n-1$ rather than $n$.</p>
+      <p><strong>3.</strong> PCR fits least squares of $Y$ on $M$ components where $M$ is chosen well below $n$, say $M = 5$. With $M + 1 = 6$ parameters and $40$ observations the regression is well determined, and the components are orthogonal so there is no collinearity. The high dimensional problem has been converted into a low dimensional one.</p>
+      <p><strong>Alternative:</strong> PLS applies equally well, since it also regresses $Y$ on a small number of derived directions rather than on all $p$ original predictors.</p>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 3</strong>
+      Explain why PCR can perform worse than PLS even when both retain the same number of components, and describe a situation in which the two would give almost the same fit.
+    </div>
+    <button class="sol-btn" onclick="togSol('m21-pp3-sol')">Show solution</button>
+    <div class="solution" id="m21-pp3-sol">
+      <p><strong>PCR worse.</strong> PCR is unsupervised, so its directions are chosen without reference to $Y$. If the response depends on a low variance direction of $X$, PCR discards it and no choice of $M$ below $p$ recovers the fit. PLS builds its directions using the covariance with $Y$, so it can pick up that direction in its first component or two.</p>
+      <p><strong>Almost the same fit.</strong> When the directions of greatest variance in $X$ are also the directions most related to $Y$, the first PLS direction is close to the first principal component and the two methods agree. This is exactly the situation in which the assumption behind PCR holds.</p>
+    </div>
+  </div>
+<div class="nav-row">
+    <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
+    <span class="slide-num" id="slide-num">Slide 1 of 10</span>
+    <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
+  </div>
+</div>
+</div>
+<script>
+var SK='aiml-m22-v5',ts=10;
+var cs=parseInt(localStorage.getItem(SK)||'1');
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
+  document.querySelector('[data-slide="'+n+'"]').classList.add('active');
+  document.getElementById('pbar').style.width=(n/ts*100)+'%';
+  document.getElementById('slide-num').textContent='Slide '+n+' of '+ts;
+  document.getElementById('btn-prev').disabled=(n===1);
+  document.getElementById('btn-next').disabled=(n===ts);
+  localStorage.setItem(SK,n);cs=n;
+
+}
+function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
+function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block')}
+function chgZ(d){var c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base'));document.documentElement.style.setProperty('--base',(c+d)+'px')}
+
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')chgSlide(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')chgSlide(-1);
+});
+showSlide(cs);
+</script>
+</body>
+</html>
