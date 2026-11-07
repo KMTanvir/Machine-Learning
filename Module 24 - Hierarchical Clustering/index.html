@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 24: Hierarchical Clustering | AST402</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{--base:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:var(--base);background:#f0f4f8;color:#1e293b}
+#wrap{max-width:1100px;margin:0 auto;padding:.6rem 1rem 2rem}
+header{background:#1e3a5f;color:#fff;padding:.7rem 1.2rem;border-radius:10px;margin-bottom:.7rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+header h1{font-size:calc(var(--base)*1.05);font-weight:700}
+header .meta{font-size:calc(var(--base)*.78);opacity:.82}
+.zoom-bar{display:flex;gap:.35rem;align-items:center}
+.zoom-bar button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:.18rem .55rem;font-size:calc(var(--base)*.82);cursor:pointer}
+.zoom-bar button:hover{background:rgba(255,255,255,.32)}
+#slides{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);padding:1.2rem 1.5rem;max-width:980px;margin:0 auto}
+.pbar-wrap{height:5px;background:#e2e8f0;border-radius:3px;margin-bottom:1rem}
+.pbar-fill{height:100%;background:#2563eb;border-radius:3px;transition:width .3s}
+.slide{display:none}.slide.active{display:block}
+.slide h2{font-size:calc(var(--base)*1.22);color:#1e3a5f;margin-bottom:.7rem;border-bottom:2px solid #2563eb;padding-bottom:.3rem}
+.slide h3{font-size:calc(var(--base)*1.05);color:#1e3a5f;margin:.9rem 0 .4rem}
+.slide p,.slide li{line-height:1.65;margin-bottom:.45rem}
+.slide ul,.slide ol{padding-left:1.4rem;margin-bottom:.5rem}
+.slide ul li,.slide ol li{margin-bottom:.3rem}
+.tag{display:inline-block;font-size:calc(var(--base)*.72);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.13rem .55rem;border-radius:4px;margin-bottom:.6rem}
+.tag.module{background:#dbeafe;color:#1e40af}
+.tag.topic{background:#f0fdf4;color:#166534}
+.tag.exercise{background:#fef9c3;color:#854d0e}
+.tag.practice{background:#fce7f3;color:#9d174d}
+.box{border-radius:8px;padding:.75rem 1rem;margin:.6rem 0;border-left:4px solid #94a3b8;background:#f8fafc}
+.box.def{border-color:#2563eb;background:#eff6ff}
+.box.formula{border-color:#7c3aed;background:#f5f3ff}
+.box.note{border-color:#d97706;background:#fffbeb}
+.box.warn{border-color:#dc2626;background:#fff1f2}
+.box.ex{border-color:#059669;background:#f0fdf4}
+.box>strong:first-child{display:block;margin-bottom:.3rem;color:#1e293b}
+.box strong{color:#1e293b}
+.sol-btn{margin-top:.5rem;background:#1e3a5f;color:#fff;border:none;border-radius:6px;padding:.38rem .9rem;font-size:calc(var(--base)*.83);cursor:pointer}
+.sol-btn:hover{background:#2563eb}
+.solution{display:none;margin-top:.6rem;border-top:1px dashed #cbd5e1;padding-top:.6rem}
+table{border-collapse:collapse;width:100%;margin:.6rem 0;font-size:calc(var(--base)*.9)}
+th,td{border:1px solid #cbd5e1;padding:.35rem .6rem;text-align:left}
+th{background:#f1f5f9;font-weight:600}
+canvas{display:block;border-radius:8px;background:#f8fafc}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;padding-top:.8rem;border-top:1px solid #e2e8f0}
+.nav-row button{background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:.45rem 1.1rem;font-size:calc(var(--base)*.88);cursor:pointer}
+.nav-row button:hover{background:#2563eb}
+.nav-row button:disabled{background:#94a3b8;cursor:default}
+.slide-num{font-size:calc(var(--base)*.82);color:#64748b}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <div>
+    <h1>Module 24: Hierarchical Clustering</h1>
+    <div class="meta">AST402 Statistics for AI and Machine Learning &nbsp;|&nbsp; Part H: Unsupervised Learning &nbsp;|&nbsp; IASDS, University of Dhaka</div>
+  </div>
+  <div class="zoom-bar"><button onclick="chgZ(-1)">A-</button><button onclick="chgZ(1)">A+</button></div>
+</header>
+<div id="slides">
+  <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:10%"></div></div>
+
+  <!-- Slide 1 -->
+  <div class="slide active" data-slide="1">
+    <span class="tag module">Module 24</span>
+    <h2>Hierarchical Clustering</h2>
+    <p>K-means requires the number of clusters to be fixed in advance and returns a single flat partition. Hierarchical clustering instead builds a whole family of nested clusterings at once, displayed as a tree, and leaves the choice of how many groups to take until after the structure has been seen.</p>
+    <div class="box def">
+      <strong>Learning Objectives</strong>
+      <ul>
+        <li>Execute agglomerative clustering by hand from a distance matrix</li>
+        <li>Apply complete, single, average and centroid linkage, and explain how they differ</li>
+        <li>Read a dendrogram correctly, including what its horizontal axis does not mean</li>
+        <li>Choose between Euclidean and correlation based dissimilarity</li>
+        <li>Compare hierarchical clustering with K-means and state when each is preferable</li>
+      </ul>
+    </div>
+    <div class="box note">
+      <strong>The nesting property</strong>
+      The clusterings produced are nested: the two group solution is obtained by merging two of the three groups, and so on. This is a genuine assumption about the data. If the natural split by sex cuts across the natural split by nationality, no hierarchy can represent both, and the method will impose one at the expense of the other.
+    </div>
+  </div>
+
+<div class="slide" data-slide="2">
+    <span class="tag topic">Algorithm</span>
+    <h2>Agglomerative Clustering and the Dendrogram</h2>
+    <div class="box def">
+      <strong>The algorithm, bottom up</strong>
+      <ol>
+        <li>Begin with $n$ clusters, each containing one observation, and compute all $\binom{n}{2}$ pairwise dissimilarities.</li>
+        <li>Find the two closest clusters and merge them. Record the height at which they joined.</li>
+        <li>Compute the dissimilarity between the new cluster and each remaining cluster, using the chosen linkage.</li>
+        <li>Repeat until one cluster remains.</li>
+      </ol>
+      The procedure performs exactly $n-1$ merges and requires no choice of $K$ in advance.
+    </div>
+    <h3>Reading a dendrogram</h3>
+    <p>Each merge is drawn as a horizontal join, placed at a height equal to the dissimilarity at which it occurred. The height is the only thing that carries meaning.</p>
+    <div class="box note">
+      <strong>Divisive clustering</strong>
+      The opposite strategy starts with one cluster containing everything and recursively splits it. Divisive methods are far less commonly used, since the first split requires searching an enormous number of possible partitions.
+    </div>
+  </div>
+
+<div class="slide" data-slide="3">
+    <span class="tag topic">Linkage</span>
+    <h2>Linkage Methods</h2>
+    <p>Once clusters contain more than one observation, the distance between two <em>clusters</em> must be defined from the distances between their <em>members</em>. That definition is the linkage.</p>
+    <div class="box formula">
+      <strong>The four standard choices</strong>
+      <table>
+        <tr><th>Linkage</th><th>Definition</th></tr>
+        <tr><td><strong>Complete</strong></td><td>Largest pairwise distance between the clusters</td></tr>
+        <tr><td><strong>Single</strong></td><td>Smallest pairwise distance</td></tr>
+        <tr><td><strong>Average</strong></td><td>Mean of all pairwise distances</td></tr>
+        <tr><td><strong>Centroid</strong></td><td>Distance between the cluster centroids</td></tr>
+      </table>
+    </div>
+  </div>
+
+<div class="slide" data-slide="4">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Complete Linkage</h2>
+    <p>Five observations on a single variable: $A=1,\;B=2,\;C=5,\;D=9,\;E=10$. Dissimilarity is absolute difference.</p>
+    <div class="box formula">
+      <strong>The distance matrix</strong>
+      <table>
+        <tr><th></th><th>$A$</th><th>$B$</th><th>$C$</th><th>$D$</th><th>$E$</th></tr>
+        <tr><th>$A$</th><td>0</td><td>1</td><td>4</td><td>8</td><td>9</td></tr>
+        <tr><th>$B$</th><td></td><td>0</td><td>3</td><td>7</td><td>8</td></tr>
+        <tr><th>$C$</th><td></td><td></td><td>0</td><td>4</td><td>5</td></tr>
+        <tr><th>$D$</th><td></td><td></td><td></td><td>0</td><td>1</td></tr>
+        <tr><th>$E$</th><td></td><td></td><td></td><td></td><td>0</td></tr>
+      </table>
+    </div>
+    <div class="box ex">
+      <strong>Step 1, height 1</strong>
+      The smallest entry is $1$, occurring twice: $(A,B)$ and $(D,E)$. Merge $\{A,B\}$, then $\{D,E\}$, both at height $1$.
+      <strong>Step 2, updating with complete linkage</strong>
+      Take the <em>maximum</em> across members:
+      $$d(\{A,B\},C) = \max(4,3) = 4, \qquad d(C,\{D,E\}) = \max(4,5) = 5$$
+      $$d(\{A,B\},\{D,E\}) = \max(8,9,7,8) = 9$$
+      <strong>Step 3, height 4</strong>
+      The smallest remaining is $4$, so $C$ joins $\{A,B\}$ to give $\{A,B,C\}$ at height $4$.
+      <strong>Step 4, height 9</strong>
+      Only two clusters remain and
+      $$d(\{A,B,C\},\{D,E\}) = \max(8,9,7,8,4,5) = 9$$
+      so the final merge occurs at height $9$.
+    </div>
+    <canvas id="cv-dend" width="420" height="270" style="width:100%;max-width:480px;height:auto;margin:.5rem auto;"></canvas>
+    <p>Dendrogram for complete linkage on the five observations.</p>
+    <div class="box def">
+      <strong>Merge heights</strong>
+      $$1,\quad 1,\quad 4,\quad 9$$
+      The large gap between the third merge at $4$ and the final merge at $9$ is the visual signal that two well separated groups are present. Cutting anywhere between those heights yields $\{A,B,C\}$ and $\{D,E\}$.
+    </div>
+  </div>
+
+<div class="slide" data-slide="5">
+    <span class="tag exercise">Worked Example</span>
+    <h2>Worked Example: Single Linkage on the Same Data</h2>
+    <p>Repeating the calculation with single linkage changes only the update rule: take the <em>minimum</em> across members rather than the maximum.</p>
+    <div class="box ex">
+      <strong>The calculation</strong>
+      Steps 1 and 2 are unchanged, since the smallest entries are the same: $\{A,B\}$ and $\{D,E\}$ both merge at height $1$. The updates now give
+      $$d(\{A,B\},C) = \min(4,3) = 3, \qquad d(C,\{D,E\}) = \min(4,5) = 4$$
+      $$d(\{A,B\},\{D,E\}) = \min(8,9,7,8) = 7$$
+      The smallest is $3$, so $C$ joins $\{A,B\}$ at height $\mathbf{3}$, not $4$. Finally
+      $$d(\{A,B,C\},\{D,E\}) = \min(8,9,7,8,4,5) = 4$$
+      so the last merge occurs at height $\mathbf{4}$, not $9$.
+    </div>
+    <canvas id="cv-dend2" width="420" height="270" style="width:100%;max-width:480px;height:auto;margin:.5rem auto;"></canvas>
+    <p>Dendrogram for single linkage on the same five observations.</p>
+    <div class="box formula">
+      <strong>Comparison</strong>
+      <table>
+        <tr><th>Merge</th><th>Complete linkage</th><th>Single linkage</th></tr>
+        <tr><td>$\{A,B\}$</td><td>1</td><td>1</td></tr>
+        <tr><td>$\{D,E\}$</td><td>1</td><td>1</td></tr>
+        <tr><td>$\{A,B,C\}$</td><td>4</td><td>3</td></tr>
+        <tr><td>All five</td><td>$\mathbf{9}$</td><td>$\mathbf{4}$</td></tr>
+      </table>
+    </div>
+    <div class="box def">
+      <strong>What this shows</strong>
+      <strong>The clustering is identical; only the heights differ.</strong> Both linkages recover $\{A,B,C\}$ and $\{D,E\}$, because the structure here is unambiguous. But complete linkage separates the final merge from the previous one by a gap of $9-4 = 5$, while single linkage leaves a gap of only $4-3 = 1$. The two group structure is therefore visually obvious under complete linkage and easy to miss under single linkage.
+      The reason is that single linkage measures the distance between the <em>nearest</em> members, $C$ and $D$, which are only $4$ apart, whereas complete linkage measures the distance between the <em>furthest</em> members, $A$ and $E$, which are $9$ apart. Linkage choice can change which structures are visible even when it does not change the groups.
+    </div>
+  </div>
+
+<div class="slide" data-slide="6">
+    <span class="tag topic">Dissimilarity</span>
+    <h2>Choosing the Dissimilarity Measure</h2>
+    <div class="box def">
+      <strong>Euclidean distance</strong>
+      $$d(x_i,x_{i'}) = \sqrt{\sum_{j=1}^{p}(x_{ij}-x_{i'j})^2}$$
+      Two observations are similar when their values are close in magnitude. This is the default and the right choice when the actual levels matter.
+    </div>
+    <div class="box def">
+      <strong>Correlation based dissimilarity</strong>
+      $$d(x_i,x_{i'}) = 1 - \operatorname{corr}(x_i,x_{i'})$$
+      Here the correlation is computed <em>across the variables</em> for a pair of observations, so two observations are similar when their <em>profiles</em> move together, regardless of level.
+    </div>
+    <h3>Why the choice can reverse the answer</h3>
+    <p>Consider a retailer clustering shoppers by quantities purchased across many items. Under Euclidean distance, an infrequent shopper who buys little of everything is close to other infrequent shoppers, so clusters correspond largely to total spend. Under correlation dissimilarity, that shopper is grouped with heavy spenders who buy <em>the same mix</em> of items, so clusters correspond to taste rather than volume. Both are defensible; they answer different questions, and the choice must be made on substantive grounds.</p>
+    <div class="box warn">
+      <strong>Standardisation is a third decision</strong>
+      Whether to standardise the variables is separate from the choice of dissimilarity, and equally consequential. Unstandardised, a variable measured in large units dominates the distance. In the retail example, standardising each item by its standard deviation gives rare purchases much more influence, which may be desirable if buying an unusual item is highly informative. There is no default that is always correct, so the decision should be stated explicitly.
+    </div>
+  </div>
+
+<div class="slide" data-slide="7">
+    <span class="tag topic">Cutting the Tree</span>
+    <h2>From Dendrogram to Clusters</h2>
+    <div class="box def">
+      <strong>Cutting</strong>
+      A horizontal cut across the dendrogram at height $h$ produces a clustering: each branch severed by the cut becomes one cluster. Lowering the cut produces more, smaller clusters. A single tree therefore contains every clustering from $n$ singletons to one group, which is the practical advantage over K-means.
+    </div>
+    <h3>Where to cut</h3>
+    <ul>
+      <li><strong>The largest vertical gap.</strong> A long stretch with no merges means clusters had to become much more dissimilar before joining, which is the clearest evidence of separation. In the worked example the gap from $4$ to $9$ points to a cut giving two clusters.</li>
+      <li><strong>A target number of clusters,</strong> when the application dictates one, for example a fixed number of market segments.</li>
+      <li><strong>The silhouette coefficient from Module 23,</strong> computed at each candidate cut and maximised.</li>
+    </ul>
+    <div class="box warn">
+      <strong>The cut is not a test</strong>
+      As with the elbow in K-means, this is a judgement supported by a diagnostic, not an inference. A dendrogram can always be cut, and will always yield clusters, whether or not the data contain any. Before reporting, check that the structure survives resampling: cluster a random subsample and see whether the same groups appear.
+    </div>
+  </div>
+
+<div class="slide" data-slide="8">
+    <span class="tag topic">Comparison</span>
+    <h2>Hierarchical Clustering Compared with K-Means</h2>
+    <table>
+      <tr><th></th><th>K-means</th><th>Hierarchical</th></tr>
+      <tr><td>Number of clusters</td><td>Fixed in advance</td><td>Decided after seeing the tree</td></tr>
+      <tr><td>Output</td><td>One flat partition</td><td>A nested family, all $K$ at once</td></tr>
+      <tr><td>Determinism</td><td>Depends on initialisation</td><td>Deterministic given the inputs</td></tr>
+      <tr><td>Reassignment</td><td>Points may move between clusters</td><td>Merges are irrevocable</td></tr>
+      <tr><td>Assumes nesting</td><td>No</td><td>Yes</td></tr>
+    </table>
+    <div class="box def">
+      <strong>Practical guidance</strong>
+      Use <strong>hierarchical clustering</strong> for moderate $n$ when the number of groups is unknown, when the tree itself is informative, or when a deterministic and reproducible result is required. Use <strong>K-means</strong> for large $n$, when $K$ is known or can be justified, and when clusters are expected to be roughly spherical. Running both and comparing is inexpensive and often more informative than either alone: agreement between two methods with quite different assumptions is meaningful evidence that the structure is real.
+    </div>
+    <div class="box warn">
+      <strong>The irrevocability of merges</strong>
+      Hierarchical clustering never reconsiders. An early merge made on a small distance persists to the top of the tree even if later evidence suggests it was wrong. K-means, by contrast, allows an observation to move at any iteration. This is the same greedy limitation seen in tree growing in Module 18.
+    </div>
+  </div>
+
+<div class="slide" data-slide="9">
+    <span class="tag exercise">In-Class Exercise</span>
+    <h2>In-Class Exercise</h2>
+    <div class="box ex">
+      <strong>Problem</strong>
+      Five observations are measured on two variables.
+      <table>
+        <tr><th>Observation</th><th>$A$</th><th>$B$</th><th>$C$</th><th>$D$</th><th>$E$</th></tr>
+        <tr><th>$X_1$</th><td>1</td><td>2</td><td>4</td><td>8</td><td>8</td></tr>
+        <tr><th>$X_2$</th><td>1</td><td>1</td><td>3</td><td>5</td><td>2</td></tr>
+      </table>
+      <ol>
+        <li>Calculate the Euclidean distance matrix.</li>
+        <li>Perform complete linkage clustering, giving every merge and its height.</li>
+        <li>Perform single linkage clustering on the same distances.</li>
+        <li>Draw the dendrogram for each linkage.</li>
+        <li>State the two cluster solution under each linkage.</li>
+        <li>Cut each dendrogram at height $3.2$. How many clusters does each give, and what are they?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m23-ex-sol')">Show solution</button>
+    <div class="solution" id="m23-ex-sol">
+      <p><strong>1. Distance matrix.</strong> Each entry is $d(i,j)=\sqrt{(x_{i1}-x_{j1})^2+(x_{i2}-x_{j2})^2}$. For example
+      $$d(A,B)=\sqrt{1^2+0^2}=1, \qquad d(A,C)=\sqrt{3^2+2^2}=\sqrt{13}=3.61, \qquad d(C,E)=\sqrt{4^2+1^2}=\sqrt{17}=4.12$$
+      and the full matrix is
+      <table>
+        <tr><th></th><th>$A$</th><th>$B$</th><th>$C$</th><th>$D$</th><th>$E$</th></tr>
+        <tr><th>$A$</th><td>0</td><td>1.00</td><td>3.61</td><td>8.06</td><td>7.07</td></tr>
+        <tr><th>$B$</th><td></td><td>0</td><td>2.83</td><td>7.21</td><td>6.08</td></tr>
+        <tr><th>$C$</th><td></td><td></td><td>0</td><td>4.47</td><td>4.12</td></tr>
+        <tr><th>$D$</th><td></td><td></td><td></td><td>0</td><td>3.00</td></tr>
+        <tr><th>$E$</th><td></td><td></td><td></td><td></td><td>0</td></tr>
+      </table></p>
+      <p><strong>2. Complete linkage.</strong> The smallest entry is $1.00$, so merge $\{A,B\}$ at height $\mathbf{1.00}$. Updating with maxima:
+      $$d(\{A,B\},C)=\max(3.61,2.83)=3.61, \quad d(\{A,B\},D)=\max(8.06,7.21)=8.06, \quad d(\{A,B\},E)=\max(7.07,6.08)=7.07$$
+      The smallest entry is now $d(D,E)=3.00$, so merge $\{D,E\}$ at height $\mathbf{3.00}$. Then
+      $$d(C,\{D,E\})=\max(4.47,4.12)=4.47$$
+      The smallest is $3.61$, so $C$ joins $\{A,B\}$ at height $\mathbf{3.61}$. Finally
+      $$d(\{A,B,C\},\{D,E\})=\max(8.06,7.07,7.21,6.08,4.47,4.12)=8.06$$
+      so the last merge is at height $\mathbf{8.06}$.</p>
+      <p><strong>3. Single linkage.</strong> Merge $\{A,B\}$ at height $\mathbf{1.00}$. Updating with minima:
+      $$d(\{A,B\},C)=\min(3.61,2.83)=2.83, \quad d(\{A,B\},D)=\min(8.06,7.21)=7.21, \quad d(\{A,B\},E)=\min(7.07,6.08)=6.08$$
+      The smallest entry is $2.83$, so $C$ joins $\{A,B\}$ at height $\mathbf{2.83}$. Next the smallest is $d(D,E)=3.00$, so merge $\{D,E\}$ at height $\mathbf{3.00}$. Finally
+      $$d(\{A,B,C\},\{D,E\})=\min(8.06,7.07,7.21,6.08,4.47,4.12)=4.12$$
+      so the last merge is at height $\mathbf{4.12}$.</p>
+      <table>
+        <tr><th>Merge</th><th>Complete</th><th>Single</th></tr>
+        <tr><td>$\{A,B\}$</td><td>1.00</td><td>1.00</td></tr>
+        <tr><td>$\{D,E\}$</td><td>3.00</td><td>3.00</td></tr>
+        <tr><td>$C$ joins $\{A,B\}$</td><td>3.61</td><td>2.83</td></tr>
+        <tr><td>All five</td><td>8.06</td><td>4.12</td></tr>
+      </table>
+      <p><strong>4. Dendrograms.</strong> Each join is drawn at its merge height. Under single linkage $C$ joins $\{A,B\}$ before $\{D,E\}$ forms, and under complete linkage after.</p>
+      <canvas id="cv-ex6" width="700" height="290" style="width:100%;height:auto;margin:.5rem 0;"></canvas>
+      <p><strong>5.</strong> Both linkages give the same two cluster solution, $\{A,B,C\}$ and $\{D,E\}$. Only the heights differ: the final gap is $8.06-3.61 = 4.45$ under complete linkage but only $4.12-3.00 = 1.12$ under single linkage, so the separation looks far more convincing in the complete linkage dendrogram.</p>
+      <p><strong>6.</strong> A cut at height $3.2$ keeps every merge below $3.2$ and breaks every join above it.</p>
+      <p><em>Complete linkage:</em> the merges at $1.00$ and $3.00$ lie below the cut; the merges at $3.61$ and $8.06$ lie above it. The cut severs $3$ branches and gives <strong>3 clusters</strong>: $\{A,B\}$, $\{D,E\}$ and $\{C\}$.</p>
+      <p><em>Single linkage:</em> the merges at $1.00$, $2.83$ and $3.00$ lie below the cut; only the final merge at $4.12$ lies above it. The cut severs $2$ branches and gives <strong>2 clusters</strong>: $\{A,B,C\}$ and $\{D,E\}$.</p>
+      <p>The same height gives different numbers of clusters under the two linkages, because the heights are on different scales. A cut height is only meaningful relative to the linkage that produced the dendrogram.</p>
+    </div>
+  </div>
+
+<div class="slide" data-slide="10">
+    <span class="tag practice">Practice Problems</span>
+    <h2>Practice Problems</h2>
+    <div class="box ex">
+      <strong>Problem 1</strong>
+      A dendrogram built with average linkage has merge heights $0.8,\;1.1,\;1.3,\;3.9,\;4.2$.
+      <ol>
+        <li>How many observations were there, and how many merges?</li>
+        <li>Where would you cut, and how many clusters does that give?</li>
+        <li>What would cutting at height $1.2$ give?</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m23-pp1-sol')">Show solution</button>
+    <div class="solution" id="m23-pp1-sol">
+      <p><strong>1.</strong> There are five heights, and agglomerative clustering performs $n-1$ merges, so $n = \mathbf{6}$ observations and $\mathbf{5}$ merges.</p>
+      <p><strong>2.</strong> The gaps between consecutive heights are $0.3,\;0.2,\;2.6,\;0.3$. The largest by far is the jump from $1.3$ to $3.9$, so cut anywhere in that range, for example at $2.5$. The first three merges lie below the cut and the last two above it, so the cut severs $\mathbf{3}$ branches and gives <strong>three clusters</strong>.</p>
+      <p><strong>3.</strong> Cutting at $1.2$ leaves the merges at $0.8$ and $1.1$ below the cut, and the merges at $1.3$, $3.9$ and $4.2$ above it. That gives $\mathbf{4}$ clusters. Since $1.2$ sits inside a run of closely spaced merges, this cut splits groups that the data barely distinguish, and is harder to defend than the cut in part 2.</p>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 2</strong>
+      Four observations have the following distance matrix.
+      <table>
+        <tr><th></th><th>$P$</th><th>$Q$</th><th>$R$</th><th>$S$</th></tr>
+        <tr><th>$P$</th><td>0</td><td>2</td><td>6</td><td>10</td></tr>
+        <tr><th>$Q$</th><td></td><td>0</td><td>4</td><td>8</td></tr>
+        <tr><th>$R$</th><td></td><td></td><td>0</td><td>3</td></tr>
+        <tr><th>$S$</th><td></td><td></td><td></td><td>0</td></tr>
+      </table>
+      <ol>
+        <li>Perform average linkage clustering, giving every merge and its height.</li>
+        <li>Cut the dendrogram at height $4$. What clusters result?</li>
+        <li>Find the height of the final merge under complete linkage and under single linkage, and compare with average linkage.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m23-pp2-sol')">Show solution</button>
+    <div class="solution" id="m23-pp2-sol">
+      <p><strong>1.</strong> The smallest entry is $d(P,Q)=2$, so merge $\{P,Q\}$ at height $\mathbf{2}$. Average linkage uses the mean of all pairwise distances:
+      $$d(\{P,Q\},R)=\frac{6+4}{2}=5, \qquad d(\{P,Q\},S)=\frac{10+8}{2}=9, \qquad d(R,S)=3$$
+      The smallest is $3$, so merge $\{R,S\}$ at height $\mathbf{3}$. Finally
+      $$d(\{P,Q\},\{R,S\})=\frac{6+10+4+8}{4}=7$$
+      so the last merge is at height $\mathbf{7}$.</p>
+      <p><strong>2.</strong> The merges at $2$ and $3$ lie below the cut and the merge at $7$ lies above it, so the cut gives $2$ clusters: $\{P,Q\}$ and $\{R,S\}$.</p>
+      <p><strong>3.</strong> Using the same four pairwise distances between $\{P,Q\}$ and $\{R,S\}$, namely $6,10,4,8$:
+      $$\text{complete: } \max = 10, \qquad \text{single: } \min = 4, \qquad \text{average: } \tfrac{28}{4} = 7$$
+      Average linkage always lies between single and complete linkage, which is why it is described as a compromise.</p>
+    </div>
+    <div class="box ex" style="margin-top:1rem;">
+      <strong>Problem 3</strong>
+      Three patients are measured on age (years) and income (thousand taka): $P_1=(30,\,40)$, $P_2=(40,\,42)$, $P_3=(31,\,70)$. The standard deviations are $5$ for age and $20$ for income.
+      <ol>
+        <li>Compute the three Euclidean distances on the raw measurements. Which pair is closest?</li>
+        <li>Standardise each variable by dividing by its standard deviation, and recompute the distances. Which pair is closest now?</li>
+        <li>Explain the difference.</li>
+      </ol>
+    </div>
+    <button class="sol-btn" onclick="togSol('m23-pp3-sol')">Show solution</button>
+    <div class="solution" id="m23-pp3-sol">
+      <p><strong>1. Raw measurements.</strong>
+      $$d(P_1,P_2)=\sqrt{10^2+2^2}=\sqrt{104}=10.20$$
+      $$d(P_1,P_3)=\sqrt{1^2+30^2}=\sqrt{901}=30.02, \qquad d(P_2,P_3)=\sqrt{9^2+28^2}=\sqrt{865}=29.41$$
+      The closest pair is $(P_1,P_2)$.</p>
+      <p><strong>2. After dividing by the standard deviations</strong> the points become $P_1=(6,\,2)$, $P_2=(8,\,2.1)$, $P_3=(6.2,\,3.5)$.
+      $$d(P_1,P_2)=\sqrt{2^2+0.1^2}=\sqrt{4.01}=2.00$$
+      $$d(P_1,P_3)=\sqrt{0.2^2+1.5^2}=\sqrt{2.29}=1.51, \qquad d(P_2,P_3)=\sqrt{1.8^2+1.4^2}=\sqrt{5.20}=2.28$$
+      The closest pair is now $(P_1,P_3)$.</p>
+      <p><strong>3.</strong> On the raw scale, income varies over a much wider range than age, so the income difference dominates every distance and the age difference barely matters. $P_1$ and $P_3$ are the same age but far apart in income, so they look distant. After standardising, one standard deviation of age counts the same as one standard deviation of income, and $P_1$ and $P_3$, almost identical in age, become the closest pair. The clustering therefore depends on the scaling, which is why variables should be standardised before computing distances.</p>
+    </div>
+  </div>
+<div class="nav-row">
+    <button onclick="chgSlide(-1)" id="btn-prev" disabled>&#8592; Previous</button>
+    <span class="slide-num" id="slide-num">Slide 1 of 11</span>
+    <button onclick="chgSlide(1)" id="btn-next">Next &#8594;</button>
+  </div>
+</div>
+</div>
+<script>
+var SK='aiml-m24-v2',ts=10;
+var cs=parseInt(localStorage.getItem(SK)||'1');
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(function(s){s.classList.remove('active')});
+  document.querySelector('[data-slide="'+n+'"]').classList.add('active');
+  document.getElementById('pbar').style.width=(n/ts*100)+'%';
+  document.getElementById('slide-num').textContent='Slide '+n+' of '+ts;
+  document.getElementById('btn-prev').disabled=(n===1);
+  document.getElementById('btn-next').disabled=(n===ts);
+  localStorage.setItem(SK,n);cs=n;
+  if(n===4) setTimeout(drawDend,80);
+  if(n===5) setTimeout(drawDend2,80);
+}
+function chgSlide(d){showSlide(Math.min(Math.max(cs+d,1),ts))}
+function togSol(id){var el=document.getElementById(id);el.style.display=(el.style.display==='block'?'none':'block');if(id==='m23-ex-sol'&&el.style.display==='block')setTimeout(drawEx6,30)}
+function chgZ(d){var c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base'));document.documentElement.style.setProperty('--base',(c+d)+'px')}
+
+function drawDend(){drawDendOn('cv-dend','Complete linkage',1,1,4,9);}
+function drawDend2(){drawDendOn('cv-dend2','Single linkage',1,1,3,4);}
+function drawDendOn(id,ttl,a1,a2,a3,a4){
+  var cv=document.getElementById(id);if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  function panel(ox,pw,title,hAB,hDE,hABC,hAll,maxH){
+    var pad={t:26,b:34},ph=H-pad.t-pad.b,lx=ox+42,iw=pw-64;
+    var leaves=['A','B','C','D','E'];
+    function X(i){return lx+(i+0.5)*(iw/5)}
+    function Y(h){return pad.t+ph*(1-h/maxH)}
+    ctx.fillStyle='#334155';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(title,ox+pw/2,16);
+    ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(lx-8,pad.t);ctx.lineTo(lx-8,pad.t+ph);ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='9px sans-serif';ctx.textAlign='right';
+    for(var v=0;v<=maxH;v+= (maxH>6?2:1)){
+      ctx.beginPath();ctx.moveTo(lx-8,Y(v));ctx.lineTo(lx-12,Y(v));ctx.stroke();
+      ctx.fillText(v,lx-15,Y(v)+3);
+    }
+    ctx.textAlign='center';ctx.font='11px sans-serif';ctx.fillStyle='#334155';
+    leaves.forEach(function(L,i){ctx.fillText(L,X(i),pad.t+ph+15);});
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=1.8;
+    function link(x1,x2,h,y1,y2){
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1,Y(h));
+      ctx.lineTo(x2,Y(h));ctx.lineTo(x2,y2);ctx.stroke();
+      return (x1+x2)/2;
+    }
+    var base=pad.t+ph;
+    var mAB=link(X(0),X(1),hAB,base,base);
+    var mDE=link(X(3),X(4),hDE,base,base);
+    var mABC=link(mAB,X(2),hABC,Y(hAB),base);
+    link(mABC,mDE,hAll,Y(hABC),Y(hDE));
+  }
+  panel(0,W,ttl,a1,a2,a3,a4,10);
+}
+
+function drawEx6(){
+  var cv=document.getElementById('cv-ex6');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  function panel(ox,pw,title,hAB,hDE,hABC,hAll,maxH){
+    var pad={t:26,b:34},ph=H-pad.t-pad.b,lx=ox+42,iw=pw-64;
+    var leaves=['A','B','C','D','E'];
+    function X(i){return lx+(i+0.5)*(iw/5)}
+    function Y(h){return pad.t+ph*(1-h/maxH)}
+    ctx.fillStyle='#334155';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(title,ox+pw/2,16);
+    ctx.strokeStyle='#94a3b8';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(lx-8,pad.t);ctx.lineTo(lx-8,pad.t+ph);ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='9px sans-serif';ctx.textAlign='right';
+    for(var v=0;v<=maxH;v+=2){
+      ctx.beginPath();ctx.moveTo(lx-8,Y(v));ctx.lineTo(lx-12,Y(v));ctx.stroke();
+      ctx.fillText(v,lx-15,Y(v)+3);
+    }
+    ctx.textAlign='center';ctx.font='11px sans-serif';ctx.fillStyle='#334155';
+    leaves.forEach(function(L,i){ctx.fillText(L,X(i),pad.t+ph+15);});
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=1.8;
+    function link(x1,x2,h,y1,y2){
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1,Y(h));
+      ctx.lineTo(x2,Y(h));ctx.lineTo(x2,y2);ctx.stroke();
+      return (x1+x2)/2;
+    }
+    var base=pad.t+ph;
+    var mAB=link(X(0),X(1),hAB,base,base);
+    var mDE=link(X(3),X(4),hDE,base,base);
+    var mABC=link(mAB,X(2),hABC,Y(hAB),base);
+    link(mABC,mDE,hAll,Y(hABC),Y(hDE));
+  }
+  panel(0,W/2,'Complete linkage',1,3,3.61,8.06,10);
+  panel(W/2,W/2,'Single linkage',1,3,2.83,4.12,10);
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')chgSlide(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')chgSlide(-1);
+});
+showSlide(cs);
+</script>
+</body>
+</html>
